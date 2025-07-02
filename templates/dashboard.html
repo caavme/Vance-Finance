@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="h3 mb-4">Financial Dashboard</h1>
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Urgent Bills (Due in 7 days)</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if urgent_bills %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Bill</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in urgent_bills %}
+                            <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#editBillModal{{ bill.id }}">
+                                <td>{{ bill.name }}</td>
+                                <td>${{ "%.2f"|format(bill.amount) }}</td>
+                                <td>{{ bill.due_date.strftime('%m/%d/%Y') }}</td>
+                            </tr>
+
+                            <!-- Edit Bill Modal -->
+                            <div class="modal fade" id="editBillModal{{ bill.id }}" tabindex="-1" aria-labelledby="editBillModalLabel{{ bill.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editBillModalLabel{{ bill.id }}">Edit Bill</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('edit_bill', bill_id=bill.id) }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="name{{ bill.id }}" class="form-label">Bill Name</label>
+                                                    <input type="text" class="form-control" id="name{{ bill.id }}" name="name" value="{{ bill.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="amount{{ bill.id }}" class="form-label">Amount ($)</label>
+                                                    <input type="number" step="0.01" class="form-control" id="amount{{ bill.id }}" name="amount" value="{{ bill.amount }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="due_date{{ bill.id }}" class="form-label">Due Date</label>
+                                                    <input type="date" class="form-control" id="due_date{{ bill.id }}" name="due_date" value="{{ bill.due_date.strftime('%Y-%m-%d') }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="category{{ bill.id }}" class="form-label">Category</label>
+                                                    <select class="form-select" id="category{{ bill.id }}" name="category">
+                                                        <option value="Utilities" {% if bill.category= ='Utilities' %}selected{% endif %}>Utilities</option>
+                                                        <option value="Housing" {% if bill.category= ='Housing' %}selected{% endif %}>Housing</option>
+                                                        <option value="Insurance" {% if bill.category= ='Insurance' %}selected{% endif %}>Insurance</option>
+                                                        <option value="Subscription" {% if bill.category= ='Subscription' %}selected{% endif %}>Subscription</option>
+                                                        <option value="Other" {% if bill.category= ='Other' %}selected{% endif %}>Other</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="recurring{{ bill.id }}" name="recurring" {% if bill.recurring %}checked{% endif %}>
+                                                    <label class="form-check-label" for="recurring{{ bill.id }}">
+                                                        Recurring Payment
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No urgent bills due soon.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Credit Card Summary</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if credit_cards %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Card</th>
+                                <th>Balance</th>
+                                <th>Due Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for card in credit_cards %}
+                            <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#editCardModal{{ card.id }}">
+                                <td>{{ card.name }} (xxxx-{{ card.last_four }})</td>
+                                <td>${{ "%.2f"|format(card.current_balance) }}</td>
+                                <td>{{ card.payment_due_date.strftime('%m/%d/%Y') }}</td>
+                            </tr>
+
+                            <!-- Edit Card Modal -->
+                            <div class="modal fade" id="editCardModal{{ card.id }}" tabindex="-1" aria-labelledby="editCardModalLabel{{ card.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editCardModalLabel{{ card.id }}">Edit Credit Card</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('edit_card', card_id=card.id) }}">
+                                            <div class="modal-body">
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        <label for="name{{ card.id }}" class="form-label">Card Name/Issuer</label>
+                                                        <input type="text" class="form-control" id="name{{ card.id }}" name="name" value="{{ card.name }}" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="last_four{{ card.id }}" class="form-label">Last 4 Digits</label>
+                                                        <input type="text" pattern="[0-9]{4}" maxlength="4" class="form-control" id="last_four{{ card.id }}" name="last_four" value="{{ card.last_four }}" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="limit{{ card.id }}" class="form-label">Credit Limit ($)</label>
+                                                        <input type="number" step="0.01" class="form-control" id="limit{{ card.id }}" name="limit" value="{{ card.limit or '' }}">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="current_balance{{ card.id }}" class="form-label">Current Balance ($)</label>
+                                                        <input type="number" step="0.01" class="form-control" id="current_balance{{ card.id }}" name="current_balance" value="{{ card.current_balance }}" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="interest_rate{{ card.id }}" class="form-label">Interest Rate (%)</label>
+                                                        <input type="number" step="0.01" class="form-control" id="interest_rate{{ card.id }}" name="interest_rate" value="{{ card.interest_rate or '' }}">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label for="payment_due_date{{ card.id }}" class="form-label">Due Date</label>
+                                                        <input type="date" class="form-control" id="payment_due_date{{ card.id }}" name="payment_due_date" value="{{ card.payment_due_date.strftime('%Y-%m-%d') }}" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No credit cards added yet.</p>
+                    <a href="{{ url_for('credit_cards') }}" class="btn btn-outline-primary mt-2">Add Credit Card</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">All Upcoming Bills</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if bills %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Bill</th>
+                                <th>Category</th>
+                                <th>Amount</th>
+                                <th>Due Date</th>
+                                <th>Recurring</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bill in bills %}
+                            <tr class="clickable-row" data-bs-toggle="modal" data-bs-target="#editBillModal{{ bill.id }}">
+                                <td>{{ bill.name }}</td>
+                                <td>{{ bill.category }}</td>
+                                <td>${{ "%.2f"|format(bill.amount) }}</td>
+                                <td>{{ bill.due_date.strftime('%m/%d/%Y') }}</td>
+                                <td>{% if bill.recurring %}<span class="badge bg-info">Yes</span>{% else %}No{% endif %}</td>
+                            </tr>
+
+                            <!-- Edit Bill Modal - if not already defined above -->
+                            {% if bill not in urgent_bills %}
+                            <div class="modal fade" id="editBillModal{{ bill.id }}" tabindex="-1" aria-labelledby="editBillModalLabel{{ bill.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="editBillModalLabel{{ bill.id }}">Edit Bill</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('edit_bill', bill_id=bill.id) }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label for="name{{ bill.id }}" class="form-label">Bill Name</label>
+                                                    <input type="text" class="form-control" id="name{{ bill.id }}" name="name" value="{{ bill.name }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="amount{{ bill.id }}" class="form-label">Amount ($)</label>
+                                                    <input type="number" step="0.01" class="form-control" id="amount{{ bill.id }}" name="amount" value="{{ bill.amount }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="due_date{{ bill.id }}" class="form-label">Due Date</label>
+                                                    <input type="date" class="form-control" id="due_date{{ bill.id }}" name="due_date" value="{{ bill.due_date.strftime('%Y-%m-%d') }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="category{{ bill.id }}" class="form-label">Category</label>
+                                                    <select class="form-select" id="category{{ bill.id }}" name="category">
+                                                        <option value="Utilities" {% if bill.category= ='Utilities' %}selected{% endif %}>Utilities</option>
+                                                        <option value="Housing" {% if bill.category= ='Housing' %}selected{% endif %}>Housing</option>
+                                                        <option value="Insurance" {% if bill.category= ='Insurance' %}selected{% endif %}>Insurance</option>
+                                                        <option value="Subscription" {% if bill.category= ='Subscription' %}selected{% endif %}>Subscription</option>
+                                                        <option value="Other" {% if bill.category= ='Other' %}selected{% endif %}>Other</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-check mb-3">
+                                                    <input class="form-check-input" type="checkbox" id="recurring{{ bill.id }}" name="recurring" {% if bill.recurring %}checked{% endif %}>
+                                                    <label class="form-check-label" for="recurring{{ bill.id }}">
+                                                        Recurring Payment
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <p class="mb-0">No upcoming bills.</p>
+                    <a href="{{ url_for('bills') }}" class="btn btn-outline-primary mt-2">Add Bill</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Make rows clickable
+        document.querySelectorAll('.clickable-row').forEach(function (row) {
+            row.addEventListener('click', function () {
+                const target = this.getAttribute('data-bs-target');
+                const modal = new bootstrap.Modal(document.querySelector(target));
+                modal.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
