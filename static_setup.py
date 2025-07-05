@@ -22,7 +22,7 @@ def create_static_structure():
     css_file = os.path.join(css_dir, 'style.css')
     if not os.path.exists(css_file):
         with open(css_file, 'w') as f:
-            f.write("""/* Vance Financial Assistant Custom Styles */
+            f.write("""/* Vance Finance Custom Styles */
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -64,7 +64,7 @@ footer {
     js_file = os.path.join(js_dir, 'script.js')
     if not os.path.exists(js_file):
         with open(js_file, 'w') as f:
-            f.write("""// Vance Financial Assistant Scripts
+            f.write("""// Vance Finance Scripts
 
 // Initialize Bootstrap tooltips
 document.addEventListener('DOMContentLoaded', function() {

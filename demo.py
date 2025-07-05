@@ -594,7 +594,7 @@ def demo_login():
             # Log in as demo user
             session['user_id'] = demo_user_id
             session['demo_mode'] = True  # Flag to indicate demo mode
-            flash('Welcome to the Vance Financial Assistant Demo!', 'success')
+            flash('Welcome to the Vance Finance Demo!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Error setting up demo. Please try again.', 'danger')
