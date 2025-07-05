@@ -1,29 +1,29 @@
+import os
+import secrets
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_file
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta
-import os
 import shutil
-import json
+import json 
 import tempfile
 import calendar
 
-# FORCE THE CORRECT WORKING DIRECTORY
-script_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(script_dir)
-print(f"[SUCCESS] Working directory changed to: {script_dir}")
-print(f"[SUCCESS] Current working directory is now: {os.getcwd()}")
-
 # Initialize Flask application
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'vance-financial-secret-key-change-this-in-production'  # Fixed secret key
-# Use absolute path for database
-script_dir = os.path.dirname(os.path.abspath(__file__))
-db_path = os.path.join(script_dir, 'finance_tracker.db')
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-print(f"[SUCCESS] Database will be created at: {db_path}")
+# Configuration that works for both local development and deployment
+class Config:
+    # Generate a secure secret key if none provided
+    SECRET_KEY = os.environ.get('SECRET_KEY') or secrets.token_hex(32)
+    
+    # Database configuration - works for both local and deployed
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    DATABASE_URL = os.environ.get('DATABASE_URL') or f'sqlite:///{os.path.join(BASE_DIR, "finance_tracker.db")}'
+    SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+app.config.from_object(Config)
 
 # Initialize database
 db = SQLAlchemy(app)
@@ -101,35 +101,41 @@ class IncomeSource(db.Model):
     is_active = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
-# Function to backup database
+# Updated backup function to work in any environment
 def backup_database():
     """Create a backup of the database"""
     try:
-        # Get the directory where this Python file is located
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        backups_dir = os.path.join(current_dir, 'backups')
+        # Use app's instance path or current directory
+        if hasattr(app, 'instance_path'):
+            base_dir = app.instance_path
+        else:
+            base_dir = os.path.abspath(os.path.dirname(__file__))
+            
+        backups_dir = os.path.join(base_dir, 'backups')
         
         # Create backups directory if it doesn't exist
-        if not os.path.exists(backups_dir):
-            os.makedirs(backups_dir)
-            print(f"Created backups directory at: {backups_dir}")
-            
-        # Get the path to the database file in the current project directory
-        db_path = os.path.join(current_dir, 'finance_tracker.db')
-        print(f"Looking for database at: {db_path}")
+        os.makedirs(backups_dir, exist_ok=True)
         
-        # Check if database file exists
+        # Get database file path
+        db_url = app.config['SQLALCHEMY_DATABASE_URI']
+        if db_url.startswith('sqlite:///'):
+            db_path = db_url.replace('sqlite:///', '')
+            if not os.path.isabs(db_path):
+                db_path = os.path.join(base_dir, db_path)
+        else:
+            # For non-SQLite databases, skip file backup
+            print("Non-SQLite database detected, skipping file backup")
+            return True
+            
         if os.path.exists(db_path):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_filename = f"finance_tracker_backup_{timestamp}.db"
             backup_path = os.path.join(backups_dir, backup_filename)
             
-            # Check if source file is readable
             if os.access(db_path, os.R_OK):
                 shutil.copy2(db_path, backup_path)
                 print(f"Database backed up to: {backup_path}")
                 
-                # Verify backup was created successfully
                 if os.path.exists(backup_path) and os.path.getsize(backup_path) > 0:
                     print(f"Backup verified successfully, size: {os.path.getsize(backup_path)} bytes")
                     return True
@@ -141,33 +147,33 @@ def backup_database():
                 return False
         else:
             print(f"Database file not found at: {db_path}")
-            # During startup, this is normal, so don't treat as failure
             return True
             
     except Exception as e:
         print(f"Backup failed with error: {type(e).__name__}: {str(e)}")
-        import traceback
-        print(f"Full traceback: {traceback.format_exc()}")
         return False
 
-# Function to safely migrate database
+# Updated safe migration function
 def safe_migrate_database():
     """Safely migrate database without losing data"""
     try:
-        # Get the correct path to the database
-        current_dir = os.path.dirname(os.path.abspath(__file__))
-        db_path = os.path.join(current_dir, 'finance_tracker.db')
+        db_url = app.config['SQLALCHEMY_DATABASE_URI']
         
-        # Only attempt backup if database actually exists and has content
-        if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
-            print("Existing database found, creating backup before migration...")
-            backup_database()
-        else:
-            print("No existing database found or database is empty, skipping backup")
+        # Only backup for SQLite databases
+        if db_url.startswith('sqlite:///'):
+            db_path = db_url.replace('sqlite:///', '')
+            if not os.path.isabs(db_path):
+                base_dir = os.path.abspath(os.path.dirname(__file__))
+                db_path = os.path.join(base_dir, db_path)
+            
+            if os.path.exists(db_path) and os.path.getsize(db_path) > 0:
+                print("Existing database found, creating backup before migration...")
+                backup_database()
+            else:
+                print("No existing database found or database is empty, skipping backup")
         
-        # Then try migration
+        # Migration logic remains the same
         with db.engine.connect() as connection:
-            # Check and add columns safely for credit card table
             result = connection.execute(db.text("PRAGMA table_info(credit_card)"))
             columns = [row[1] for row in result.fetchall()]
             
@@ -179,19 +185,15 @@ def safe_migrate_database():
                 connection.execute(db.text('ALTER TABLE credit_card ADD COLUMN auto_payment_amount REAL'))
                 print("Added auto_payment_amount column")
             
-            # Check if income_source table exists
             result = connection.execute(db.text("SELECT name FROM sqlite_master WHERE type='table' AND name='income_source'"))
             if not result.fetchone():
                 print("Creating income_source table...")
-                # The table will be created by db.create_all()
             
             connection.commit()
             print("Migration completed successfully")
             
     except Exception as e:
         print(f"Migration failed: {e}")
-        import traceback
-        print(f"Migration traceback: {traceback.format_exc()}")
 
 # Utility functions for income calculations
 def calculate_monthly_income(user_id):
@@ -314,6 +316,269 @@ def add_months(date, months):
     
     return date.replace(year=target_year, month=target_month, day=target_day)
 
+# Add this function before your routes (around line 340)
+def create_demo_data():
+    """Create comprehensive demo data for showcase"""
+    from werkzeug.security import generate_password_hash
+    
+    # Create demo user
+    demo_user = User(
+        username='demo_user',
+        email='demo@vancefinance.com',  # Updated email
+        password_hash=generate_password_hash('demo123')
+    )
+    
+    try:
+        # Check if demo user already exists
+        existing_demo = User.query.filter_by(username='demo_user').first()
+        if existing_demo:
+            # Clear existing demo data
+            Bill.query.filter_by(user_id=existing_demo.id).delete()
+            CreditCard.query.filter_by(user_id=existing_demo.id).delete()
+            Subscription.query.filter_by(user_id=existing_demo.id).delete()
+            Loan.query.filter_by(user_id=existing_demo.id).delete()
+            IncomeSource.query.filter_by(user_id=existing_demo.id).delete()
+            demo_user_id = existing_demo.id
+        else:
+            db.session.add(demo_user)
+            db.session.flush()
+            demo_user_id = demo_user.id
+        
+        # Today's date for realistic demo data
+        today = datetime.now().date()
+        
+        # Create Income Sources
+        income_sources = [
+            IncomeSource(
+                name="Your Salary (Software Engineer)",
+                amount=3250.00,  # Bi-monthly
+                frequency='bimonthly',
+                payment_day_1=15,
+                payment_day_2=30,
+                is_active=True,
+                user_id=demo_user_id
+            ),
+            IncomeSource(
+                name="Spouse's Salary (Teacher)",
+                amount=1850.00,  # Bi-weekly
+                frequency='biweekly',
+                next_payment_date=today + timedelta(days=3),  # Next Friday
+                is_active=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Bills
+        bills = [
+            Bill(
+                name="Mortgage Payment",
+                amount=2150.00,
+                due_date=today.replace(day=1) + timedelta(days=32),
+                category="Housing",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Electric Bill",
+                amount=145.50,
+                due_date=today + timedelta(days=8),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Water & Sewer",
+                amount=89.25,
+                due_date=today + timedelta(days=12),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Internet Service",
+                amount=79.99,
+                due_date=today + timedelta(days=5),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Car Insurance",
+                amount=165.00,
+                due_date=today + timedelta(days=18),
+                category="Insurance",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Health Insurance",
+                amount=425.00,
+                due_date=today + timedelta(days=25),
+                category="Insurance",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Credit Cards
+        credit_cards = [
+            CreditCard(
+                name="Chase Freedom Unlimited",
+                last_four="4892",
+                limit=15000.00,
+                current_balance=2845.67,
+                payment_due_date=today + timedelta(days=14),
+                minimum_payment=85.00,
+                interest_rate=18.99,
+                is_paid=False,
+                auto_pay_minimum=True,
+                user_id=demo_user_id
+            ),
+            CreditCard(
+                name="Capital One Venture",
+                last_four="7251",
+                limit=8500.00,
+                current_balance=1256.34,
+                payment_due_date=today + timedelta(days=21),
+                minimum_payment=35.00,
+                interest_rate=21.49,
+                is_paid=False,
+                auto_pay_minimum=False,
+                auto_payment_amount=200.00,
+                user_id=demo_user_id
+            ),
+            CreditCard(
+                name="Amazon Prime Rewards",
+                last_four="9834",
+                limit=5000.00,
+                current_balance=687.92,
+                payment_due_date=today + timedelta(days=9),
+                minimum_payment=25.00,
+                interest_rate=24.74,
+                is_paid=False,
+                auto_pay_minimum=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Subscriptions
+        subscriptions = [
+            Subscription(
+                name="Netflix Premium",
+                amount=15.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=6),
+                category="Entertainment",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Spotify Family",
+                amount=15.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=11),
+                category="Entertainment",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Adobe Creative Cloud",
+                amount=52.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=19),
+                category="Software",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Amazon Prime",
+                amount=139.00,
+                billing_cycle="Yearly",
+                next_billing_date=today + timedelta(days=95),
+                category="Shopping",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Office 365 Family",
+                amount=99.99,
+                billing_cycle="Yearly",
+                next_billing_date=today + timedelta(days=203),
+                category="Software",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Gym Membership",
+                amount=45.00,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=7),
+                category="Health",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Loans
+        loans = [
+            Loan(
+                name="Honda Civic Car Loan",
+                loan_type="Auto",
+                principal_amount=28500.00,
+                current_balance=18750.00,
+                monthly_payment=485.00,
+                interest_rate=3.99,
+                next_payment_date=today + timedelta(days=16),
+                term_months=60,
+                is_paid_off=False,
+                user_id=demo_user_id
+            ),
+            Loan(
+                name="Student Loan - Federal",
+                loan_type="Student",
+                principal_amount=45000.00,
+                current_balance=32100.00,
+                monthly_payment=325.00,
+                interest_rate=4.53,
+                next_payment_date=today + timedelta(days=23),
+                term_months=120,
+                is_paid_off=False,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Add all demo data to session
+        for income in income_sources:
+            db.session.add(income)
+        for bill in bills:
+            db.session.add(bill)
+        for card in credit_cards:
+            db.session.add(card)
+        for sub in subscriptions:
+            db.session.add(sub)
+        for loan in loans:
+            db.session.add(loan)
+        
+        db.session.commit()
+        return demo_user_id
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating demo data: {e}")
+        return None
+
 # Create the database tables and migrate
 with app.app_context():
     db.create_all()
@@ -323,7 +588,7 @@ with app.app_context():
 @app.route('/')
 def index():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('demo_page'))  # Changed from login to demo_page
     return redirect(url_for('dashboard'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1607,15 +1872,15 @@ def demo_login():
             # Log in as demo user
             session['user_id'] = demo_user_id
             session['demo_mode'] = True  # Flag to indicate demo mode
-            flash('Welcome to the Vance Financial Assistant Demo!', 'success')
+            flash('Welcome to the Vance Finance Demo!', 'success')
             return redirect(url_for('dashboard'))
         else:
             flash('Error setting up demo. Please try again.', 'danger')
-            return redirect(url_for('login'))  # Changed from demo_page to login as fallback
+            return redirect(url_for('login'))
             
     except Exception as e:
         flash(f'Demo setup error: {str(e)}', 'danger')
-        return redirect(url_for('login'))  # Changed from demo_page to login as fallback
+        return redirect(url_for('login'))
 
 @app.route('/demo/reset')
 def demo_reset():
@@ -1640,8 +1905,11 @@ def demo_exit():
     session.pop('user_id', None)
     session.pop('demo_mode', None)
     flash('You have exited demo mode.', 'info')
-    return redirect(url_for('login'))  # Changed from demo_page to login as fallback
+    return redirect(url_for('demo_page'))
 
-# THIS IS THE CRUCIAL PART THAT WAS MISSING!
+# Updated main execution
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    # Development server
+    port = int(os.environ.get('PORT', 5001))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    app.run(host='0.0.0.0', port=port, debug=debug)

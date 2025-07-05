@@ -1,6 +1,6 @@
-# Vance Financial Assistant
+# Vance Finance
 
-A web-based financial management application built with Flask that helps you track and visualize your bills and credit cards. This application focuses on providing a clean, flat design interface for managing your financial information without the complexity of payment tracking.
+A comprehensive personal finance management application built with Flask.
 
 ## Features
 
@@ -12,16 +12,38 @@ A web-based financial management application built with Flask that helps you tra
 - **Flat Design Interface**: Clean, modern UI with minimal visual clutter
 - **Responsive Design**: Works well on desktop and mobile devices
 
-## Quick Start Guide
+## Quick Start
 
-1. Run `python static_setup.py`
-2. Run `python Vance_Financial_Assistant.py`
-3. Open `http://localhost:5001`
-4. Register a new account
-5. Start adding your bills and credit cards
-6. Use the dashboard for quick overviews and editing
+### Local Development
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run the application: `python Vance_Financial_Assistant.py`
+4. Visit: `http://localhost:5001`
 
-Your financial data is stored locally in the SQLite database file.
+### Production Deployment
+
+#### Heroku
+1. Create a Heroku app: `heroku create your-app-name`
+2. Set environment variables: `heroku config:set SECRET_KEY=your-secret-key heroku config:set FLASK_ENV=production`
+3. Deploy: `git push heroku main`
+
+#### Docker
+1. Build: `docker build -t vance-finance .`
+2. Run: `docker run -p 5000:5000 vance-finance`
+
+#### Traditional Web Server
+1. Install dependencies: `pip install -r requirements.txt`
+2. Set environment variables
+3. Run with gunicorn: `gunicorn wsgi:app`
+
+## Environment Variables
+- `SECRET_KEY`: Secret key for session management
+- `DATABASE_URL`: Database connection string
+- `FLASK_ENV`: Set to 'production' for production deployment
+- `PORT`: Port number (default: 5000)
+
+## Demo
+Visit `/demo` to try the application with sample data.
 
 ## Technology Stack
 
