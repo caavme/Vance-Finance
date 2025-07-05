@@ -21,9 +21,10 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Vance_Financial_Assistant.py" />
+    <Compile Include="demo.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="templates\demo.html" />
     <Content Include="templates\import_backup.html" />
     <Content Include="templates\income.html" />
     <Content Include="templates\manage_backups.html" />

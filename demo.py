@@ -314,6 +314,321 @@ def add_months(date, months):
     
     return date.replace(year=target_year, month=target_month, day=target_day)
 
+# Add these demo functions after your existing utility functions
+
+def create_demo_data():
+    """Create comprehensive demo data for showcase"""
+    from werkzeug.security import generate_password_hash
+    
+    # Create demo user
+    demo_user = User(
+        username='demo_user',
+        email='demo@vancefinancial.com',
+        password_hash=generate_password_hash('demo123')
+    )
+    
+    try:
+        # Check if demo user already exists
+        existing_demo = User.query.filter_by(username='demo_user').first()
+        if existing_demo:
+            # Clear existing demo data
+            Bill.query.filter_by(user_id=existing_demo.id).delete()
+            CreditCard.query.filter_by(user_id=existing_demo.id).delete()
+            Subscription.query.filter_by(user_id=existing_demo.id).delete()
+            Loan.query.filter_by(user_id=existing_demo.id).delete()
+            IncomeSource.query.filter_by(user_id=existing_demo.id).delete()
+            demo_user_id = existing_demo.id
+        else:
+            db.session.add(demo_user)
+            db.session.flush()
+            demo_user_id = demo_user.id
+        
+        # Today's date for realistic demo data
+        today = datetime.now().date()
+        
+        # Create Income Sources
+        income_sources = [
+            IncomeSource(
+                name="Your Salary (Software Engineer)",
+                amount=3250.00,  # Bi-monthly
+                frequency='bimonthly',
+                payment_day_1=15,
+                payment_day_2=30,
+                is_active=True,
+                user_id=demo_user_id
+            ),
+            IncomeSource(
+                name="Spouse's Salary (Teacher)",
+                amount=1850.00,  # Bi-weekly
+                frequency='biweekly',
+                next_payment_date=today + timedelta(days=3),  # Next Friday
+                is_active=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Bills
+        bills = [
+            Bill(
+                name="Mortgage Payment",
+                amount=2150.00,
+                due_date=today.replace(day=1) + timedelta(days=32),
+                category="Housing",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Electric Bill",
+                amount=145.50,
+                due_date=today + timedelta(days=8),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Water & Sewer",
+                amount=89.25,
+                due_date=today + timedelta(days=12),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Internet Service",
+                amount=79.99,
+                due_date=today + timedelta(days=5),
+                category="Utilities",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Car Insurance",
+                amount=165.00,
+                due_date=today + timedelta(days=18),
+                category="Insurance",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            ),
+            Bill(
+                name="Health Insurance",
+                amount=425.00,
+                due_date=today + timedelta(days=25),
+                category="Insurance",
+                is_paid=False,
+                recurring=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Credit Cards
+        credit_cards = [
+            CreditCard(
+                name="Chase Freedom Unlimited",
+                last_four="4892",
+                limit=15000.00,
+                current_balance=2845.67,
+                payment_due_date=today + timedelta(days=14),
+                minimum_payment=85.00,
+                interest_rate=18.99,
+                is_paid=False,
+                auto_pay_minimum=True,
+                user_id=demo_user_id
+            ),
+            CreditCard(
+                name="Capital One Venture",
+                last_four="7251",
+                limit=8500.00,
+                current_balance=1256.34,
+                payment_due_date=today + timedelta(days=21),
+                minimum_payment=35.00,
+                interest_rate=21.49,
+                is_paid=False,
+                auto_pay_minimum=False,
+                auto_payment_amount=200.00,
+                user_id=demo_user_id
+            ),
+            CreditCard(
+                name="Amazon Prime Rewards",
+                last_four="9834",
+                limit=5000.00,
+                current_balance=687.92,
+                payment_due_date=today + timedelta(days=9),
+                minimum_payment=25.00,
+                interest_rate=24.74,
+                is_paid=False,
+                auto_pay_minimum=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Subscriptions
+        subscriptions = [
+            Subscription(
+                name="Netflix Premium",
+                amount=15.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=6),
+                category="Entertainment",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Spotify Family",
+                amount=15.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=11),
+                category="Entertainment",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Adobe Creative Cloud",
+                amount=52.99,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=19),
+                category="Software",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Amazon Prime",
+                amount=139.00,
+                billing_cycle="Yearly",
+                next_billing_date=today + timedelta(days=95),
+                category="Shopping",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Office 365 Family",
+                amount=99.99,
+                billing_cycle="Yearly",
+                next_billing_date=today + timedelta(days=203),
+                category="Software",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            ),
+            Subscription(
+                name="Gym Membership",
+                amount=45.00,
+                billing_cycle="Monthly",
+                next_billing_date=today + timedelta(days=7),
+                category="Health",
+                is_active=True,
+                auto_renew=True,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Create Loans
+        loans = [
+            Loan(
+                name="Honda Civic Car Loan",
+                loan_type="Auto",
+                principal_amount=28500.00,
+                current_balance=18750.00,
+                monthly_payment=485.00,
+                interest_rate=3.99,
+                next_payment_date=today + timedelta(days=16),
+                term_months=60,
+                is_paid_off=False,
+                user_id=demo_user_id
+            ),
+            Loan(
+                name="Student Loan - Federal",
+                loan_type="Student",
+                principal_amount=45000.00,
+                current_balance=32100.00,
+                monthly_payment=325.00,
+                interest_rate=4.53,
+                next_payment_date=today + timedelta(days=23),
+                term_months=120,
+                is_paid_off=False,
+                user_id=demo_user_id
+            )
+        ]
+        
+        # Add all demo data to session
+        for income in income_sources:
+            db.session.add(income)
+        for bill in bills:
+            db.session.add(bill)
+        for card in credit_cards:
+            db.session.add(card)
+        for sub in subscriptions:
+            db.session.add(sub)
+        for loan in loans:
+            db.session.add(loan)
+        
+        db.session.commit()
+        return demo_user_id
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating demo data: {e}")
+        return None
+
+@app.route('/demo')
+def demo_page():
+    """Demo page showing off the application features"""
+    return render_template('demo.html')
+
+@app.route('/demo/login')
+def demo_login():
+    """Automatically log in as demo user"""
+    try:
+        # Create or refresh demo data
+        demo_user_id = create_demo_data()
+        
+        if demo_user_id:
+            # Log in as demo user
+            session['user_id'] = demo_user_id
+            session['demo_mode'] = True  # Flag to indicate demo mode
+            flash('Welcome to the Vance Financial Assistant Demo!', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('Error setting up demo. Please try again.', 'danger')
+            return redirect(url_for('demo_page'))
+            
+    except Exception as e:
+        flash(f'Demo setup error: {str(e)}', 'danger')
+        return redirect(url_for('demo_page'))
+
+@app.route('/demo/reset')
+def demo_reset():
+    """Reset demo data to original state"""
+    if 'demo_mode' in session:
+        try:
+            demo_user_id = create_demo_data()
+            if demo_user_id:
+                flash('Demo data has been reset to original state!', 'info')
+            else:
+                flash('Error resetting demo data.', 'danger')
+        except Exception as e:
+            flash(f'Error resetting demo: {str(e)}', 'danger')
+    else:
+        flash('Demo reset is only available in demo mode.', 'warning')
+    
+    return redirect(url_for('dashboard'))
+
+@app.route('/demo/exit')
+def demo_exit():
+    """Exit demo mode"""
+    session.pop('user_id', None)
+    session.pop('demo_mode', None)
+    flash('You have exited demo mode.', 'info')
+    return redirect(url_for('demo_page'))
+
 # Create the database tables and migrate
 with app.app_context():
     db.create_all()
@@ -323,7 +638,7 @@ with app.app_context():
 @app.route('/')
 def index():
     if 'user_id' not in session:
-        return redirect(url_for('login'))
+        return redirect(url_for('demo_page'))  # Changed from login to demo_page
     return redirect(url_for('dashboard'))
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -1588,59 +1903,6 @@ def debug_users():
         
     except Exception as e:
         return f"Error getting user info: {str(e)}"
-
-# Make sure these routes are in your file (they should be after your utility functions but before the main block)
-
-@app.route('/demo')
-def demo_page():
-    """Demo page showing off the application features"""
-    return render_template('demo.html')
-
-@app.route('/demo/login')
-def demo_login():
-    """Automatically log in as demo user"""
-    try:
-        # Create or refresh demo data
-        demo_user_id = create_demo_data()
-        
-        if demo_user_id:
-            # Log in as demo user
-            session['user_id'] = demo_user_id
-            session['demo_mode'] = True  # Flag to indicate demo mode
-            flash('Welcome to the Vance Financial Assistant Demo!', 'success')
-            return redirect(url_for('dashboard'))
-        else:
-            flash('Error setting up demo. Please try again.', 'danger')
-            return redirect(url_for('login'))  # Changed from demo_page to login as fallback
-            
-    except Exception as e:
-        flash(f'Demo setup error: {str(e)}', 'danger')
-        return redirect(url_for('login'))  # Changed from demo_page to login as fallback
-
-@app.route('/demo/reset')
-def demo_reset():
-    """Reset demo data to original state"""
-    if 'demo_mode' in session:
-        try:
-            demo_user_id = create_demo_data()
-            if demo_user_id:
-                flash('Demo data has been reset to original state!', 'info')
-            else:
-                flash('Error resetting demo data.', 'danger')
-        except Exception as e:
-            flash(f'Error resetting demo: {str(e)}', 'danger')
-    else:
-        flash('Demo reset is only available in demo mode.', 'warning')
-    
-    return redirect(url_for('dashboard'))
-
-@app.route('/demo/exit')
-def demo_exit():
-    """Exit demo mode"""
-    session.pop('user_id', None)
-    session.pop('demo_mode', None)
-    flash('You have exited demo mode.', 'info')
-    return redirect(url_for('login'))  # Changed from demo_page to login as fallback
 
 # THIS IS THE CRUCIAL PART THAT WAS MISSING!
 if __name__ == '__main__':

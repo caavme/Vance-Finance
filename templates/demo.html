@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="demo-hero bg-gradient-primary text-white py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-3">Vance Financial Assistant</h1>
+                <p class="lead mb-4">Take control of your finances with our comprehensive personal finance management tool. Track income, manage bills, monitor credit cards, and get insights into your financial health.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="{{ url_for('demo_login') }}" class="btn btn-light btn-lg">
+                        <i class="bi bi-play-circle me-2"></i>Try Live Demo
+                    </a>
+                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="demo-stats bg-white bg-opacity-10 rounded-3 p-4">
+                    <h5>Demo Features</h5>
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="h3 mb-0">$6,200</div>
+                            <small>Monthly Income</small>
+                        </div>
+                        <div class="col-6">
+                            <div class="h3 mb-0">$4,890</div>
+                            <small>Monthly Expenses</small>
+                        </div>
+                    </div>
+                    <hr class="my-3">
+                    <div class="text-success">
+                        <div class="h4 mb-0">21.1%</div>
+                        <small>Debt-to-Income Ratio</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Feature Overview -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Comprehensive Financial Management</h2>
+            <p class="lead text-muted">Everything you need to manage your personal finances in one place</p>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-cash-stack text-success fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Income Tracking</h5>
+                    <p class="card-text text-muted">Track multiple income sources with flexible scheduling - biweekly, bimonthly, or custom frequencies.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Multiple income sources</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Flexible payment schedules</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Future income projections</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-receipt text-danger fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Bill Management</h5>
+                    <p class="card-text text-muted">Never miss a payment with comprehensive bill tracking and due date monitoring.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Recurring bill tracking</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Payment due alerts</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Category organization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-credit-card text-warning fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Credit Card Monitoring</h5>
+                    <p class="card-text text-muted">Track balances, utilization rates, and payment schedules across all your credit cards.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Utilization tracking</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Auto-payment setup</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Interest rate monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-arrow-repeat text-info fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Subscription Management</h5>
+                    <p class="card-text text-muted">Keep track of all your recurring subscriptions and their renewal dates.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Monthly/yearly subscriptions</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Renewal date tracking</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Category breakdown</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-bank text-primary fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Loan Tracking</h5>
+                    <p class="card-text text-muted">Monitor all your loans including mortgages, auto loans, and student loans.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Multiple loan types</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Payment schedules</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Balance tracking</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="feature-icon bg-secondary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                        <i class="bi bi-graph-up text-secondary fs-4"></i>
+                    </div>
+                    <h5 class="card-title">Financial Analytics</h5>
+                    <p class="card-text text-muted">Get insights into your financial health with comprehensive reporting and analytics.</p>
+                    <ul class="list-unstyled text-start">
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Debt-to-income ratio</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Monthly cash flow</li>
+                        <li><i class="bi bi-check-circle text-success me-2"></i>Future projections</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Demo Preview -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow">
+                <div class="card-header bg-white border-0 text-center py-4">
+                    <h3 class="mb-0">See It In Action</h3>
+                    <p class="text-muted mb-0">Experience the full power of Vance Financial Assistant</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <div class="col-lg-8">
+                            <h5>Interactive Demo Features:</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Real Sample Data:</strong> Pre-populated with realistic financial data</li>
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Full Functionality:</strong> Add, edit, and manage all financial items</li>
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Live Calculations:</strong> See debt-to-income ratios and projections</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Income Tracking:</strong> Biweekly and bimonthly payment schedules</li>
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Comprehensive Overview:</strong> 90-day financial timeline</li>
+                                        <li class="mb-2"><i class="bi bi-check-circle text-success me-2"></i><strong>Reset Anytime:</strong> Restore demo data to original state</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 text-center">
+                            <div class="demo-preview-stats">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <div class="h4 text-success mb-0">2</div>
+                                        <small class="text-muted">Income Sources</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="h4 text-danger mb-0">6</div>
+                                        <small class="text-muted">Bills</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <div class="h4 text-warning mb-0">3</div>
+                                        <small class="text-muted">Credit Cards</small>
+                                    </div>
+                                </div>
+                                <hr class="my-3">
+                                <div class="row text-center">
+                                    <div class="col-6">
+                                        <div class="h4 text-info mb-0">6</div>
+                                        <small class="text-muted">Subscriptions</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="h4 text-primary mb-0">2</div>
+                                        <small class="text-muted">Loans</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="{{ url_for('demo_login') }}" class="btn btn-success btn-lg mt-3">
+                                <i class="bi bi-play-circle me-2"></i>Start Demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Benefits -->
+    <div class="row mb-5">
+        <div class="col-12 text-center mb-4">
+            <h2 class="fw-bold">Why Choose Vance Financial Assistant?</h2>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="text-center">
+                <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-shield-check text-success fs-4"></i>
+                </div>
+                <h5>Secure & Private</h5>
+                <p class="text-muted">Your financial data is secure with automatic backups and privacy protection.</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="text-center">
+                <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-lightning text-primary fs-4"></i>
+                </div>
+                <h5>Easy to Use</h5>
+                <p class="text-muted">Intuitive interface designed for quick data entry and easy navigation.</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="text-center">
+                <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-graph-up-arrow text-info fs-4"></i>
+                </div>
+                <h5>Smart Insights</h5>
+                <p class="text-muted">Get valuable insights into your spending patterns and financial health.</p>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="text-center">
+                <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-cloud-arrow-down text-warning fs-4"></i>
+                </div>
+                <h5>Data Portability</h5>
+                <p class="text-muted">Export and import your data easily with comprehensive backup features.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card bg-gradient-primary text-white border-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-center py-5">
+                    <h2 class="fw-bold mb-3">Ready to Take Control of Your Finances?</h2>
+                    <p class="lead mb-4">Join thousands of users who have transformed their financial management with Vance Financial Assistant.</p>
+                    <div class="d-flex flex-wrap justify-content-center gap-3">
+                        <a href="{{ url_for('demo_login') }}" class="btn btn-light btn-lg">
+                            <i class="bi bi-play-circle me-2"></i>Try Demo Now
+                        </a>
+                        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Create Free Account
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.demo-hero {
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.demo-stats {
+    backdrop-filter: blur(10px);
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.card:hover .feature-icon {
+    transform: scale(1.1);
+}
+
+.demo-preview-stats {
+    background: rgba(0,0,0,0.02);
+    border-radius: 10px;
+    padding: 20px;
+}
+</style>
+{% endblock %}
