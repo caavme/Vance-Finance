@@ -23,6 +23,12 @@
   <ItemGroup>
     <Compile Include="Vance_Financial_Assistant.py" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="templates\import_backup.html" />
+    <Content Include="templates\income.html" />
+    <Content Include="templates\manage_backups.html" />
+    <Content Include="templates\overview.html" />
+  </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
        Visual Studio and specify your pre- and post-build commands in

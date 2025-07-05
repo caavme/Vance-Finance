@@ -3,9 +3,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">Credit Cards</h1>
-    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCardModal">
-        <i class="bi bi-plus-lg me-1"></i> Add Card
-    </button>
+    <div>
+        <button type="button" class="btn btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#paymentCalculatorModal">
+            <i class="bi bi-calculator me-1"></i> Payment Calculator
+        </button>
+        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addCardModal">
+            <i class="bi bi-plus-lg me-1"></i> Add Card
+        </button>
+    </div>
 </div>
 
 <!-- Credit Cards Table -->
@@ -16,24 +21,124 @@
     <div class="card-body p-0">
         {% if credit_cards %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0" id="creditCardsTable">
                 <thead>
                     <tr>
-                        <th>Card Name/Issuer</th>
-                        <th>Last 4 Digits</th>
-                        <th>Credit Limit</th>
-                        <th>Interest Rate</th>
-                        <th>Due Date</th>
+                        <th class="sortable-header" data-column="0">
+                            Card Name/Issuer
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="1">
+                            Last 4 Digits
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="2">
+                            Credit Limit
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="3">
+                            Current Balance
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="4">
+                            Credit Utilization
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="5">
+                            Available Credit
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="6">
+                            Interest Rate
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="7">
+                            Due Day
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="8">
+                            Next Due Date
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="9">
+                            Min Payment
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="10">
+                            Auto-Pay
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <!-- Summary Row -->
+                    <tr class="summary-row">
+                        <td><strong>TOTALS/AVERAGES</strong></td>
+                        <td>—</td>
+                        <td><strong>${{ "%.2f"|format(total_limit) }}</strong></td>
+                        <td><strong>${{ "%.2f"|format(total_balance) }}</strong></td>
+                        <td><strong>{{ "%.1f"|format(overall_utilization) }}%</strong></td>
+                        <td><strong>${{ "%.2f"|format(total_available) }}</strong></td>
+                        <td><strong>{{ "%.2f"|format(avg_interest_rate) }}%</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td><strong>${{ "%.2f"|format(total_min_payments) }}</strong></td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
                     {% for card in credit_cards %}
                     <tr>
                         <td>{{ card.name }}</td>
                         <td>xxxx-{{ card.last_four }}</td>
-                        <td>{% if card.limit %}${{ "%.2f"|format(card.limit) }}{% else %}&mdash;{% endif %}</td>
-                        <td>{% if card.interest_rate %}{{ "%.2f"|format(card.interest_rate) }}%{% else %}&mdash;{% endif %}</td>
-                        <td>{{ card.payment_due_date.strftime('%m/%d/%Y') }}</td>
+                        <td data-sort="{{ card.limit or 0 }}">{% if card.limit %}${{ "%.2f"|format(card.limit) }}{% else %}&mdash;{% endif %}</td>
+                        <td data-sort="{{ card.current_balance or 0 }}">${{ "%.2f"|format(card.current_balance or 0) }}</td>
+                        <td data-sort="{% if card.limit and card.limit > 0 %}{{ ((card.current_balance or 0) / card.limit * 100) }}{% else %}0{% endif %}">
+                            {% if card.limit and card.limit > 0 %}
+                            {% set utilization = (card.current_balance or 0) / card.limit * 100 %}
+                            {% if utilization <= 10 %}
+                            <span class="badge bg-success">{{ "%.1f"|format(utilization) }}%</span>
+                            {% elif utilization <= 30 %}
+                            <span class="badge bg-info">{{ "%.1f"|format(utilization) }}%</span>
+                            {% elif utilization <= 50 %}
+                            <span class="badge bg-warning">{{ "%.1f"|format(utilization) }}%</span>
+                            {% else %}
+                            <span class="badge bg-danger">{{ "%.1f"|format(utilization) }}%</span>
+                            {% endif %}
+                            {% else %}
+                            &mdash;
+                            {% endif %}
+                        </td>
+                        <td data-sort="{{ (card.limit or 0) - (card.current_balance or 0) }}">
+                            {% if card.limit %}
+                            {% set available = card.limit - (card.current_balance or 0) %}
+                            {% if available >= 0 %}
+                            ${{ "%.2f"|format(available) }}
+                            {% else %}
+                            <span class="text-danger">-${{ "%.2f"|format(-available) }}</span>
+                            {% endif %}
+                            {% else %}
+                            &mdash;
+                            {% endif %}
+                        </td>
+                        <td data-sort="{{ card.interest_rate or 0 }}">{% if card.interest_rate %}{{ "%.2f"|format(card.interest_rate) }}%{% else %}&mdash;{% endif %}</td>
+                        <td data-sort="{{ card.payment_due_date.day }}">{{ card.payment_due_date.day }}</td>
+                        <td data-sort="{{ card.payment_due_date.strftime('%Y-%m-%d') }}">{{ card.payment_due_date.strftime('%m/%d/%Y') }}</td>
+                        <td data-sort="{{ card.minimum_payment or 0 }}">{% if card.minimum_payment %}${{ "%.2f"|format(card.minimum_payment) }}{% else %}&mdash;{% endif %}</td>
+                        <td>
+                            {% if card.auto_pay_minimum %}
+                            <span class="badge bg-success">Min Payment</span>
+                            {% elif card.auto_payment_amount %}
+                            ${{ "%.2f"|format(card.auto_payment_amount) }}
+                            {% else %}
+                            <span class="badge bg-secondary">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCardModal{{ card.id }}">
+                                <i class="bi bi-pencil-square me-1"></i>Edit
+                            </button>
+                        </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -47,9 +152,75 @@
     </div>
 </div>
 
+<!-- Payment Calculator Modal -->
+<div class="modal fade" id="paymentCalculatorModal" tabindex="-1" aria-labelledby="paymentCalculatorModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentCalculatorModalLabel">Credit Card Payment Calculator</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Payment Parameters</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label for="totalPayment" class="form-label">Total Payment Amount ($)</label>
+                                    <input type="number" step="0.01" class="form-control" id="totalPayment" placeholder="Enter amount to allocate">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="targetUtilization" class="form-label">Target Utilization (%)</label>
+                                    <input type="number" step="0.1" min="0" max="100" class="form-control" id="targetUtilization" value="10" placeholder="Enter target utilization">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="paymentStrategy" class="form-label">Payment Strategy</label>
+                                    <select class="form-select" id="paymentStrategy">
+                                        <option value="utilization">Reduce High Utilization First</option>
+                                        <option value="interest">Pay High Interest First</option>
+                                        <option value="balance">Pay High Balance First</option>
+                                        <option value="even">Distribute Evenly</option>
+                                    </select>
+                                </div>
+                                <button type="button" class="btn btn-primary w-100" onclick="calculatePayments()">
+                                    <i class="bi bi-calculator me-1"></i>Calculate Payments
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">Payment Recommendations</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="calculationResults">
+                                    <div class="text-muted text-center py-4">
+                                        <i class="bi bi-calculator fs-1"></i>
+                                        <p class="mt-2">Enter payment amount and click "Calculate Payments" to see recommendations.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="applyCalculatedPayments()" id="applyPaymentsBtn" style="display: none;">
+                    <i class="bi bi-check-circle me-1"></i>Apply These Payments
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Add Credit Card Modal -->
 <div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addCardModalLabel">Add New Credit Card</h5>
@@ -71,16 +242,39 @@
                             <input type="number" step="0.01" class="form-control" id="limit" name="limit">
                         </div>
                         <div class="col-md-6">
+                            <label for="current_balance" class="form-label">Current Balance ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="current_balance" name="current_balance" value="0">
+                        </div>
+                        <div class="col-md-6">
                             <label for="interest_rate" class="form-label">Interest Rate (%)</label>
                             <input type="number" step="0.01" class="form-control" id="interest_rate" name="interest_rate">
                         </div>
                         <div class="col-md-6">
-                            <label for="payment_due_date" class="form-label">Due Date</label>
-                            <input type="date" class="form-control" id="payment_due_date" name="payment_due_date" required>
+                            <label for="due_day" class="form-label">Due Day of Month</label>
+                            <select class="form-select" id="due_day" name="due_day" required>
+                                {% for day in range(1, 32) %}
+                                <option value="{{ day }}">{{ day }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="hidden" id="payment_due_date" name="payment_due_date">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="minimum_payment" class="form-label">Minimum Payment ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment" name="minimum_payment">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="auto_payment_amount" class="form-label">Auto-Payment Amount ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="auto_payment_amount" name="auto_payment_amount">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto_pay_minimum" name="auto_pay_minimum" onchange="toggleAutoPayAmount(this)">
+                                <label class="form-check-label" for="auto_pay_minimum">
+                                    Use minimum payment amount for auto-pay
+                                </label>
+                            </div>
                         </div>
                     </div>
-                    <!-- Hidden but required field -->
-                    <input type="hidden" value="0" id="current_balance" name="current_balance">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -90,4 +284,427 @@
         </div>
     </div>
 </div>
+
+<!-- Edit Credit Card Modals -->
+{% for card in credit_cards %}
+<div class="modal fade" id="editCardModal{{ card.id }}" tabindex="-1" aria-labelledby="editCardModalLabel{{ card.id }}" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCardModalLabel{{ card.id }}">Edit Credit Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('edit_card', card_id=card.id) }}">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="name{{ card.id }}" class="form-label">Card Name/Issuer</label>
+                            <input type="text" class="form-control" id="name{{ card.id }}" name="name" value="{{ card.name }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="last_four{{ card.id }}" class="form-label">Last 4 Digits</label>
+                            <input type="text" pattern="[0-9]{4}" maxlength="4" class="form-control" id="last_four{{ card.id }}" name="last_four" value="{{ card.last_four }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="limit{{ card.id }}" class="form-label">Credit Limit ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="limit{{ card.id }}" name="limit" value="{{ card.limit or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="current_balance{{ card.id }}" class="form-label">Current Balance ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="current_balance{{ card.id }}" name="current_balance" value="{{ card.current_balance }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="interest_rate{{ card.id }}" class="form-label">Interest Rate (%)</label>
+                            <input type="number" step="0.01" class="form-control" id="interest_rate{{ card.id }}" name="interest_rate" value="{{ card.interest_rate or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="due_day{{ card.id }}" class="form-label">Due Day of Month</label>
+                            <select class="form-select" id="due_day{{ card.id }}" name="due_day" required>
+                                {% for day in range(1, 32) %}
+                                <option value="{{ day }}" {% if card.payment_due_date.day==day %}selected{% endif %}>{{ day }}</option>
+                                {% endfor %}
+                            </select>
+                            <input type="hidden" id="payment_due_date{{ card.id }}" name="payment_due_date" value="{{ card.payment_due_date.strftime('%Y-%m-%d') }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="minimum_payment{{ card.id }}" class="form-label">Minimum Payment ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment{{ card.id }}" name="minimum_payment" value="{{ card.minimum_payment or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="auto_payment_amount{{ card.id }}" class="form-label">Auto-Payment Amount ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="auto_payment_amount{{ card.id }}" name="auto_payment_amount" value="{{ card.auto_payment_amount or '' }}" {% if card.auto_pay_minimum %}disabled{% endif %}>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="auto_pay_minimum{{ card.id }}" name="auto_pay_minimum" {% if card.auto_pay_minimum %}checked{% endif %} onchange="toggleAutoPayAmount(this, '{{ card.id }}')">
+                                <label class="form-check-label" for="auto_pay_minimum{{ card.id }}">
+                                    Use minimum payment amount for auto-pay
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+    // Credit card data for calculations
+    const creditCards = [
+        {% for card in credit_cards %}
+        {
+            id: {{ card.id }},
+            name: "{{ card.name }}",
+            lastFour: "{{ card.last_four }}",
+            limit: {{ card.limit or 0 }},
+            currentBalance: {{ card.current_balance or 0 }},
+            interestRate: {{ card.interest_rate or 0 }},
+            minimumPayment: {{ card.minimum_payment or 0 }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function calculatePayments() {
+        const totalPayment = parseFloat(document.getElementById('totalPayment').value) || 0;
+        const targetUtilization = parseFloat(document.getElementById('targetUtilization').value) || 10;
+        const strategy = document.getElementById('paymentStrategy').value;
+
+        if (totalPayment <= 0) {
+            alert('Please enter a valid payment amount.');
+            return;
+        }
+
+        // Calculate payments based on strategy
+        let payments = [];
+        let remainingPayment = totalPayment;
+
+        // Filter cards that have balances
+        const cardsWithBalance = creditCards.filter(card => card.currentBalance > 0 && card.limit > 0);
+
+        if (cardsWithBalance.length === 0) {
+            document.getElementById('calculationResults').innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No cards with balances to pay down.
+                </div>
+            `;
+            return;
+        }
+
+        // Initialize payments array
+        cardsWithBalance.forEach(card => {
+            payments.push({
+                id: card.id,
+                name: card.name,
+                lastFour: card.lastFour,
+                currentBalance: card.currentBalance,
+                limit: card.limit,
+                currentUtilization: (card.currentBalance / card.limit * 100),
+                targetBalance: (card.limit * targetUtilization / 100),
+                maxPayment: Math.max(0, card.currentBalance - (card.limit * targetUtilization / 100)),
+                suggestedPayment: 0,
+                interestRate: card.interestRate,
+                minimumPayment: card.minimumPayment
+            });
+        });
+
+        // Apply payment strategy
+        switch (strategy) {
+            case 'utilization':
+                // Pay highest utilization first
+                payments.sort((a, b) => b.currentUtilization - a.currentUtilization);
+                break;
+            case 'interest':
+                // Pay highest interest rate first
+                payments.sort((a, b) => b.interestRate - a.interestRate);
+                break;
+            case 'balance':
+                // Pay highest balance first
+                payments.sort((a, b) => b.currentBalance - a.currentBalance);
+                break;
+            case 'even':
+                // Distribute evenly (no sorting needed)
+                break;
+        }
+
+        // Allocate payments
+        if (strategy === 'even') {
+            // Distribute evenly among all cards
+            const perCardPayment = remainingPayment / payments.length;
+            payments.forEach(payment => {
+                payment.suggestedPayment = Math.min(perCardPayment, payment.maxPayment);
+                remainingPayment -= payment.suggestedPayment;
+            });
+        } else {
+            // Apply waterfall method - pay each card to target utilization in priority order
+            for (let payment of payments) {
+                if (remainingPayment <= 0) break;
+
+                const paymentAmount = Math.min(remainingPayment, payment.maxPayment);
+                payment.suggestedPayment = paymentAmount;
+                remainingPayment -= paymentAmount;
+            }
+        }
+
+        // Display results
+        displayPaymentResults(payments, totalPayment - remainingPayment, remainingPayment);
+    }
+
+    function displayPaymentResults(payments, totalAllocated, remaining) {
+        const resultsDiv = document.getElementById('calculationResults');
+
+        let html = `
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Total Allocated</h6>
+                            <h4 class="text-primary">$${totalAllocated.toFixed(2)}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Remaining</h6>
+                            <h4 class="text-warning">$${remaining.toFixed(2)}</h4>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h6 class="card-title">Cards Optimized</h6>
+                            <h4 class="text-success">${payments.filter(p => p.suggestedPayment > 0).length}</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        html += `
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Card</th>
+                            <th>Current Balance</th>
+                            <th>Current Util.</th>
+                            <th>Suggested Payment</th>
+                            <th>New Balance</th>
+                            <th>New Util.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        payments.forEach(payment => {
+            const newBalance = payment.currentBalance - payment.suggestedPayment;
+            const newUtilization = (newBalance / payment.limit * 100);
+
+            html += `
+                <tr ${payment.suggestedPayment > 0 ? 'class="table-success"' : ''}>
+                    <td>
+                        <strong>${payment.name}</strong><br>
+                        <small class="text-muted">xxxx-${payment.lastFour}</small>
+                    </td>
+                    <td>$${payment.currentBalance.toFixed(2)}</td>
+                    <td>
+                        <span class="badge ${payment.currentUtilization > 30 ? 'bg-danger' : payment.currentUtilization > 10 ? 'bg-warning' : 'bg-success'}">
+                            ${payment.currentUtilization.toFixed(1)}%
+                        </span>
+                    </td>
+                    <td>
+                        <strong>$${payment.suggestedPayment.toFixed(2)}</strong>
+                    </td>
+                    <td>$${newBalance.toFixed(2)}</td>
+                    <td>
+                        <span class="badge ${newUtilization > 30 ? 'bg-danger' : newUtilization > 10 ? 'bg-warning' : 'bg-success'}">
+                            ${newUtilization.toFixed(1)}%
+                        </span>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        if (remaining > 0) {
+            html += `
+                <div class="alert alert-info mt-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    You have $${remaining.toFixed(2)} remaining. Consider applying this to your highest interest rate card or saving it for next month.
+                </div>
+            `;
+        }
+
+        resultsDiv.innerHTML = html;
+        document.getElementById('applyPaymentsBtn').style.display = 'inline-block';
+    }
+
+    function applyCalculatedPayments() {
+        alert('Payment recommendations calculated! You can now manually update your card balances or set up the suggested payments with your bank.');
+        // In a real implementation, you might want to integrate with banking APIs or
+        // provide a way to automatically update the balances in your system
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle credit card due day selection
+        function updateDueDate(selectElement) {
+            const cardId = selectElement.id.replace('due_day', '');
+            const hiddenDateInput = document.getElementById('payment_due_date' + cardId);
+
+            // Get the selected day
+            const selectedDay = parseInt(selectElement.value);
+
+            // Create a date object for the next occurrence of this day
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth();
+
+            // First try current month
+            let nextDate = new Date(currentYear, currentMonth, selectedDay);
+
+            // If the day has passed in current month, move to next month
+            if (nextDate < today) {
+                if (currentMonth === 11) {
+                    // December, move to January of next year
+                    nextDate = new Date(currentYear + 1, 0, selectedDay);
+                } else {
+                    // Move to next month
+                    nextDate = new Date(currentYear, currentMonth + 1, selectedDay);
+                }
+            }
+
+            // Format the date as YYYY-MM-DD for the hidden input
+            const formattedDate = nextDate.getFullYear() + '-' +
+                String(nextDate.getMonth() + 1).padStart(2, '0') + '-' +
+                String(nextDate.getDate()).padStart(2, '0');
+
+            hiddenDateInput.value = formattedDate;
+        }
+
+        // Initialize all due day selects
+        document.querySelectorAll('[id^="due_day"]').forEach(function (select) {
+            // Set initial value
+            updateDueDate(select);
+
+            // Add change listener
+            select.addEventListener('change', function () {
+                updateDueDate(this);
+            });
+        });
+
+        // Table sorting functionality
+        initTableSorting('creditCardsTable');
+    });
+
+    // Function to toggle auto-payment amount field based on checkbox
+    function toggleAutoPayAmount(checkbox, cardId = '') {
+        const autoPayAmountField = document.getElementById('auto_payment_amount' + cardId);
+
+        if (checkbox.checked) {
+            autoPayAmountField.disabled = true;
+            autoPayAmountField.value = '';
+            autoPayAmountField.style.backgroundColor = '#e9ecef';
+        } else {
+            autoPayAmountField.disabled = false;
+            autoPayAmountField.style.backgroundColor = '';
+        }
+    }
+
+    // Initialize auto-pay fields on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        // For add modal
+        const addAutoPayCheckbox = document.getElementById('auto_pay_minimum');
+        if (addAutoPayCheckbox) {
+            toggleAutoPayAmount(addAutoPayCheckbox);
+        }
+
+        // For edit modals
+        document.querySelectorAll('[id^="auto_pay_minimum"]').forEach(function (checkbox) {
+            if (checkbox.id !== 'auto_pay_minimum') { // Skip the add modal checkbox
+                const cardId = checkbox.id.replace('auto_pay_minimum', '');
+                toggleAutoPayAmount(checkbox, cardId);
+            }
+        });
+    });
+
+    // Table sorting function
+    function initTableSorting(tableId) {
+        const table = document.getElementById(tableId);
+        const headers = table.querySelectorAll('.sortable-header');
+
+        headers.forEach(header => {
+            header.addEventListener('click', function () {
+                const column = parseInt(this.getAttribute('data-column'));
+                const currentSort = this.classList.contains('sort-asc') ? 'asc' :
+                    this.classList.contains('sort-desc') ? 'desc' : 'none';
+
+                // Remove sort classes from all headers
+                headers.forEach(h => h.classList.remove('sort-asc', 'sort-desc'));
+
+                // Determine new sort direction
+                let newSort = 'asc';
+                if (currentSort === 'asc') newSort = 'desc';
+                else if (currentSort === 'desc') newSort = 'asc';
+
+                // Add sort class to current header
+                this.classList.add('sort-' + newSort);
+
+                // Sort the table
+                sortTable(table, column, newSort);
+            });
+        });
+    }
+
+    function sortTable(table, column, direction) {
+        const tbody = table.querySelector('tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr')).filter(row => !row.classList.contains('summary-row'));
+
+        rows.sort((a, b) => {
+            let aValue = a.cells[column].textContent.trim();
+            let bValue = b.cells[column].textContent.trim();
+
+            // Use data-sort attribute if available
+            if (a.cells[column].hasAttribute('data-sort')) {
+                aValue = a.cells[column].getAttribute('data-sort');
+            }
+            if (b.cells[column].hasAttribute('data-sort')) {
+                bValue = b.cells[column].getAttribute('data-sort');
+            }
+
+            // Handle numeric values
+            const aNum = parseFloat(aValue.replace(/[$,%]/g, ''));
+            const bNum = parseFloat(bValue.replace(/[$,%]/g, ''));
+
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+                return direction === 'asc' ? aNum - bNum : bNum - aNum;
+            }
+
+            // Handle string values
+            if (direction === 'asc') {
+                return aValue.localeCompare(bValue);
+            } else {
+                return bValue.localeCompare(aValue);
+            }
+        });
+
+        // Re-append sorted rows (keeping summary row at top)
+        const summaryRow = tbody.querySelector('.summary-row');
+        tbody.innerHTML = '';
+        if (summaryRow) tbody.appendChild(summaryRow);
+        rows.forEach(row => tbody.appendChild(row));
+    }
+</script>
 {% endblock %}

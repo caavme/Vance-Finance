@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">Import Backup Data</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Importing backup data will add to or replace your existing financial data. 
+                    Make sure you have a current backup before proceeding.
+                </div>
+                
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="backup_file" class="form-label">Select Backup File</label>
+                        <input type="file" class="form-control" id="backup_file" name="backup_file" accept=".json" required>
+                        <div class="form-text">Select a JSON backup file previously exported from Vance Financial.</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="clear_existing" name="clear_existing">
+                            <label class="form-check-label" for="clear_existing">
+                                Clear existing data before import
+                            </label>
+                            <div class="form-text">Check this to replace all existing data with the backup data. Leave unchecked to add backup data to existing data.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-1"></i>Import Backup
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

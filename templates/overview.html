@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">Financial Overview</h1>
+    <div class="d-flex gap-2">
+        <form method="GET" class="d-flex gap-2">
+            <input type="date" class="form-control" name="start_date" value="{{ start_date.strftime('%Y-%m-%d') }}">
+            <input type="date" class="form-control" name="end_date" value="{{ end_date.strftime('%Y-%m-%d') }}">
+            <button type="submit" class="btn btn-primary">Update</button>
+        </form>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card border-success">
+            <div class="card-body text-center">
+                <h6 class="card-title text-success">Total Income</h6>
+                <h4 class="text-success">${{ "%.2f"|format(total_income) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-danger">
+            <div class="card-body text-center">
+                <h6 class="card-title text-danger">Total Expenses</h6>
+                <h4 class="text-danger">${{ "%.2f"|format(total_expenses) }}</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-{% if net_income > 0 %}success{% else %}danger{% endif %}">
+            <div class="card-body text-center">
+                <h6 class="card-title">Net Income</h6>
+                <h4 class="{% if net_income > 0 %}text-success{% else %}text-danger{% endif %}">
+                    ${{ "%.2f"|format(net_income) }}
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-info">
+            <div class="card-body text-center">
+                <h6 class="card-title">Date Range</h6>
+                <p class="mb-0">{{ (end_date - start_date).days }} days</p>
+                <small class="text-muted">{{ start_date.strftime('%m/%d') }} to {{ end_date.strftime('%m/%d') }}</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timeline Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">Income & Expense Timeline</h5>
+    </div>
+    <div class="card-body p-0">
+        {% if timeline %}
+        <div class="table-responsive">
+            <table class="table table-sm mb-0">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Running Balance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in timeline %}
+                    <tr class="{% if item.type == 'income' %}table-success{% else %}table-danger{% endif %}">
+                        <td>{{ item.date.strftime('%m/%d/%Y') }}</td>
+                        <td>
+                            {% if item.type == 'income' %}
+                            <i class="bi bi-cash text-success me-1"></i>
+                            {% else %}
+                            <i class="bi bi-dash-circle text-danger me-1"></i>
+                            {% endif %}
+                            {{ item.description }}
+                        </td>
+                        <td>
+                            <span class="badge {% if item.type == 'income' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ item.category }}
+                            </span>
+                        </td>
+                        <td class="{% if item.type == 'income' %}text-success{% else %}text-danger{% endif %}">
+                            {% if item.amount > 0 %}+{% endif %}${{ "%.2f"|format(item.amount) }}
+                        </td>
+                        <td class="{% if item.running_balance > 0 %}text-success{% else %}text-danger{% endif %}">
+                            ${{ "%.2f"|format(item.running_balance) }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-calendar3 fs-1"></i>
+            <p class="mt-2">No income or expense data for this date range.</p>
+            <p>Try adding income sources or check your recurring bills and subscriptions.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
