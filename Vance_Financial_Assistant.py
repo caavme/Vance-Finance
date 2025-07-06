@@ -2631,7 +2631,8 @@ def create_demo_budget_data(demo_user_id):
         print(f"Error creating demo budget data: {e}")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port, debug=True)
 
 #if __name__ == '__main__':
 #    app.run(debug=True)
