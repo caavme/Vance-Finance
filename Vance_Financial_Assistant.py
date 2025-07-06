@@ -8,9 +8,13 @@ import shutil
 import json 
 import tempfile
 import calendar
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Initialize Flask application
 app = Flask(__name__)
+
+# Trust proxy headers from Nginx - ADD THIS RIGHT AFTER CREATING APP
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Configuration that works for both local development and deployment
 class Config:
@@ -1926,6 +1930,11 @@ def wiki_section(section):
         return redirect(url_for('wiki'))
     
     return render_template('wiki.html', active_section=section)
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for Nginx"""
+    return {'status': 'healthy', 'timestamp': datetime.now().isoformat()}
 
 # Updated main execution
 if __name__ == '__main__':
