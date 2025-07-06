@@ -8,6 +8,100 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/wiki.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/budget.css') }}">
+
+    <!-- EMERGENCY OVERRIDE: Force all backgrounds to be white -->
+    <style>
+        /* Override all possible grey backgrounds with !important */
+        .card,
+        .card-header,
+        .card-body,
+        .card-footer,
+        .modal-content,
+        .modal-header,
+        .modal-body,
+        .modal-footer,
+        .wiki-section .card,
+        .wiki-section .card-header,
+        .goal-card,
+        .goal-card .card-header,
+        .budget-summary-card,
+        .budget-category-item,
+        .checklist,
+        .table thead th,
+        .table-light,
+        .bg-light,
+        .bg-secondary,
+        .accordion-item,
+        .accordion-header,
+        .accordion-button,
+        .list-group-item,
+        .nav-tabs .nav-link,
+        .nav-pills .nav-link,
+        .dropdown-menu,
+        .dropdown-item,
+        .alert-secondary {
+            background-color: white !important;
+            background: white !important;
+        }
+
+            /* Ensure text stays readable */
+            .card-header,
+            .modal-header,
+            .wiki-section .card-header,
+            .goal-card .card-header,
+            .table thead th {
+                color: #333 !important;
+            }
+
+        /* Force override Bootstrap's grey table headers */
+        .table thead th {
+            background-color: white !important;
+            background: white !important;
+        }
+
+        /* Override any dark mode styles completely */
+        @media (prefers-color-scheme: dark) {
+            .card,
+            .card-header,
+            .card-body,
+            .card-footer,
+            .modal-content,
+            .modal-header,
+            .modal-body,
+            .modal-footer,
+            .wiki-section .card,
+            .wiki-section .card-header,
+            .goal-card,
+            .goal-card .card-header,
+            .budget-summary-card,
+            .budget-category-item,
+            .checklist,
+            .table,
+            .table thead th,
+            .table-light,
+            .bg-light,
+            .bg-secondary,
+            .accordion-item,
+            .accordion-header,
+            .accordion-button,
+            .list-group-item {
+                background-color: white !important;
+                background: white !important;
+                color: #333 !important;
+            }
+        }
+
+        /* Fix any Bootstrap default grey backgrounds */
+        .bg-light {
+            background-color: white !important;
+        }
+
+        .table-light > th,
+        .table-light > td {
+            background-color: white !important;
+        }
+    </style>
 </head>
 <body>
     <!-- Development Server Banner -->
@@ -78,6 +172,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income') }}">
                             <i class="bi bi-cash-stack me-1"></i>Income
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('budget') }}">
+                            <i class="bi bi-pie-chart me-1"></i>Budget
                         </a>
                     </li>
                     <li class="nav-item">

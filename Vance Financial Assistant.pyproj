@@ -30,6 +30,7 @@
     <Content Include=".env.example" />
     <Content Include="gitignore .gitignore" />
     <Content Include="Procfile" />
+    <Content Include="static\css\budget.css" />
     <Content Include="static\css\wiki.css" />
     <Content Include="templates\demo.html" />
     <Content Include="templates\import_backup.html" />

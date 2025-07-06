@@ -43,6 +43,13 @@ class User(db.Model):
     subscriptions = db.relationship('Subscription', backref='owner', lazy=True)
     loans = db.relationship('Loan', backref='owner', lazy=True)
     income_sources = db.relationship('IncomeSource', backref='owner', lazy=True)
+    
+    # Add these new budget relationships:
+    budget_categories = db.relationship('BudgetCategory', backref='owner', lazy=True)
+    budget_periods = db.relationship('BudgetPeriod', backref='owner', lazy=True)
+    budget_items = db.relationship('BudgetItem', backref='owner', lazy=True)
+    budget_transactions = db.relationship('BudgetTransaction', backref='owner', lazy=True)
+    budget_goals = db.relationship('BudgetGoal', backref='owner', lazy=True)
 
 class Bill(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -104,6 +111,81 @@ class IncomeSource(db.Model):
     next_payment_date = db.Column(db.Date)
     is_active = db.Column(db.Boolean, default=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+class BudgetCategory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(255))
+    color = db.Column(db.String(7), default='#667eea')  # Hex color code
+    icon = db.Column(db.String(50), default='bi-wallet2')  # Bootstrap icon class
+    is_active = db.Column(db.Boolean, default=True)
+    is_income = db.Column(db.Boolean, default=False)  # True for income categories, False for expense
+    sort_order = db.Column(db.Integer, default=0)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Relationships
+    budget_items = db.relationship('BudgetItem', backref='category', lazy=True, cascade='all, delete-orphan')
+
+class BudgetPeriod(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)  # e.g., "January 2025", "Q1 2025"
+    period_type = db.Column(db.String(20), nullable=False)  # 'monthly', 'quarterly', 'yearly', 'custom'
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    is_active = db.Column(db.Boolean, default=True)
+    auto_rollover = db.Column(db.Boolean, default=False)  # Auto-create next period
+    notes = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    
+    # Relationships
+    budget_items = db.relationship('BudgetItem', backref='period', lazy=True, cascade='all, delete-orphan')
+    transactions = db.relationship('BudgetTransaction', backref='period', lazy=True, cascade='all, delete-orphan')
+
+class BudgetItem(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('budget_category.id'), nullable=False)
+    period_id = db.Column(db.Integer, db.ForeignKey('budget_period.id'), nullable=False)
+    planned_amount = db.Column(db.Float, nullable=False, default=0.0)
+    actual_amount = db.Column(db.Float, default=0.0)  # Auto-calculated from transactions
+    notes = db.Column(db.Text)
+    alert_threshold = db.Column(db.Float)  # Alert when % of budget is reached (0.8 = 80%)
+    is_rollover = db.Column(db.Boolean, default=False)  # Unused budget rolls to next period
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class BudgetTransaction(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    category_id = db.Column(db.Integer, db.ForeignKey('budget_category.id'), nullable=False)
+    period_id = db.Column(db.Integer, db.ForeignKey('budget_period.id'), nullable=False)
+    description = db.Column(db.String(255), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    transaction_date = db.Column(db.Date, nullable=False)
+    transaction_type = db.Column(db.String(20), default='manual')  # 'manual', 'bill', 'subscription', 'loan'
+    reference_id = db.Column(db.Integer)  # ID of linked bill/subscription/loan
+    receipt_url = db.Column(db.String(255))  # Optional receipt/proof
+    tags = db.Column(db.String(255))  # Comma-separated tags
+    notes = db.Column(db.Text)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    # Relationship to category
+    category = db.relationship('BudgetCategory', backref='transactions')
+
+class BudgetGoal(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.Text)
+    target_amount = db.Column(db.Float, nullable=False)
+    current_amount = db.Column(db.Float, default=0.0)
+    target_date = db.Column(db.Date)
+    category = db.Column(db.String(50))  # 'emergency', 'vacation', 'purchase', 'debt_payoff'
+    priority = db.Column(db.String(20), default='medium')  # 'low', 'medium', 'high'
+    is_active = db.Column(db.Boolean, default=True)
+    is_achieved = db.Column(db.Boolean, default=False)
+    auto_contribute = db.Column(db.Float, default=0.0)  # Automatic monthly contribution
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 # Updated backup function to work in any environment
 def backup_database():
@@ -176,8 +258,9 @@ def safe_migrate_database():
             else:
                 print("No existing database found or database is empty, skipping backup")
         
-        # Migration logic remains the same
+        # Migration logic for existing tables
         with db.engine.connect() as connection:
+            # Check for credit card columns
             result = connection.execute(db.text("PRAGMA table_info(credit_card)"))
             columns = [row[1] for row in result.fetchall()]
             
@@ -189,9 +272,17 @@ def safe_migrate_database():
                 connection.execute(db.text('ALTER TABLE credit_card ADD COLUMN auto_payment_amount REAL'))
                 print("Added auto_payment_amount column")
             
+            # Check for income_source table
             result = connection.execute(db.text("SELECT name FROM sqlite_master WHERE type='table' AND name='income_source'"))
             if not result.fetchone():
                 print("Creating income_source table...")
+            
+            # Check for budget tables
+            budget_tables = ['budget_category', 'budget_period', 'budget_item', 'budget_transaction', 'budget_goal']
+            for table in budget_tables:
+                result = connection.execute(db.text(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'"))
+                if not result.fetchone():
+                    print(f"Budget table {table} will be created...")
             
             connection.commit()
             print("Migration completed successfully")
@@ -576,6 +667,7 @@ def create_demo_data():
             db.session.add(loan)
         
         db.session.commit()
+        create_demo_budget_data(demo_user_id)
         return demo_user_id
         
     except Exception as e:
@@ -1936,9 +2028,610 @@ def health_check():
     """Health check endpoint for Nginx"""
     return {'status': 'healthy', 'timestamp': datetime.now().isoformat()}
 
-# Updated main execution
+# Add these utility functions for budget calculations
+
+def get_budget_summary(user_id, period_id=None):
+    """Get comprehensive budget summary for a user and period"""
+    if period_id:
+        period = BudgetPeriod.query.filter_by(id=period_id, user_id=user_id).first()
+    else:
+        # Get current active period
+        today = datetime.now().date()
+        period = BudgetPeriod.query.filter(
+            BudgetPeriod.user_id == user_id,
+            BudgetPeriod.start_date <= today,
+            BudgetPeriod.end_date >= today,
+            BudgetPeriod.is_active == True
+        ).first()
+    
+    if not period:
+        return None
+    
+    # Get all budget items for this period
+    budget_items = BudgetItem.query.filter_by(period_id=period.id, user_id=user_id).all()
+    
+    # Calculate totals
+    total_planned_income = 0
+    total_planned_expenses = 0
+    total_actual_income = 0
+    total_actual_expenses = 0
+    
+    categories_summary = []
+    
+    for item in budget_items:
+        # Update actual amount from transactions
+        actual = db.session.query(db.func.sum(BudgetTransaction.amount)).filter_by(
+            category_id=item.category_id,
+            period_id=period.id,
+            user_id=user_id
+        ).scalar() or 0.0
+        
+        item.actual_amount = actual
+        
+        if item.category.is_income:
+            total_planned_income += item.planned_amount
+            total_actual_income += actual
+        else:
+            total_planned_expenses += item.planned_amount
+            total_actual_expenses += actual
+        
+        # Calculate variance and percentage
+        variance = actual - item.planned_amount
+        percentage = (actual / item.planned_amount * 100) if item.planned_amount > 0 else 0
+        
+        categories_summary.append({
+            'item': item,
+            'category': item.category,
+            'variance': variance,
+            'percentage': percentage,
+            'status': get_budget_status(percentage, item.category.is_income)
+        })
+    
+    # Calculate overall metrics
+    planned_surplus = total_planned_income - total_planned_expenses
+    actual_surplus = total_actual_income - total_actual_expenses
+    
+    return {
+        'period': period,
+        'total_planned_income': total_planned_income,
+        'total_planned_expenses': total_planned_expenses,
+        'total_actual_income': total_actual_income,
+        'total_actual_expenses': total_actual_expenses,
+        'planned_surplus': planned_surplus,
+        'actual_surplus': actual_surplus,
+        'categories': categories_summary,
+        'savings_rate': (actual_surplus / total_actual_income * 100) if total_actual_income > 0 else 0
+    }
+
+def get_budget_status(percentage, is_income=False):
+    """Determine budget status based on percentage spent/earned"""
+    if is_income:
+        if percentage >= 100:
+            return 'excellent'
+        elif percentage >= 80:
+            return 'good'
+        elif percentage >= 60:
+            return 'warning'
+        else:
+            return 'danger'
+    else:  # Expense categories
+        if percentage <= 80:
+            return 'excellent'
+        elif percentage <= 95:
+            return 'good'
+        elif percentage <= 105:
+            return 'warning'
+        else:
+            return 'danger'
+
+def create_default_budget_categories(user_id):
+    """Create default budget categories for a new user"""
+    default_categories = [
+        # Income Categories
+        {'name': 'Salary', 'description': 'Primary employment income', 'color': '#28a745', 'icon': 'bi-cash-stack', 'is_income': True, 'sort_order': 1},
+        {'name': 'Side Income', 'description': 'Freelance, side jobs, other income', 'color': '#20c997', 'icon': 'bi-briefcase', 'is_income': True, 'sort_order': 2},
+        {'name': 'Investment Income', 'description': 'Dividends, interest, capital gains', 'color': '#17a2b8', 'icon': 'bi-graph-up', 'is_income': True, 'sort_order': 3},
+        
+        # Essential Expense Categories
+        {'name': 'Housing', 'description': 'Rent, mortgage, utilities', 'color': '#dc3545', 'icon': 'bi-house', 'is_income': False, 'sort_order': 10},
+        {'name': 'Transportation', 'description': 'Car payment, gas, insurance, public transit', 'color': '#fd7e14', 'icon': 'bi-car-front', 'is_income': False, 'sort_order': 11},
+        {'name': 'Food & Groceries', 'description': 'Groceries, dining out, meal delivery', 'color': '#ffc107', 'icon': 'bi-cart', 'is_income': False, 'sort_order': 12},
+        {'name': 'Healthcare', 'description': 'Insurance, medical bills, prescriptions', 'color': '#e83e8c', 'icon': 'bi-heart-pulse', 'is_income': False, 'sort_order': 13},
+        {'name': 'Insurance', 'description': 'Life, health, auto, home insurance', 'color': '#6610f2', 'icon': 'bi-shield-check', 'is_income': False, 'sort_order': 14},
+        
+        # Lifestyle Categories
+        {'name': 'Entertainment', 'description': 'Movies, concerts, hobbies, subscriptions', 'color': '#6f42c1', 'icon': 'bi-play-circle', 'is_income': False, 'sort_order': 20},
+        {'name': 'Shopping', 'description': 'Clothing, electronics, personal items', 'color': '#d63384', 'icon': 'bi-bag', 'is_income': False, 'sort_order': 21},
+        {'name': 'Travel', 'description': 'Vacations, flights, hotels', 'color': '#0dcaf0', 'icon': 'bi-airplane', 'is_income': False, 'sort_order': 22},
+        {'name': 'Personal Care', 'description': 'Haircuts, gym, spa, personal services', 'color': '#198754', 'icon': 'bi-person', 'is_income': False, 'sort_order': 23},
+        
+        # Financial Categories
+        {'name': 'Savings', 'description': 'Emergency fund, general savings', 'color': '#0d6efd', 'icon': 'bi-piggy-bank', 'is_income': False, 'sort_order': 30},
+        {'name': 'Investments', 'description': '401k, IRA, stocks, retirement', 'color': '#198754', 'icon': 'bi-graph-up-arrow', 'is_income': False, 'sort_order': 31},
+        {'name': 'Debt Payments', 'description': 'Credit cards, loans, debt payoff', 'color': '#dc3545', 'icon': 'bi-credit-card', 'is_income': False, 'sort_order': 32},
+        
+        # Other
+        {'name': 'Miscellaneous', 'description': 'Other expenses not categorized', 'color': '#6c757d', 'icon': 'bi-three-dots', 'is_income': False, 'sort_order': 99},
+    ]
+    
+    for cat_data in default_categories:
+        category = BudgetCategory(
+            user_id=user_id,
+            **cat_data
+        )
+        db.session.add(category)
+    
+    db.session.commit()
+
+def create_current_budget_period(user_id):
+    """Create current month budget period"""
+    today = datetime.now().date()
+    start_date = today.replace(day=1)
+    
+    # Calculate end of month
+    if start_date.month == 12:
+        end_date = start_date.replace(year=start_date.year + 1, month=1, day=1) - timedelta(days=1)
+    else:
+        end_date = start_date.replace(month=start_date.month + 1, day=1) - timedelta(days=1)
+    
+    period_name = start_date.strftime("%B %Y")
+    
+    period = BudgetPeriod(
+        user_id=user_id,
+        name=period_name,
+        period_type='monthly',
+        start_date=start_date,
+        end_date=end_date,
+        is_active=True,
+        auto_rollover=True
+    )
+    
+    db.session.add(period)
+    db.session.commit()
+    return period
+
+# Add these routes after your existing routes
+
+@app.route('/budget')
+def budget():
+    """Main budget dashboard"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    
+    # Check if user has budget categories, if not create defaults
+    categories_count = BudgetCategory.query.filter_by(user_id=user_id).count()
+    if categories_count == 0:
+        create_default_budget_categories(user_id)
+    
+    # Check if user has current period, if not create one
+    today = datetime.now().date()
+    current_period = BudgetPeriod.query.filter(
+        BudgetPeriod.user_id == user_id,
+        BudgetPeriod.start_date <= today,
+        BudgetPeriod.end_date >= today,
+        BudgetPeriod.is_active == True
+    ).first()
+    
+    if not current_period:
+        current_period = create_current_budget_period(user_id)
+    
+    # Get budget summary
+    budget_summary = get_budget_summary(user_id, current_period.id)
+    
+    # Get recent transactions
+    recent_transactions = BudgetTransaction.query.filter_by(
+        user_id=user_id, 
+        period_id=current_period.id
+    ).order_by(BudgetTransaction.transaction_date.desc()).limit(10).all()
+    
+    # Get budget goals
+    active_goals = BudgetGoal.query.filter_by(user_id=user_id, is_active=True).order_by(BudgetGoal.priority.desc()).all()
+    
+    # Get all periods for dropdown
+    all_periods = BudgetPeriod.query.filter_by(user_id=user_id).order_by(BudgetPeriod.start_date.desc()).all()
+    
+    return render_template('budget.html',
+                         budget_summary=budget_summary,
+                         recent_transactions=recent_transactions,
+                         active_goals=active_goals,
+                         all_periods=all_periods,
+                         current_period=current_period)
+
+@app.route('/budget/categories', methods=['GET', 'POST'])
+def budget_categories():
+    """Manage budget categories"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        backup_database()
+        
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        color = request.form.get('color', '#667eea')
+        icon = request.form.get('icon', 'bi-wallet2')
+        is_income = 'is_income' in request.form
+        
+        new_category = BudgetCategory(
+            name=name,
+            description=description,
+            color=color,
+            icon=icon,
+            is_income=is_income,
+            user_id=session['user_id']
+        )
+        
+        try:
+            db.session.add(new_category)
+            db.session.commit()
+            flash('Budget category added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding category. Please try again.', 'danger')
+            print(f"Error adding budget category: {e}")
+        
+        return redirect(url_for('budget_categories'))
+    
+    # Get all categories for user
+    income_categories = BudgetCategory.query.filter_by(
+        user_id=session['user_id'], 
+        is_income=True, 
+        is_active=True
+    ).order_by(BudgetCategory.sort_order).all()
+    
+    expense_categories = BudgetCategory.query.filter_by(
+        user_id=session['user_id'], 
+        is_income=False, 
+        is_active=True
+    ).order_by(BudgetCategory.sort_order).all()
+    
+    return render_template('budget_categories.html',
+                         income_categories=income_categories,
+                         expense_categories=expense_categories)
+
+@app.route('/budget/transactions', methods=['GET', 'POST'])
+def budget_transactions():
+    """Manage budget transactions"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        backup_database()
+        
+        category_id = int(request.form.get('category_id'))
+        description = request.form.get('description')
+        amount = float(request.form.get('amount'))
+        transaction_date = datetime.strptime(request.form.get('transaction_date'), '%Y-%m-%d').date()
+        notes = request.form.get('notes', '')
+        tags = request.form.get('tags', '')
+        
+        # Find appropriate period for this transaction
+        period = BudgetPeriod.query.filter(
+            BudgetPeriod.user_id == session['user_id'],
+            BudgetPeriod.start_date <= transaction_date,
+            BudgetPeriod.end_date >= transaction_date
+        ).first()
+        
+        if not period:
+            flash('No budget period found for this date. Please create a budget period first.', 'warning')
+            return redirect(url_for('budget_transactions'))
+        
+        new_transaction = BudgetTransaction(
+            category_id=category_id,
+            period_id=period.id,
+            description=description,
+            amount=amount,
+            transaction_date=transaction_date,
+            notes=notes,
+            tags=tags,
+            user_id=session['user_id']
+        )
+        
+        try:
+            db.session.add(new_transaction)
+            db.session.commit()
+            flash('Transaction added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding transaction. Please try again.', 'danger')
+            print(f"Error adding budget transaction: {e}")
+        
+        return redirect(url_for('budget_transactions'))
+    
+    # Get transactions for current period
+    today = datetime.now().date()
+    current_period = BudgetPeriod.query.filter(
+        BudgetPeriod.user_id == session['user_id'],
+        BudgetPeriod.start_date <= today,
+        BudgetPeriod.end_date >= today,
+        BudgetPeriod.is_active == True
+    ).first()
+    
+    transactions = []
+    if current_period:
+        transactions = BudgetTransaction.query.filter_by(
+            user_id=session['user_id'],
+            period_id=current_period.id
+        ).order_by(BudgetTransaction.transaction_date.desc()).all()
+    
+    # Get categories for dropdown
+    categories = BudgetCategory.query.filter_by(
+        user_id=session['user_id'], 
+        is_active=True
+    ).order_by(BudgetCategory.is_income.desc(), BudgetCategory.name).all()
+    
+    return render_template('budget_transactions.html',
+                         transactions=transactions,
+                         categories=categories,
+                         current_period=current_period)
+
+@app.route('/budget/goals', methods=['GET', 'POST'])
+def budget_goals():
+    """Manage budget goals"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        backup_database()
+        
+        title = request.form.get('title')
+        description = request.form.get('description', '')
+        target_amount = float(request.form.get('target_amount'))
+        target_date = datetime.strptime(request.form.get('target_date'), '%Y-%m-%d').date() if request.form.get('target_date') else None
+        category = request.form.get('category', 'general')
+        priority = request.form.get('priority', 'medium')
+        auto_contribute = float(request.form.get('auto_contribute', 0))
+        
+        new_goal = BudgetGoal(
+            title=title,
+            description=description,
+            target_amount=target_amount,
+            target_date=target_date,
+            category=category,
+            priority=priority,
+            auto_contribute=auto_contribute,
+            user_id=session['user_id']
+        )
+        
+        try:
+            db.session.add(new_goal)
+            db.session.commit()
+            flash('Budget goal added successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error adding goal. Please try again.', 'danger')
+            print(f"Error adding budget goal: {e}")
+        
+        return redirect(url_for('budget_goals'))
+    
+    # Get all goals for user
+    goals = BudgetGoal.query.filter_by(user_id=session['user_id']).order_by(
+        BudgetGoal.priority.desc(), 
+        BudgetGoal.target_date.asc()
+    ).all()
+    
+    return render_template('budget_goals.html', goals=goals)
+
+@app.route('/budget/setup/<int:period_id>')
+def budget_setup(period_id):
+    """Set up budget for a specific period"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    period = BudgetPeriod.query.filter_by(id=period_id, user_id=session['user_id']).first_or_404()
+    
+    # Get all categories
+    categories = BudgetCategory.query.filter_by(
+        user_id=session['user_id'], 
+        is_active=True
+    ).order_by(BudgetCategory.is_income.desc(), BudgetCategory.sort_order).all()
+    
+    # Get existing budget items for this period
+    budget_items = {}
+    existing_items = BudgetItem.query.filter_by(period_id=period_id, user_id=session['user_id']).all()
+    for item in existing_items:
+        budget_items[item.category_id] = item
+    
+    return render_template('budget_setup.html',
+                         period=period,
+                         categories=categories,
+                         budget_items=budget_items)
+
+@app.route('/budget/save_setup', methods=['POST'])
+def save_budget_setup():
+    """Save budget setup for a period"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    backup_database()
+    
+    period_id = int(request.form.get('period_id'))
+    period = BudgetPeriod.query.filter_by(id=period_id, user_id=session['user_id']).first_or_404()
+    
+    try:
+        # Process each category
+        for key, value in request.form.items():
+            if key.startswith('planned_'):
+                category_id = int(key.replace('planned_', ''))
+                planned_amount = float(value) if value else 0.0
+                
+                # Get or create budget item
+                budget_item = BudgetItem.query.filter_by(
+                    category_id=category_id,
+                    period_id=period_id,
+                    user_id=session['user_id']
+                ).first()
+                
+                if budget_item:
+                    budget_item.planned_amount = planned_amount
+                    budget_item.updated_at = datetime.utcnow()
+                else:
+                    budget_item = BudgetItem(
+                        category_id=category_id,
+                        period_id=period_id,
+                        planned_amount=planned_amount,
+                        user_id=session['user_id']
+                    )
+                    db.session.add(budget_item)
+        
+        db.session.commit()
+        flash('Budget setup saved successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash('Error saving budget setup. Please try again.', 'danger')
+        print(f"Error saving budget setup: {e}")
+    
+    return redirect(url_for('budget'))
+
+# Update the demo data creation to include budget data
+def create_demo_budget_data(demo_user_id):
+    """Create demo budget data"""
+    try:
+        # Create default categories if they don't exist
+        if BudgetCategory.query.filter_by(user_id=demo_user_id).count() == 0:
+            create_default_budget_categories(demo_user_id)
+        
+        # Create current budget period
+        today = datetime.now().date()
+        period = BudgetPeriod.query.filter(
+            BudgetPeriod.user_id == demo_user_id,
+            BudgetPeriod.start_date <= today,
+            BudgetPeriod.end_date >= today
+        ).first()
+        
+        if not period:
+            period = create_current_budget_period(demo_user_id)
+        
+        # Clear existing budget items for demo refresh
+        BudgetItem.query.filter_by(user_id=demo_user_id, period_id=period.id).delete()
+        BudgetTransaction.query.filter_by(user_id=demo_user_id, period_id=period.id).delete()
+        BudgetGoal.query.filter_by(user_id=demo_user_id).delete()
+        
+        # Get categories
+        categories = BudgetCategory.query.filter_by(user_id=demo_user_id).all()
+        category_map = {cat.name: cat for cat in categories}
+        
+        # Create budget items with realistic amounts
+        budget_data = [
+            # Income
+            ('Salary', 6500.00),  # Both spouses combined monthly
+            ('Side Income', 300.00),
+            
+            # Essential expenses
+            ('Housing', 2150.00),  # Mortgage
+            ('Transportation', 650.00),  # Car payment, gas, insurance
+            ('Food & Groceries', 800.00),
+            ('Healthcare', 425.00),  # Health insurance
+            ('Insurance', 165.00),  # Car insurance
+            
+            # Lifestyle
+            ('Entertainment', 200.00),
+            ('Shopping', 300.00),
+            ('Personal Care', 150.00),
+            
+            # Financial
+            ('Savings', 500.00),
+            ('Investments', 650.00),  # 401k, etc.
+            ('Debt Payments', 810.00),  # Loans + credit card minimums
+            
+            # Other
+            ('Miscellaneous', 100.00)
+        ]
+        
+        for cat_name, amount in budget_data:
+            if cat_name in category_map:
+                budget_item = BudgetItem(
+                    category_id=category_map[cat_name].id,
+                    period_id=period.id,
+                    planned_amount=amount,
+                    user_id=demo_user_id
+                )
+                db.session.add(budget_item)
+        
+        # Create sample transactions
+        import random
+        transaction_data = [
+            ('Salary', 3250.00, 15, 'Paycheck - First half of month'),
+            ('Salary', 3250.00, 30, 'Paycheck - Second half of month'),
+            ('Side Income', 150.00, 5, 'Freelance project payment'),
+            ('Side Income', 150.00, 20, 'Side gig earnings'),
+            
+            ('Housing', 2150.00, 1, 'Monthly mortgage payment'),
+            ('Food & Groceries', 89.45, 3, 'Grocery store'),
+            ('Food & Groceries', 67.23, 8, 'Grocery store'),
+            ('Food & Groceries', 124.78, 12, 'Grocery store'),
+            ('Food & Groceries', 45.67, 18, 'Restaurant dinner'),
+            
+            ('Transportation', 485.00, 16, 'Car loan payment'),
+            ('Transportation', 78.45, 7, 'Gas station'),
+            ('Transportation', 165.00, 18, 'Car insurance'),
+            
+            ('Entertainment', 15.99, 6, 'Netflix subscription'),
+            ('Entertainment', 52.99, 19, 'Adobe Creative Cloud'),
+            ('Entertainment', 45.00, 23, 'Concert tickets'),
+            
+            ('Shopping', 89.99, 10, 'Clothing purchase'),
+            ('Shopping', 234.56, 14, 'Electronics'),
+            
+            ('Healthcare', 425.00, 25, 'Health insurance premium'),
+            ('Personal Care', 45.00, 11, 'Haircut'),
+            
+            ('Savings', 500.00, 2, 'Monthly savings transfer'),
+            ('Investments', 325.00, 2, '401k contribution'),
+            ('Investments', 325.00, 16, '401k contribution'),
+            ('Debt Payments', 485.00, 16, 'Car loan'),
+            ('Debt Payments', 325.00, 23, 'Student loan'),
+        ]
+        
+        for cat_name, amount, day, desc in transaction_data:
+            if cat_name in category_map:
+                # Create transaction date within current month
+                transaction_date = today.replace(day=day)
+                if transaction_date > today:
+                    transaction_date -= timedelta(days=30)
+                
+                transaction = BudgetTransaction(
+                    category_id=category_map[cat_name].id,
+                    period_id=period.id,
+                    description=desc,
+                    amount=amount,
+                    transaction_date=transaction_date,
+                    user_id=demo_user_id
+                )
+                db.session.add(transaction)
+        
+        # Create sample goals
+        goals_data = [
+            ('Emergency Fund', 'Save for unexpected expenses', 10000.00, 3000.00, today + timedelta(days=365), 'emergency', 'high', 200.00),
+            ('Vacation Fund', 'Save for family vacation', 5000.00, 1500.00, today + timedelta(days=180), 'vacation', 'medium', 100.00),
+            ('New Car', 'Save for a new car', 20000.00, 5000.00, today + timedelta(days=730), 'purchase', 'low', 150.00)
+        ]
+        
+        for title, desc, target, current, target_date, category, priority, auto_contribute in goals_data:
+            goal = BudgetGoal(
+                title=title,
+                description=desc,
+                target_amount=target,
+                current_amount=current,
+                target_date=target_date,
+                category=category,
+                priority=priority,
+                auto_contribute=auto_contribute,
+                user_id=demo_user_id
+            )
+            db.session.add(goal)
+        
+        db.session.commit()
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating demo budget data: {e}")
+
 if __name__ == '__main__':
-    # Development server
-    port = int(os.environ.get('PORT', 5001))
-    debug = os.environ.get('FLASK_ENV') == 'development'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    app.run(debug=True)
+
+#if __name__ == '__main__':
+#    app.run(debug=True)

@@ -61,13 +61,13 @@
     box-shadow: 0 4px 25px rgba(0,0,0,0.12);
 }
 
+/* Removed the grey background from wiki card headers */
 .wiki-section .card-header {
     border-bottom: 3px solid #667eea;
-    background: linear-gradient(135deg, #495057 0%, #343a40 100%) !important;
 }
 
 .wiki-section .card-header h2 {
-    color: white !important;
+    color: #495057 !important;
     font-weight: 600;
 }
 
@@ -117,11 +117,12 @@
     margin-right: 0.5rem;
 }
 
+/* Removed grey background from checklist */
 .checklist {
-    background-color: #f8f9fa;
     padding: 1rem;
     border-radius: 0.5rem;
     margin-top: 1rem;
+    border: 1px solid #dee2e6;
 }
 
 .checklist .form-check {
@@ -154,23 +155,5 @@
         box-shadow: none;
         border: 1px solid #dee2e6;
         break-inside: avoid;
-    }
-}
-
-/* Dark mode support (if implemented later) */
-@media (prefers-color-scheme: dark) {
-    .wiki-section .card {
-        background-color: #2d3748;
-        color: #e2e8f0;
-    }
-    
-    .wiki-section .card-header {
-        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
-        color: #e2e8f0;
-    }
-    
-    .wiki-section pre {
-        background-color: #1a202c;
-        color: #e2e8f0;
     }
 }
