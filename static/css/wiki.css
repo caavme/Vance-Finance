@@ -1,0 +1,176 @@
+/* Wiki-specific styles */
+.wiki-container {
+    margin-top: 20px;
+}
+
+.wiki-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.wiki-sidebar {
+    top: 20px;
+}
+
+.wiki-sidebar .card {
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.wiki-sidebar .list-group-item {
+    border: none;
+    border-bottom: 1px solid #f8f9fa;
+    padding: 12px 20px;
+    transition: all 0.3s ease;
+}
+
+.wiki-sidebar .list-group-item:hover {
+    background-color: #f8f9fa;
+    padding-left: 25px;
+}
+
+.wiki-sidebar .list-group-item.active {
+    background-color: #667eea;
+    color: white;
+    border-left: 4px solid #5a67d8;
+    padding-left: 25px;
+}
+
+.wiki-sidebar .list-group-item i {
+    width: 20px;
+    opacity: 0.7;
+}
+
+.wiki-content {
+    padding-left: 20px;
+}
+
+.wiki-section {
+    scroll-margin-top: 80px;
+}
+
+.wiki-section .card {
+    border: none;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.wiki-section .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 25px rgba(0,0,0,0.12);
+}
+
+.wiki-section .card-header {
+    border-bottom: 3px solid #667eea;
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%) !important;
+}
+
+.wiki-section .card-header h2 {
+    color: white !important;
+    font-weight: 600;
+}
+
+.wiki-section .card-header i {
+    color: #667eea !important;
+}
+
+.wiki-section h2 {
+    color: #495057;
+    font-weight: 600;
+}
+
+.wiki-section h5 {
+    color: #667eea;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.wiki-section h6 {
+    color: #6c757d;
+    font-weight: 600;
+    margin-top: 1.25rem;
+}
+
+.wiki-section pre {
+    border-left: 4px solid #667eea;
+    font-size: 0.875rem;
+}
+
+.wiki-section code {
+    background-color: #f8f9fa;
+    color: #e83e8c;
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+}
+
+.api-endpoint {
+    border-left: 4px solid #28a745;
+    padding-left: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.api-endpoint .badge {
+    font-size: 0.7rem;
+    margin-right: 0.5rem;
+}
+
+.checklist {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+.checklist .form-check {
+    margin-bottom: 0.5rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+    .wiki-sidebar {
+        position: static !important;
+        margin-bottom: 2rem;
+    }
+    
+    .wiki-content {
+        padding-left: 0;
+    }
+}
+
+/* Print styles */
+@media print {
+    .wiki-sidebar {
+        display: none;
+    }
+    
+    .wiki-content {
+        padding-left: 0;
+    }
+    
+    .wiki-section .card {
+        box-shadow: none;
+        border: 1px solid #dee2e6;
+        break-inside: avoid;
+    }
+}
+
+/* Dark mode support (if implemented later) */
+@media (prefers-color-scheme: dark) {
+    .wiki-section .card {
+        background-color: #2d3748;
+        color: #e2e8f0;
+    }
+    
+    .wiki-section .card-header {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%) !important;
+        color: #e2e8f0;
+    }
+    
+    .wiki-section pre {
+        background-color: #1a202c;
+        color: #e2e8f0;
+    }
+}

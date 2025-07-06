@@ -1907,6 +1907,26 @@ def demo_exit():
     flash('You have exited demo mode.', 'info')
     return redirect(url_for('demo_page'))
 
+@app.route('/wiki')
+def wiki():
+    """Project documentation and wiki"""
+    return render_template('wiki.html')
+
+@app.route('/wiki/<section>')
+def wiki_section(section):
+    """Specific wiki section"""
+    valid_sections = [
+        'overview', 'features', 'installation', 'configuration', 
+        'database', 'api', 'user-guide', 'development', 'deployment',
+        'security', 'backup', 'troubleshooting'
+    ]
+    
+    if section not in valid_sections:
+        flash('Wiki section not found', 'warning')
+        return redirect(url_for('wiki'))
+    
+    return render_template('wiki.html', active_section=section)
+
 # Updated main execution
 if __name__ == '__main__':
     # Development server

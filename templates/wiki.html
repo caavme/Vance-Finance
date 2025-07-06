@@ -1,0 +1,820 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="wiki-container">
+    <!-- Wiki Header -->
+    <div class="wiki-header bg-primary text-white py-4 mb-4 rounded">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5 mb-0">
+                        <i class="bi bi-book me-3"></i>Vance Finance Wiki
+                    </h1>
+                    <p class="lead mb-0">Complete documentation and developer guide</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <span class="badge bg-light text-primary fs-6">v1.0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3">
+            <div class="wiki-sidebar sticky-top">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="bi bi-list-ul me-2"></i>Table of Contents
+                        </h6>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#overview" class="list-group-item list-group-item-action {% if not active_section or active_section == 'overview' %}active{% endif %}">
+                                <i class="bi bi-info-circle me-2"></i>Project Overview
+                            </a>
+                            <a href="#features" class="list-group-item list-group-item-action {% if active_section == 'features' %}active{% endif %}">
+                                <i class="bi bi-star me-2"></i>Features
+                            </a>
+                            <a href="#installation" class="list-group-item list-group-item-action {% if active_section == 'installation' %}active{% endif %}">
+                                <i class="bi bi-download me-2"></i>Installation
+                            </a>
+                            <a href="#configuration" class="list-group-item list-group-item-action {% if active_section == 'configuration' %}active{% endif %}">
+                                <i class="bi bi-gear me-2"></i>Configuration
+                            </a>
+                            <a href="#database" class="list-group-item list-group-item-action {% if active_section == 'database' %}active{% endif %}">
+                                <i class="bi bi-database me-2"></i>Database Schema
+                            </a>
+                            <a href="#api" class="list-group-item list-group-item-action {% if active_section == 'api' %}active{% endif %}">
+                                <i class="bi bi-code-slash me-2"></i>API Reference
+                            </a>
+                            <a href="#user-guide" class="list-group-item list-group-item-action {% if active_section == 'user-guide' %}active{% endif %}">
+                                <i class="bi bi-person-check me-2"></i>User Guide
+                            </a>
+                            <a href="#development" class="list-group-item list-group-item-action {% if active_section == 'development' %}active{% endif %}">
+                                <i class="bi bi-code me-2"></i>Development
+                            </a>
+                            <a href="#deployment" class="list-group-item list-group-item-action {% if active_section == 'deployment' %}active{% endif %}">
+                                <i class="bi bi-cloud me-2"></i>Deployment
+                            </a>
+                            <a href="#security" class="list-group-item list-group-item-action {% if active_section == 'security' %}active{% endif %}">
+                                <i class="bi bi-shield-check me-2"></i>Security
+                            </a>
+                            <a href="#backup" class="list-group-item list-group-item-action {% if active_section == 'backup' %}active{% endif %}">
+                                <i class="bi bi-archive me-2"></i>Backup & Recovery
+                            </a>
+                            <a href="#troubleshooting" class="list-group-item list-group-item-action {% if active_section == 'troubleshooting' %}active{% endif %}">
+                                <i class="bi bi-tools me-2"></i>Troubleshooting
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <div class="wiki-content">
+
+                <!-- Project Overview -->
+                <section id="overview" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-info-circle text-primary me-2"></i>Project Overview
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="lead">Vance Finance is a comprehensive personal finance management web application designed to help users track their income, bills, credit cards, loans, and subscriptions.</p>
+
+                            <h5>Key Objectives</h5>
+                            <ul>
+                                <li>Simplify personal finance management</li>
+                                <li>Provide clear financial insights</li>
+                                <li>Support multiple income and expense types</li>
+                                <li>Ensure data security and backup capabilities</li>
+                                <li>Offer an intuitive, responsive user interface</li>
+                            </ul>
+
+                            <h5>Technology Stack</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Backend</h6>
+                                    <ul>
+                                        <li>Python 3.7+</li>
+                                        <li>Flask 3.0+</li>
+                                        <li>SQLAlchemy</li>
+                                        <li>Werkzeug</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Frontend</h6>
+                                    <ul>
+                                        <li>HTML5/CSS3</li>
+                                        <li>Bootstrap 5</li>
+                                        <li>JavaScript (ES6+)</li>
+                                        <li>Bootstrap Icons</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Features -->
+                <section id="features" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-star text-primary me-2"></i>Features
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Core Financial Management</h5>
+                                    <ul>
+                                        <li><strong>Income Tracking</strong>: Biweekly and bimonthly payment schedules</li>
+                                        <li><strong>Bill Management</strong>: Recurring and one-time bills with categories</li>
+                                        <li><strong>Credit Card Monitoring</strong>: Track balances, limits, and utilization</li>
+                                        <li><strong>Loan Management</strong>: Auto, mortgage, student, and personal loans</li>
+                                        <li><strong>Subscription Tracking</strong>: Monthly, yearly, and weekly billing cycles</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Analytics & Insights</h5>
+                                    <ul>
+                                        <li><strong>Debt-to-Income Ratio</strong>: Automatic financial health metrics</li>
+                                        <li><strong>Future Projections</strong>: 90-day financial timeline</li>
+                                        <li><strong>Cash Flow Analysis</strong>: Monthly income vs. expenses</li>
+                                        <li><strong>Payment Scheduling</strong>: Track upcoming payments</li>
+                                    </ul>
+
+                                    <h5>Data Management</h5>
+                                    <ul>
+                                        <li><strong>Export/Import</strong>: JSON-based backup and restoration</li>
+                                        <li><strong>Database Backups</strong>: Automatic SQLite backups</li>
+                                        <li><strong>Demo Mode</strong>: Realistic sample data showcase</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Installation -->
+                <section id="installation" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-download text-primary me-2"></i>Installation & Setup
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Prerequisites</h5>
+                            <div class="alert alert-info">
+                                <ul class="mb-0">
+                                    <li>Python 3.7 or higher</li>
+                                    <li>pip (Python package manager)</li>
+                                    <li>Git (for cloning repository)</li>
+                                </ul>
+                            </div>
+
+                            <h5>Local Development Setup</h5>
+                            <ol>
+                                <li>
+                                    <strong>Clone the Repository</strong>
+                                    <pre class="bg-light p-3 rounded"><code>git clone &lt;repository-url&gt;
+cd vance-finance</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Create Virtual Environment</strong>
+                                    <pre class="bg-light p-3 rounded"><code>python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Install Dependencies</strong>
+                                    <pre class="bg-light p-3 rounded"><code>pip install -r requirements.txt</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Set Up Static Files</strong>
+                                    <pre class="bg-light p-3 rounded"><code>python static_setup.py</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Environment Configuration</strong>
+                                    <pre class="bg-light p-3 rounded"><code># Copy example environment file
+cp .env.example .env
+
+# Edit .env with your settings
+SECRET_KEY=your-secret-key-here
+FLASK_ENV=development</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Run the Application</strong>
+                                    <pre class="bg-light p-3 rounded"><code>python Vance_Financial_Assistant.py</code></pre>
+                                </li>
+
+                                <li>
+                                    <strong>Access the Application</strong>
+                                    <div class="alert alert-success">
+                                        Visit <a href="http://localhost:5001" target="_blank">http://localhost:5001</a>
+                                    </div>
+                                </li>
+                            </ol>
+
+                            <div class="alert alert-primary">
+                                <h6><i class="bi bi-lightbulb me-2"></i>Quick Start with Demo</h6>
+                                Visit <code>/demo</code> to explore the application with pre-populated sample data.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Configuration -->
+                <section id="configuration" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-gear text-primary me-2"></i>Configuration
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Environment Variables</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Variable</th>
+                                            <th>Description</th>
+                                            <th>Default</th>
+                                            <th>Required</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>SECRET_KEY</code></td>
+                                            <td>Flask session encryption key</td>
+                                            <td>Auto-generated</td>
+                                            <td>No</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>DATABASE_URL</code></td>
+                                            <td>Database connection string</td>
+                                            <td>SQLite local file</td>
+                                            <td>No</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>FLASK_ENV</code></td>
+                                            <td>Flask environment mode</td>
+                                            <td>development</td>
+                                            <td>No</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>PORT</code></td>
+                                            <td>Application port</td>
+                                            <td>5001</td>
+                                            <td>No</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h5>Database Configuration</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Development (SQLite)</h6>
+                                    <pre class="bg-light p-3 rounded"><code>DATABASE_URL=sqlite:///finance_tracker.db</code></pre>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Production (PostgreSQL)</h6>
+                                    <pre class="bg-light p-3 rounded"><code>DATABASE_URL=postgresql://user:password@host:port/database</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Database Schema -->
+                <section id="database" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-database text-primary me-2"></i>Database Schema
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Core Tables</h5>
+
+                            <h6>Users Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE user (
+    id INTEGER PRIMARY KEY,
+    username VARCHAR(80) UNIQUE NOT NULL,
+    password_hash VARCHAR(256) NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL
+);</code></pre>
+
+                            <h6>Bills Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE bill (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    amount FLOAT NOT NULL,
+    due_date DATE NOT NULL,
+    category VARCHAR(50),
+    is_paid BOOLEAN DEFAULT FALSE,
+    recurring BOOLEAN DEFAULT FALSE,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>Credit Cards Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE credit_card (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    last_four VARCHAR(4) NOT NULL,
+    limit FLOAT,
+    current_balance FLOAT DEFAULT 0,
+    payment_due_date DATE NOT NULL,
+    minimum_payment FLOAT,
+    interest_rate FLOAT,
+    auto_pay_minimum BOOLEAN DEFAULT FALSE,
+    auto_payment_amount FLOAT,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h5>Relationships</h5>
+                            <ul>
+                                <li><strong>One-to-Many</strong>: User → Bills, CreditCards, Subscriptions, Loans, IncomeSources</li>
+                                <li><strong>Foreign Keys</strong>: All entities reference the user table for data isolation</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- API Reference -->
+                <section id="api" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-code-slash text-primary me-2"></i>API Reference
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Authentication Routes</h5>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-success">POST</span> /register</h6>
+                                <p>Register a new user account.</p>
+                                <strong>Request Body:</strong>
+                                <pre class="bg-light p-2 rounded"><code>{
+    "username": "string",
+    "email": "string", 
+    "password": "string"
+}</code></pre>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-success">POST</span> /login</h6>
+                                <p>Authenticate user login.</p>
+                                <strong>Request Body:</strong>
+                                <pre class="bg-light p-2 rounded"><code>{
+    "username": "string",
+    "password": "string"
+}</code></pre>
+                            </div>
+
+                            <h5>Financial Management Routes</h5>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-primary">GET</span> /dashboard</h6>
+                                <p>Main dashboard with financial overview.</p>
+                                <strong>Response:</strong> HTML page with urgent bills, credit card summaries, and key metrics.
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /bills</h6>
+                                <p>Manage bills and recurring payments.</p>
+                                <strong>POST Request Body:</strong>
+                                <pre class="bg-light p-2 rounded"><code>{
+    "name": "string",
+    "amount": "float",
+    "due_date": "YYYY-MM-DD",
+    "category": "string",
+    "recurring": "boolean"
+}</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Guide -->
+                <section id="user-guide" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-person-check text-primary me-2"></i>User Guide
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Getting Started</h5>
+                            <ol>
+                                <li><strong>Create Account</strong>: Register with username, email, and password</li>
+                                <li><strong>Add Income Sources</strong>: Set up your biweekly or bimonthly income</li>
+                                <li><strong>Add Bills</strong>: Enter recurring bills with due dates and categories</li>
+                                <li><strong>Add Credit Cards</strong>: Track balances, limits, and payment schedules</li>
+                                <li><strong>Add Loans</strong>: Monitor loan balances and payment schedules</li>
+                                <li><strong>Add Subscriptions</strong>: Keep track of recurring services</li>
+                            </ol>
+
+                            <h5>Dashboard Overview</h5>
+                            <p>The dashboard provides:</p>
+                            <ul>
+                                <li><strong>Urgent Bills</strong>: Bills due within 7 days</li>
+                                <li><strong>Credit Card Summary</strong>: Current balances and utilization</li>
+                                <li><strong>Financial Metrics</strong>: Debt-to-income ratio and monthly cash flow</li>
+                                <li><strong>Next Income</strong>: Upcoming income payment dates</li>
+                            </ul>
+
+                            <h5>Financial Insights</h5>
+
+                            <h6>Debt-to-Income Ratio</h6>
+                            <p>Calculated as: <code>(Total Monthly Expenses / Total Monthly Income) × 100</code></p>
+                            <ul>
+                                <li><span class="badge bg-success">Excellent</span>: &lt; 20%</li>
+                                <li><span class="badge bg-info">Good</span>: 20-35%</li>
+                                <li><span class="badge bg-warning">Fair</span>: 36-49%</li>
+                                <li><span class="badge bg-danger">Poor</span>: &gt; 50%</li>
+                            </ul>
+
+                            <h6>Credit Utilization</h6>
+                            <p>Per card and overall utilization calculated as: <code>(Current Balance / Credit Limit) × 100</code></p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Development -->
+                <section id="development" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-code text-primary me-2"></i>Development Guide
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Setting Up Development Environment</h5>
+
+                            <h6>1. Install Development Dependencies</h6>
+                            <pre class="bg-light p-3 rounded"><code>pip install -r requirements.txt</code></pre>
+
+                            <h6>2. Enable Debug Mode</h6>
+                            <pre class="bg-light p-3 rounded"><code>export FLASK_ENV=development
+export FLASK_DEBUG=1</code></pre>
+
+                            <h6>3. Database Development</h6>
+                            <pre class="bg-light p-3 rounded"><code># The application automatically creates tables on first run
+python Vance_Financial_Assistant.py</code></pre>
+
+                            <h5>Code Structure</h5>
+                            <h6>Models (SQLAlchemy)</h6>
+                            <p>Located in <code>Vance_Financial_Assistant.py</code>:</p>
+                            <ul>
+                                <li><code>User</code>: User authentication and profile</li>
+                                <li><code>Bill</code>: Bill and recurring payment tracking</li>
+                                <li><code>CreditCard</code>: Credit card management</li>
+                                <li><code>IncomeSource</code>: Income tracking with flexible schedules</li>
+                                <li><code>Subscription</code>: Recurring service subscriptions</li>
+                                <li><code>Loan</code>: Loan and debt management</li>
+                            </ul>
+
+                            <h5>Best Practices</h5>
+                            <ul>
+                                <li><strong>Security</strong>: Always validate user input and check ownership</li>
+                                <li><strong>Backup</strong>: Call <code>backup_database()</code> before destructive operations</li>
+                                <li><strong>Error Handling</strong>: Use try/catch blocks and flash user-friendly messages</li>
+                                <li><strong>Session Management</strong>: Check for <code>user_id</code> in session for protected routes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Deployment -->
+                <section id="deployment" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-cloud text-primary me-2"></i>Deployment
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Local Production</h5>
+
+                            <h6>1. Set Production Environment</h6>
+                            <pre class="bg-light p-3 rounded"><code>export FLASK_ENV=production
+export SECRET_KEY=your-production-secret-key</code></pre>
+
+                            <h6>2. Use Production Database</h6>
+                            <pre class="bg-light p-3 rounded"><code>export DATABASE_URL=postgresql://user:pass@host:port/db</code></pre>
+
+                            <h6>3. Run with Gunicorn</h6>
+                            <pre class="bg-light p-3 rounded"><code>gunicorn wsgi:app</code></pre>
+
+                            <h5>Docker Deployment</h5>
+
+                            <h6>1. Build Image</h6>
+                            <pre class="bg-light p-3 rounded"><code>docker build -t vance-finance .</code></pre>
+
+                            <h6>2. Run Container</h6>
+                            <pre class="bg-light p-3 rounded"><code>docker run -p 5000:5000 \
+  -e SECRET_KEY=your-secret-key \
+  -e DATABASE_URL=your-database-url \
+  vance-finance</code></pre>
+
+                            <h5>Heroku Deployment</h5>
+
+                            <h6>1. Create Heroku App</h6>
+                            <pre class="bg-light p-3 rounded"><code>heroku create your-app-name</code></pre>
+
+                            <h6>2. Set Environment Variables</h6>
+                            <pre class="bg-light p-3 rounded"><code>heroku config:set SECRET_KEY=your-secret-key
+heroku config:set FLASK_ENV=production</code></pre>
+
+                            <h6>3. Deploy</h6>
+                            <pre class="bg-light p-3 rounded"><code>git push heroku main</code></pre>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Security -->
+                <section id="security" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-shield-check text-primary me-2"></i>Security
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Authentication</h5>
+                            <ul>
+                                <li><strong>Password Hashing</strong>: Werkzeug PBKDF2 with salt</li>
+                                <li><strong>Session Management</strong>: Flask secure sessions</li>
+                                <li><strong>User Isolation</strong>: All data filtered by user_id</li>
+                            </ul>
+
+                            <h5>Data Protection</h5>
+                            <ul>
+                                <li><strong>Input Validation</strong>: Server-side validation for all forms</li>
+                                <li><strong>SQL Injection</strong>: SQLAlchemy ORM parameterized queries</li>
+                                <li><strong>CSRF Protection</strong>: Flask session-based protection</li>
+                                <li><strong>XSS Prevention</strong>: Jinja2 template auto-escaping</li>
+                            </ul>
+
+                            <h5>Production Security Checklist</h5>
+                            <div class="checklist">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security1">
+                                    <label class="form-check-label" for="security1">Set secure SECRET_KEY</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security2">
+                                    <label class="form-check-label" for="security2">Enable HTTPS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security3">
+                                    <label class="form-check-label" for="security3">Configure secure headers</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security4">
+                                    <label class="form-check-label" for="security4">Set up database access controls</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security5">
+                                    <label class="form-check-label" for="security5">Implement rate limiting</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="security6">
+                                    <label class="form-check-label" for="security6">Regular dependency updates</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Backup & Recovery -->
+                <section id="backup" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-archive text-primary me-2"></i>Backup & Recovery
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Automatic Backups</h5>
+                            <p>The application automatically creates backups:</p>
+                            <ul>
+                                <li>Before user registration</li>
+                                <li>Before any data modification</li>
+                                <li>Before data imports</li>
+                            </ul>
+
+                            <h5>Manual Backups</h5>
+                            <ul>
+                                <li><strong>Database Backup</strong>: Creates SQLite file copy</li>
+                                <li><strong>JSON Export</strong>: Exports all user data to portable format</li>
+                                <li><strong>Scheduled Backups</strong>: Can be automated via cron jobs</li>
+                            </ul>
+
+                            <h5>Recovery Procedures</h5>
+
+                            <h6>From Database Backup</h6>
+                            <ol>
+                                <li>Stop the application</li>
+                                <li>Replace current database with backup file</li>
+                                <li>Restart the application</li>
+                            </ol>
+
+                            <h6>From JSON Export</h6>
+                            <ol>
+                                <li>Go to Backup → Import Data</li>
+                                <li>Upload JSON backup file</li>
+                                <li>Choose to clear existing data or merge</li>
+                                <li>Confirm import</li>
+                            </ol>
+
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Important:</strong> Test backup and recovery procedures regularly in a development environment.
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Troubleshooting -->
+                <section id="troubleshooting" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header bg-light">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-tools text-primary me-2"></i>Troubleshooting
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Common Issues</h5>
+
+                            <div class="accordion" id="troubleshootingAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                            Application won't start
+                                        </button>
+                                    </h2>
+                                    <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Missing dependencies</li>
+                                                <li>Port already in use</li>
+                                                <li>Database connection issues</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li>Check Python version: <code>python --version</code></li>
+                                                <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+                                                <li>Check port availability: <code>netstat -an | grep 5001</code></li>
+                                                <li>Verify database permissions</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingTwo">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                            Login issues
+                                        </button>
+                                    </h2>
+                                    <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Incorrect credentials</li>
+                                                <li>Database corruption</li>
+                                                <li>Session issues</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li>Clear browser cache and cookies</li>
+                                                <li>Try registering a new account</li>
+                                                <li>Check debug routes: <code>/debug/users</code></li>
+                                                <li>Reset database if necessary</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingThree">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                            Data not saving
+                                        </button>
+                                    </h2>
+                                    <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Database permission issues</li>
+                                                <li>Disk space full</li>
+                                                <li>Form validation errors</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li>Check database file permissions</li>
+                                                <li>Verify available disk space</li>
+                                                <li>Check browser console for JavaScript errors</li>
+                                                <li>Review application logs</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Debug Routes</h5>
+                            <div class="alert alert-warning">
+                                <strong>Development Only:</strong> These routes should be removed in production.
+                            </div>
+                            <ul>
+                                <li><code>/debug/paths</code> - View file system paths</li>
+                                <li><code>/debug/users</code> - View user database information</li>
+                                <li><code>/test/backup</code> - Test backup functionality</li>
+                            </ul>
+
+                            <h5>Getting Help</h5>
+                            <p>If you need additional support:</p>
+                            <ul>
+                                <li>Check the <a href="{{ url_for('demo_page') }}">Demo</a> for expected behavior</li>
+                                <li>Review the source code on GitHub</li>
+                                <li>Create an issue with detailed error information</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Wiki-specific JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Smooth scrolling for sidebar links
+        document.querySelectorAll('.wiki-sidebar a[href^="#"]').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+
+                    // Update active link
+                    document.querySelectorAll('.wiki-sidebar .list-group-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Highlight current section on scroll
+        const sections = document.querySelectorAll('.wiki-section');
+        const navLinks = document.querySelectorAll('.wiki-sidebar a[href^="#"]');
+
+        function highlightCurrentSection() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 100) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', highlightCurrentSection);
+    });
+</script>
+
+{% endblock %}
