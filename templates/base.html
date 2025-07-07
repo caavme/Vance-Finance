@@ -149,7 +149,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+                {% if config.DEVELOPMENT_MODE %}
                 <span class="badge bg-danger me-2">DEV</span>
+                {% endif %}
                 {% if 'demo_mode' in session %}
                 <span class="badge bg-info me-2">DEMO</span>
                 {% endif %}
@@ -288,7 +290,9 @@
         <div class="container">
             <p class="mb-0">
                 Vance Finance &copy; 2025 CAAV Technology Consulting, LLC.
+                {% if config.DEVELOPMENT_MODE %}
                 <span class="badge bg-danger ms-2">Development Server</span>
+                {% endif %}
                 {% if 'demo_mode' in session %}
                 <span class="badge bg-info ms-2">Demo Mode</span>
                 {% endif %}
