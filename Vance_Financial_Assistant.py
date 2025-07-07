@@ -26,6 +26,7 @@ class Config:
     DATABASE_URL = os.environ.get('DATABASE_URL') or f'sqlite:///{os.path.join(BASE_DIR, "finance_tracker.db")}'
     SQLALCHEMY_DATABASE_URI = DATABASE_URL
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    DEVELOPMENT_MODE = os.environ.get('DEVELOPMENT_MODE', 'true').lower() == 'true'
 
 app.config.from_object(Config)
 
@@ -2168,7 +2169,7 @@ def create_current_budget_period(user_id):
     today = datetime.now().date()
     start_date = today.replace(day=1)
     
-    # Calculate end of month
+    # Calculate end of month - FIX THIS LINE:
     if start_date.month == 12:
         end_date = start_date.replace(year=start_date.year + 1, month=1, day=1) - timedelta(days=1)
     else:
@@ -2629,6 +2630,161 @@ def create_demo_budget_data(demo_user_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error creating demo budget data: {e}")
+
+@app.route('/delete/bill/<int:bill_id>')
+def delete_bill(bill_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    bill = Bill.query.get_or_404(bill_id)
+    if bill.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('bills'))
+    
+    backup_database()
+    
+    try:
+        db.session.delete(bill)
+        db.session.commit()
+        flash('Bill deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting bill. Please try again.', 'danger')
+        print(f"Error deleting bill: {e}")
+    
+    return redirect(url_for('bills'))
+
+@app.route('/delete/subscription/<int:subscription_id>')
+def delete_subscription(subscription_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    if subscription.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('subscriptions'))
+    
+    backup_database()
+    
+    try:
+        db.session.delete(subscription)
+        db.session.commit()
+        flash('Subscription deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting subscription. Please try again.', 'danger')
+        print(f"Error deleting subscription: {e}")
+    
+    return redirect(url_for('subscriptions'))
+
+@app.route('/delete/loan/<int:loan_id>')
+def delete_loan(loan_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    loan = Loan.query.get_or_404(loan_id)
+    if loan.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('loans'))
+    
+    backup_database()
+    
+    try:
+        db.session.delete(loan)
+        db.session.commit()
+        flash('Loan deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting loan. Please try again.', 'danger')
+        print(f"Error deleting loan: {e}")
+    
+    return redirect(url_for('bills'))
+
+@app.route('/toggle/subscription/<int:subscription_id>')
+def toggle_subscription_status(subscription_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    if subscription.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('subscriptions'))
+    
+    backup_database()
+    
+    try:
+        subscription.is_active = not subscription.is_active
+        db.session.commit()
+        status = 'activated' if subscription.is_active else 'deactivated'
+        flash(f'Subscription {status} successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error updating subscription status. Please try again.', 'danger')
+        print(f"Error toggling subscription status: {e}")
+    
+    return redirect(url_for('subscriptions'))
+
+@app.route('/edit/subscription_page/<int:subscription_id>', methods=['POST'])
+def edit_subscription_page(subscription_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    if subscription.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('subscriptions'))
+    
+    if request.method == 'POST':
+        backup_database()
+        
+        try:
+            subscription.name = request.form.get('name')
+            subscription.amount = float(request.form.get('amount'))
+            subscription.billing_cycle = request.form.get('billing_cycle')
+            subscription.next_billing_date = datetime.strptime(request.form.get('next_billing_date'), '%Y-%m-%d').date()
+            subscription.category = request.form.get('category')
+            subscription.auto_renew = 'auto_renew' in request.form
+            
+            db.session.commit()
+            flash('Subscription updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating subscription. Please try again.', 'danger')
+            print(f"Error editing subscription: {e}")
+        
+    return redirect(url_for('subscriptions'))
+
+@app.route('/edit/loan_page/<int:loan_id>', methods=['POST'])
+def edit_loan_page(loan_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    loan = Loan.query.get_or_404(loan_id)
+    if loan.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('loans'))
+    
+    if request.method == 'POST':
+        backup_database()
+        
+        try:
+            loan.name = request.form.get('name')
+            loan.loan_type = request.form.get('loan_type')
+            loan.principal_amount = float(request.form.get('principal_amount'))
+            loan.current_balance = float(request.form.get('current_balance'))
+            loan.monthly_payment = float(request.form.get('monthly_payment'))
+            loan.interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
+            loan.next_payment_date = datetime.strptime(request.form.get('next_payment_date'), '%Y-%m-%d').date()
+            loan.term_months = int(request.form.get('term_months')) if request.form.get('term_months') else None
+            
+            db.session.commit()
+            flash('Loan updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating loan. Please try again.', 'danger')
+            print(f"Error editing loan: {e}")
+        
+    return redirect(url_for('bills'))
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5001))
