@@ -104,6 +104,7 @@
     </style>
 </head>
 <body>
+    {% if config.DEVELOPMENT_MODE %}
     <!-- Development Server Banner -->
     <div class="alert alert-warning alert-dismissible mb-0 rounded-0 border-0" style="background: linear-gradient(90deg, #dc3545, #fd7e14);">
         <div class="container">
@@ -120,6 +121,7 @@
             </div>
         </div>
     </div>
+    {% endif %}
 
     <!-- Demo Mode Banner -->
     {% if 'demo_mode' in session %}
