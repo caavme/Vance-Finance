@@ -706,5 +706,11 @@
         if (summaryRow) tbody.appendChild(summaryRow);
         rows.forEach(row => tbody.appendChild(row));
     }
+
+    function deleteCreditCard(id, name) {
+        if (confirm('Are you sure you want to delete the credit card "' + name + '"? This action cannot be undone.')) {
+            window.location.href = '/delete/credit_card/' + id;
+        }
+    }
 </script>
 {% endblock %}

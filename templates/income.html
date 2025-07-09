@@ -8,10 +8,7 @@
     </button>
 </div>
 
-<!-- Income Sources Table 
-
-
-
+<!-- Income Sources Table -->
 <div class="card mb-4">
     <div class="card-header">
         <h5 class="mb-0">Your Income Sources</h5>
@@ -28,6 +25,7 @@
                         <th>Payment Schedule</th>
                         <th>Next Payments</th>
                         <th>Monthly Est.</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,17 +39,35 @@
                         </td>
                         <td class="text-success">${{ "%.2f"|format(source.amount) }}</td>
                         <td>
-                            {% if source.frequency == 'bimonthly' %}
-                            <span class="badge bg-primary">Bi-Monthly</span>
+                            {% if source.frequency == 'weekly' %}
+                            <span class="badge bg-success">Weekly</span>
                             {% elif source.frequency == 'biweekly' %}
                             <span class="badge bg-info">Bi-Weekly</span>
+                            {% elif source.frequency == 'monthly' %}
+                            <span class="badge bg-primary">Monthly</span>
+                            {% elif source.frequency == 'bimonthly' %}
+                            <span class="badge bg-primary">Bi-Monthly</span>
+                            {% elif source.frequency == 'quarterly' %}
+                            <span class="badge bg-warning">Quarterly</span>
+                            {% elif source.frequency == 'annually' %}
+                            <span class="badge bg-danger">Annually</span>
+                            {% elif source.frequency == 'onetime' %}
+                            <span class="badge bg-secondary">One-Time</span>
                             {% endif %}
                         </td>
                         <td>
-                            {% if source.frequency == 'bimonthly' %}
-                            {{ source.payment_day_1 }}th & {{ source.payment_day_2 }}th of month
+                            {% if source.frequency == 'weekly' %}
+                            Every {{ source.day_of_week }} from {{ source.next_payment_date.strftime('%m/%d/%Y') }}
                             {% elif source.frequency == 'biweekly' %}
                             Every 2 weeks from {{ source.next_payment_date.strftime('%m/%d/%Y') }}
+                            {% elif source.frequency == 'monthly' %}
+                            {{ source.payment_day_1 }}{{ 'st' if source.payment_day_1 == 1 or source.payment_day_1 == 21 or source.payment_day_1 == 31 else ('nd' if source.payment_day_1 == 2 or source.payment_day_1 == 22 else ('rd' if source.payment_day_1 == 3 or source.payment_day_1 == 23 else 'th')) }} of each month
+                            {% elif source.frequency == 'bimonthly' %}
+                            {{ source.payment_day_1 }}th & {{ source.payment_day_2 }}th of month
+                            {% elif source.frequency == 'onetime' %}
+                            One-time on {{ source.one_time_date.strftime('%m/%d/%Y') }}
+                            {% elif source.frequency in ['quarterly', 'annually'] %}
+                            {{ source.next_payment_date.strftime('%m/%d') }} every {% if source.frequency == 'quarterly' %}quarter{% else %}year{% endif %}
                             {% endif %}
                         </td>
                         <td>
@@ -67,11 +83,33 @@
                             {% endif %}
                         </td>
                         <td class="text-success">
-                            {% if source.frequency == 'bimonthly' %}
-                            ${{ "%.2f"|format(source.amount * 2) }}
+                            {% if source.frequency == 'weekly' %}
+                            ${{ "%.2f"|format(source.amount * 52 / 12) }}
                             {% elif source.frequency == 'biweekly' %}
                             ${{ "%.2f"|format(source.amount * 26 / 12) }}
+                            {% elif source.frequency == 'monthly' %}
+                            ${{ "%.2f"|format(source.amount) }}
+                            {% elif source.frequency == 'bimonthly' %}
+                            ${{ "%.2f"|format(source.amount * 2) }}
+                            {% elif source.frequency == 'quarterly' %}
+                            ${{ "%.2f"|format(source.amount / 3) }}
+                            {% elif source.frequency == 'annually' %}
+                            ${{ "%.2f"|format(source.amount / 12) }}
+                            {% elif source.frequency == 'onetime' %}
+                            <span class="text-muted">One-time: ${{ "%.2f"|format(source.amount) }}</span>
                             {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                        onclick="editIncome({{ source.id }}, '{{ source.name }}', {{ source.amount }}, '{{ source.frequency }}', '{{ source.payment_day_1 or '' }}', '{{ source.payment_day_2 or '' }}', '{{ (source.one_time_date.strftime('%Y-%m-%d') if source.one_time_date else source.next_payment_date.strftime('%Y-%m-%d') if source.next_payment_date else '') }}', '{{ source.day_of_week or '' }}', {{ source.is_active|lower }})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="deleteIncome({{ source.id }}, '{{ source.name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -100,7 +138,7 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="name" class="form-label">Income Source Name</label>
-                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Your Salary, Wife's Salary" required>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Your Salary, Wife's Salary, Freelance Work" required>
                         </div>
                         <div class="col-md-6">
                             <label for="amount" class="form-label">Amount per Payment ($)</label>
@@ -110,9 +148,77 @@
                             <label for="frequency" class="form-label">Payment Frequency</label>
                             <select class="form-select" id="frequency" name="frequency" onchange="toggleFrequencyFields()" required>
                                 <option value="">Select frequency</option>
-                                <option value="bimonthly">Bi-Monthly (twice per month)</option>
+                                <option value="weekly">Weekly (every week)</option>
                                 <option value="biweekly">Bi-Weekly (every 2 weeks)</option>
+                                <option value="monthly">Monthly (once per month)</option>
+                                <option value="bimonthly">Bi-Monthly (twice per month)</option>
+                                <option value="quarterly">Quarterly (every 3 months)</option>
+                                <option value="annually">Annually (once per year)</option>
+                                <option value="onetime">One-Time Income</option>
                             </select>
+                        </div>
+
+                        <!-- Weekly Fields -->
+                        <div class="col-12" id="weeklyFields" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">Weekly Payment Schedule</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="day_of_week" class="form-label">Day of Week</label>
+                                            <select class="form-select" id="day_of_week" name="day_of_week">
+                                                <option value="Monday">Monday</option>
+                                                <option value="Tuesday">Tuesday</option>
+                                                <option value="Wednesday">Wednesday</option>
+                                                <option value="Thursday">Thursday</option>
+                                                <option value="Friday" selected>Friday</option>
+                                                <option value="Saturday">Saturday</option>
+                                                <option value="Sunday">Sunday</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="next_payment_date_weekly" class="form-label">Next Payment Date</label>
+                                            <input type="date" class="form-control" id="next_payment_date_weekly" name="next_payment_date">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">Enter the next date you expect to be paid. We'll calculate future dates automatically.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bi-Weekly Fields -->
+                        <div class="col-12" id="biweeklyFields" style="display: none;">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">Bi-Weekly Payment Schedule</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="next_payment_date_biweekly" class="form-label">Next Payment Date</label>
+                                    <input type="date" class="form-control" id="next_payment_date_biweekly" name="next_payment_date">
+                                    <small class="text-muted">Enter the next date you expect to be paid. We'll calculate future dates automatically.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Fields -->
+                        <div class="col-12" id="monthlyFields" style="display: none;">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Monthly Payment Day</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="payment_day_monthly" class="form-label">Payment Day of Month</label>
+                                    <select class="form-select" id="payment_day_monthly" name="payment_day_1">
+                                        {% for day in range(1, 32) %}
+                                        <option value="{{ day }}" {% if day==15 %}selected{% endif %}>{{ day }}</option>
+                                        {% endfor %}
+                                        <option value="31">Last day of month</option>
+                                    </select>
+                                    <small class="text-muted">Choose the day of the month you get paid (e.g., 15th, 30th, last day).</small>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Bi-Monthly Fields -->
@@ -146,17 +252,41 @@
                             </div>
                         </div>
 
-                        <!-- Bi-Weekly Fields -->
-                        <div class="col-12" id="biweeklyFields" style="display: none;">
-                            <div class="card border-info">
-                                <div class="card-header bg-info text-white">
-                                    <h6 class="mb-0">Bi-Weekly Payment Schedule</h6>
+                        <!-- Quarterly/Annual Fields -->
+                        <div class="col-12" id="periodicFields" style="display: none;">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">Periodic Payment Schedule</h6>
                                 </div>
                                 <div class="card-body">
-                                    <label for="next_payment_date" class="form-label">Next Payment Date</label>
-                                    <input type="date" class="form-control" id="next_payment_date" name="next_payment_date">
-                                    <small class="text-muted">Enter the next date you expect to be paid. We'll calculate future dates automatically.</small>
+                                    <label for="next_payment_date_periodic" class="form-label">Next Payment Date</label>
+                                    <input type="date" class="form-control" id="next_payment_date_periodic" name="next_payment_date">
+                                    <small class="text-muted">Enter the next date you expect to receive this income.</small>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- One-Time Fields -->
+                        <div class="col-12" id="onetimeFields" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">One-Time Income</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="one_time_date" class="form-label">Income Date</label>
+                                    <input type="date" class="form-control" id="one_time_date" name="one_time_date">
+                                    <small class="text-muted">Enter the date when you received or will receive this one-time income (e.g., bonus, tax refund, gift).</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="is_active" name="is_active" checked>
+                                <label class="form-check-label" for="is_active">
+                                    Active income source
+                                </label>
                             </div>
                         </div>
                     </div>
@@ -170,27 +300,340 @@
     </div>
 </div>
 
+<!-- Edit Income Modal -->
+<div class="modal fade" id="editIncomeModal" tabindex="-1" aria-labelledby="editIncomeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editIncomeModalLabel">Edit Income Source</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editIncomeForm" method="POST">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="edit_name" class="form-label">Income Source Name</label>
+                            <input type="text" class="form-control" id="edit_name" name="name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_amount" class="form-label">Amount per Payment ($)</label>
+                            <input type="number" step="0.01" class="form-control" id="edit_amount" name="amount" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_frequency" class="form-label">Payment Frequency</label>
+                            <select class="form-select" id="edit_frequency" name="frequency" onchange="toggleEditFrequencyFields()" required>
+                                <option value="weekly">Weekly (every week)</option>
+                                <option value="biweekly">Bi-Weekly (every 2 weeks)</option>
+                                <option value="monthly">Monthly (once per month)</option>
+                                <option value="bimonthly">Bi-Monthly (twice per month)</option>
+                                <option value="quarterly">Quarterly (every 3 months)</option>
+                                <option value="annually">Annually (once per year)</option>
+                            </select>
+                        </div>
+
+                        <!-- Weekly Fields -->
+                        <div class="col-12" id="editWeeklyFields" style="display: none;">
+                            <div class="card border-success">
+                                <div class="card-header bg-success text-white">
+                                    <h6 class="mb-0">Weekly Payment Schedule</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="edit_day_of_week" class="form-label">Day of Week</label>
+                                            <select class="form-select" id="edit_day_of_week" name="day_of_week">
+                                                <option value="Monday">Monday</option>
+                                                <option value="Tuesday">Tuesday</option>
+                                                <option value="Wednesday">Wednesday</option>
+                                                <option value="Thursday">Thursday</option>
+                                                <option value="Friday">Friday</option>
+                                                <option value="Saturday">Saturday</option>
+                                                <option value="Sunday">Sunday</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="edit_next_payment_date_weekly" class="form-label">Next Payment Date</label>
+                                            <input type="date" class="form-control" id="edit_next_payment_date_weekly" name="next_payment_date">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bi-Weekly Fields -->
+                        <div class="col-12" id="editBiweeklyFields" style="display: none;">
+                            <div class="card border-info">
+                                <div class="card-header bg-info text-white">
+                                    <h6 class="mb-0">Bi-Weekly Payment Schedule</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="edit_next_payment_date_biweekly" class="form-label">Next Payment Date</label>
+                                    <input type="date" class="form-control" id="edit_next_payment_date_biweekly" name="next_payment_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Monthly Fields -->
+                        <div class="col-12" id="editMonthlyFields" style="display: none;">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Monthly Payment Day</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="edit_payment_day_monthly" class="form-label">Payment Day of Month</label>
+                                    <select class="form-select" id="edit_payment_day_monthly" name="payment_day_1">
+                                        {% for day in range(1, 32) %}
+                                        <option value="{{ day }}">{{ day }}</option>
+                                        {% endfor %}
+                                        <option value="31">Last day of month</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bi-Monthly Fields -->
+                        <div class="col-12" id="editBimonthlyFields" style="display: none;">
+                            <div class="card border-primary">
+                                <div class="card-header bg-primary text-white">
+                                    <h6 class="mb-0">Bi-Monthly Payment Days</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <label for="edit_payment_day_1" class="form-label">First Payment Day</label>
+                                            <select class="form-select" id="edit_payment_day_1" name="payment_day_1">
+                                                {% for day in range(1, 32) %}
+                                                <option value="{{ day }}">{{ day }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="edit_payment_day_2" class="form-label">Second Payment Day</label>
+                                            <select class="form-select" id="edit_payment_day_2" name="payment_day_2">
+                                                {% for day in range(1, 32) %}
+                                                <option value="{{ day }}">{{ day }}</option>
+                                                {% endfor %}
+                                                <option value="31">Last day of month</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quarterly/Annual Fields -->
+                        <div class="col-12" id="editPeriodicFields" style="display: none;">
+                            <div class="card border-warning">
+                                <div class="card-header bg-warning text-dark">
+                                    <h6 class="mb-0">Periodic Payment Schedule</h6>
+                                </div>
+                                <div class="card-body">
+                                    <label for="edit_next_payment_date_periodic" class="form-label">Next Payment Date</label>
+                                    <input type="date" class="form-control" id="edit_next_payment_date_periodic" name="next_payment_date">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Status -->
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="1" id="edit_is_active" name="is_active">
+                                <label class="form-check-label" for="edit_is_active">
+                                    Active income source
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Income Source</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+    // Update the toggleFrequencyFields function
     function toggleFrequencyFields() {
         const frequency = document.getElementById('frequency').value;
-        const bimonthlyFields = document.getElementById('bimonthlyFields');
-        const biweeklyFields = document.getElementById('biweeklyFields');
 
-        if (frequency === 'bimonthly') {
-            bimonthlyFields.style.display = 'block';
-            biweeklyFields.style.display = 'none';
-            document.getElementById('next_payment_date').value = '';
-        } else if (frequency === 'biweekly') {
-            bimonthlyFields.style.display = 'none';
-            biweeklyFields.style.display = 'block';
+        // Hide all fields first
+        document.getElementById('weeklyFields').style.display = 'none';
+        document.getElementById('biweeklyFields').style.display = 'none';
+        document.getElementById('monthlyFields').style.display = 'none';
+        document.getElementById('bimonthlyFields').style.display = 'none';
+        document.getElementById('periodicFields').style.display = 'none';
+        document.getElementById('onetimeFields').style.display = 'none';
+
+        // Clear all date inputs
+        document.getElementById('next_payment_date_weekly').value = '';
+        document.getElementById('next_payment_date_biweekly').value = '';
+        document.getElementById('next_payment_date_periodic').value = '';
+        document.getElementById('one_time_date').value = '';
+
+        const today = new Date();
+
+        if (frequency === 'weekly') {
+            document.getElementById('weeklyFields').style.display = 'block';
             // Set next Friday as default
-            const today = new Date();
             const nextFriday = new Date(today);
             nextFriday.setDate(today.getDate() + (5 - today.getDay() + 7) % 7);
-            document.getElementById('next_payment_date').value = nextFriday.toISOString().split('T')[0];
-        } else {
-            bimonthlyFields.style.display = 'none';
-            biweeklyFields.style.display = 'none';
+            document.getElementById('next_payment_date_weekly').value = nextFriday.toISOString().split('T')[0];
+        } else if (frequency === 'biweekly') {
+            document.getElementById('biweeklyFields').style.display = 'block';
+            // Set next Friday as default
+            const nextFriday = new Date(today);
+            nextFriday.setDate(today.getDate() + (5 - today.getDay() + 7) % 7);
+            document.getElementById('next_payment_date_biweekly').value = nextFriday.toISOString().split('T')[0];
+        } else if (frequency === 'monthly') {
+            document.getElementById('monthlyFields').style.display = 'block';
+        } else if (frequency === 'bimonthly') {
+            document.getElementById('bimonthlyFields').style.display = 'block';
+        } else if (frequency === 'quarterly' || frequency === 'annually') {
+            document.getElementById('periodicFields').style.display = 'block';
+            // Set default date based on frequency
+            let defaultDate = new Date(today);
+            if (frequency === 'quarterly') {
+                // Next quarter start
+                const currentMonth = today.getMonth();
+                const nextQuarter = Math.floor(currentMonth / 3) + 1;
+                defaultDate = new Date(today.getFullYear() + (nextQuarter > 3 ? 1 : 0), (nextQuarter % 4) * 3, 1);
+            } else if (frequency === 'annually') {
+                // Next year, same date
+                defaultDate = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate());
+            }
+            document.getElementById('next_payment_date_periodic').value = defaultDate.toISOString().split('T')[0];
+        } else if (frequency === 'onetime') {
+            document.getElementById('onetimeFields').style.display = 'block';
+            // Default to today
+            document.getElementById('one_time_date').value = today.toISOString().split('T')[0];
+        }
+    }
+
+    // Update the toggleEditFrequencyFields function
+    function toggleEditFrequencyFields() {
+        const frequency = document.getElementById('edit_frequency').value;
+
+        // Hide all fields first
+        document.getElementById('editWeeklyFields').style.display = 'none';
+        document.getElementById('editBiweeklyFields').style.display = 'none';
+        document.getElementById('editMonthlyFields').style.display = 'none';
+        document.getElementById('editBimonthlyFields').style.display = 'none';
+        document.getElementById('editPeriodicFields').style.display = 'none';
+        document.getElementById('editOnetimeFields').style.display = 'none';
+
+        if (frequency === 'weekly') {
+            document.getElementById('editWeeklyFields').style.display = 'block';
+        } else if (frequency === 'biweekly') {
+            document.getElementById('editBiweeklyFields').style.display = 'block';
+        } else if (frequency === 'monthly') {
+            document.getElementById('editMonthlyFields').style.display = 'block';
+        } else if (frequency === 'bimonthly') {
+            document.getElementById('editBimonthlyFields').style.display = 'block';
+        } else if (frequency === 'quarterly' || frequency === 'annually') {
+            document.getElementById('editPeriodicFields').style.display = 'block';
+        } else if (frequency === 'onetime') {
+            document.getElementById('editOnetimeFields').style.display = 'block';
+        }
+    }
+
+    // Update the editIncome function to handle one-time income
+    function editIncome(id, name, amount, frequency, paymentDay1, paymentDay2, nextPaymentDate, dayOfWeek, isActive) {
+        // Set form action
+        document.getElementById('editIncomeForm').action = '/edit/income/' + id;
+
+        // Fill in the form
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_amount').value = amount;
+        document.getElementById('edit_frequency').value = frequency;
+        document.getElementById('edit_is_active').checked = isActive;
+
+        // Set frequency-specific fields
+        if (frequency === 'weekly') {
+            document.getElementById('edit_day_of_week').value = dayOfWeek;
+            document.getElementById('edit_next_payment_date_weekly').value = nextPaymentDate;
+        } else if (frequency === 'biweekly') {
+            document.getElementById('edit_next_payment_date_biweekly').value = nextPaymentDate;
+        } else if (frequency === 'monthly') {
+            document.getElementById('edit_payment_day_monthly').value = paymentDay1;
+        } else if (frequency === 'bimonthly') {
+            document.getElementById('edit_payment_day_1').value = paymentDay1;
+            document.getElementById('edit_payment_day_2').value = paymentDay2;
+        } else if (frequency === 'quarterly' || frequency === 'annually') {
+            document.getElementById('edit_next_payment_date_periodic').value = nextPaymentDate;
+        } else if (frequency === 'onetime') {
+            // For one-time income, use the one_time_date field
+            // We need to pass this in the function call - update the button onclick
+            document.getElementById('edit_one_time_date').value = nextPaymentDate;
+        }
+
+        // Show the correct fields
+        toggleEditFrequencyFields();
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('editIncomeModal')).show();
+    }
+
+    function toggleEditFrequencyFields() {
+        const frequency = document.getElementById('edit_frequency').value;
+
+        // Hide all fields first
+        document.getElementById('editWeeklyFields').style.display = 'none';
+        document.getElementById('editBiweeklyFields').style.display = 'none';
+        document.getElementById('editMonthlyFields').style.display = 'none';
+        document.getElementById('editBimonthlyFields').style.display = 'none';
+        document.getElementById('editPeriodicFields').style.display = 'none';
+
+        if (frequency === 'weekly') {
+            document.getElementById('editWeeklyFields').style.display = 'block';
+        } else if (frequency === 'biweekly') {
+            document.getElementById('editBiweeklyFields').style.display = 'block';
+        } else if (frequency === 'monthly') {
+            document.getElementById('editMonthlyFields').style.display = 'block';
+        } else if (frequency === 'bimonthly') {
+            document.getElementById('editBimonthlyFields').style.display = 'block';
+        } else if (frequency === 'quarterly' || frequency === 'annually') {
+            document.getElementById('editPeriodicFields').style.display = 'block';
+        }
+    }
+
+    function editIncome(id, name, amount, frequency, paymentDay1, paymentDay2, nextPaymentDate, dayOfWeek, isActive) {
+        // Set form action
+        document.getElementById('editIncomeForm').action = '/edit/income/' + id;
+
+        // Fill in the form
+        document.getElementById('edit_name').value = name;
+        document.getElementById('edit_amount').value = amount;
+        document.getElementById('edit_frequency').value = frequency;
+        document.getElementById('edit_is_active').checked = isActive;
+
+        // Set frequency-specific fields
+        if (frequency === 'weekly') {
+            document.getElementById('edit_day_of_week').value = dayOfWeek;
+            document.getElementById('edit_next_payment_date_weekly').value = nextPaymentDate;
+        } else if (frequency === 'biweekly') {
+            document.getElementById('edit_next_payment_date_biweekly').value = nextPaymentDate;
+        } else if (frequency === 'monthly') {
+            document.getElementById('edit_payment_day_monthly').value = paymentDay1;
+        } else if (frequency === 'bimonthly') {
+            document.getElementById('edit_payment_day_1').value = paymentDay1;
+            document.getElementById('edit_payment_day_2').value = paymentDay2;
+        } else if (frequency === 'quarterly' || frequency === 'annually') {
+            document.getElementById('edit_next_payment_date_periodic').value = nextPaymentDate;
+        }
+
+        // Show the correct fields
+        toggleEditFrequencyFields();
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('editIncomeModal')).show();
+    }
+
+    function deleteIncome(id, name) {
+        if (confirm('Are you sure you want to delete the income source "' + name + '"? This action cannot be undone.')) {
+            window.location.href = '/delete/income/' + id;
         }
     }
 </script>
