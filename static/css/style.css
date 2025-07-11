@@ -342,20 +342,26 @@ small.text-muted {
 /* Enhanced styles specifically for gradient backgrounds */
 .demo-hero .btn-outline-light,
 .bg-gradient-primary .btn-outline-light {
-    color: var(--primary-color) !important;
-    border: 2px solid white !important;
-    background: rgba(255, 255, 255, 0.4) !important;
-    backdrop-filter: blur(10px);
+    color: #fff !important; /* White text by default */
+    background: rgba(102, 126, 234, 0.85) !important; /* Vibrant primary background */
+    border: 2px solid #fff !important;
     font-weight: 700;
-    text-shadow: none;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: var(--transition);
 }
 
 .demo-hero .btn-outline-light:hover,
 .bg-gradient-primary .btn-outline-light:hover {
-    background: white !important;
+    background: #fff !important;
     color: var(--primary-color) !important;
-    border-color: white !important;
-    font-weight: 700;
+    border-color: #fff !important;
     box-shadow: var(--shadow-xl);
+}
+
+/* Fix broken borders and rounded corners for dashboard insight bubbles */
+.card.clickable-card {
+    border-radius: 12px; /* Matches your --border-radius variable */
+    border-width: 2px;
+    border-style: solid;
+    overflow: hidden; /* Ensures corners are not visually clipped */
 }
