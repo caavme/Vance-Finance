@@ -2,22 +2,86 @@
 
 /* Vance Finance - Flat Design */
 
+/* Vance Finance - Modern Beautiful Design */
+
+/* Vance Finance - Clean White Design */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* CSS Variables for consistent theming */
+:root {
+    --primary-color: #667eea;
+    --primary-dark: #5a67d8;
+    --secondary-color: #764ba2;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #06b6d4;
+    --light-color: #f8fafc;
+    --dark-color: #1e293b;
+    --border-color: #e2e8f0;
+    --text-color: #334155;
+    --text-light: #495057; /* UPDATED: Darker gray for better readability */
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --border-radius: 12px;
+    --border-radius-sm: 8px;
+    --border-radius-lg: 16px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* UPDATED: More accurate navbar height calculation */
+    --navbar-height: 80px;
+}
+
 /* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
 body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background-color: #f5f7fa;
-    color: #333;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background: white;
+    color: var(--text-color);
+    line-height: 1.6;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    font-weight: 400;
+    letter-spacing: -0.01em;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--dark-color);
+    margin-bottom: 0.75rem;
+}
+
+h1 { font-size: 2.25rem; line-height: 1.2; }
+h2 { font-size: 1.875rem; line-height: 1.3; }
+h3 { font-size: 1.5rem; line-height: 1.4; }
+h4 { font-size: 1.25rem; line-height: 1.4; }
+h5 { font-size: 1.125rem; line-height: 1.5; }
+h6 { font-size: 1rem; line-height: 1.5; }
+
+.lead {
+    font-size: 1.125rem;
+    font-weight: 400;
+    color: var(--text-light);
 }
 
 a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-dark);
     text-decoration: none;
 }
 
@@ -26,280 +90,278 @@ a {
     max-width: 1200px;
 }
 
-/* Navigation */
+/* Navigation - ENHANCED with more precise height calculation */
 .navbar {
-    box-shadow: none;
-    border-bottom: 1px solid #e9ecef;
+    background: white !important;
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    position: sticky;
+    top: 0;
+    z-index: 1020;
+    /* ADDED: Ensure consistent height */
+    min-height: var(--navbar-height);
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
 }
 
 .navbar-brand {
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color) !important;
+    letter-spacing: -0.02em;
 }
 
 .nav-link {
-    color: #495057;
+    color: var(--text-color) !important;
+    font-weight: 500;
+    padding: 0.75rem 1rem !important;
+    border-radius: var(--border-radius-sm);
+    margin: 0 0.25rem;
+    transition: var(--transition);
+    position: relative;
 }
 
 .nav-link:hover {
-    color: #007bff;
+    color: var(--primary-color) !important;
+    background-color: rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
 }
 
-/* Cards */
-.card {
-    border-radius: 0;
-    box-shadow: none;
-    border: 1px solid #e9ecef;
-    margin-bottom: 1.5rem;
+.nav-link.active {
+    color: var(--primary-color) !important;
+    background-color: rgba(102, 126, 234, 0.15);
 }
 
-.card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+/* ACCESSIBILITY IMPROVEMENTS FOR DEMO PAGE */
+
+/* Fix for gray text on gradient backgrounds */
+.demo-hero .demo-stats small,
+.demo-hero small,
+.bg-gradient-primary small {
+    color: rgba(255, 255, 255, 0.95) !important;
     font-weight: 500;
-    padding: 0.75rem 1.25rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Tables */
-.table thead th {
-    border-top: none;
-    border-bottom: 1px solid #dee2e6;
-    background-color: #f8f9fa;
-    font-weight: 500;
+/* Improve contrast for text on gradient backgrounds */
+.demo-hero .demo-stats,
+.bg-gradient-primary .card-body {
+    color: white !important;
 }
 
-.table-hover tbody tr:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+.demo-hero .demo-stats .h3,
+.demo-hero .demo-stats .h4,
+.demo-hero .demo-stats .h5,
+.bg-gradient-primary .h2,
+.bg-gradient-primary .h3,
+.bg-gradient-primary .h4 {
+    color: white !important;
+    font-weight: 700;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.table {
-    margin-bottom: 0;
+/* Improve visibility of success text on gradients */
+.demo-hero .text-success,
+.bg-gradient-primary .text-success {
+    color: #a7f3d0 !important; /* Much lighter green for better contrast */
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.table td, .table th {
-    border-top: 1px solid #f0f0f0;
+/* Enhanced readability for debt-to-income ratio specifically */
+.demo-hero .text-success .h4,
+.demo-hero .text-success .h3 {
+    color: #a7f3d0 !important;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Sortable table headers */
-.sortable-header {
-    cursor: pointer;
-    user-select: none;
-    position: relative;
-    padding-right: 20px !important;
+/* Improve contrast for all text on gradient backgrounds */
+.demo-hero .demo-stats .h3,
+.demo-hero .demo-stats .h4 {
+    color: white !important;
+    font-weight: 800;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    margin-bottom: 0.25rem;
 }
 
-.sortable-header:hover {
-    background-color: #e9ecef;
-}
-
-.sort-icon {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-    opacity: 0.3;
-    transition: opacity 0.2s;
-}
-
-.sortable-header:hover .sort-icon {
-    opacity: 0.7;
-}
-
-.sortable-header.sort-asc .sort-icon:before {
-    content: '▲';
-    opacity: 1;
-}
-
-.sortable-header.sort-desc .sort-icon:before {
-    content: '▼';
-    opacity: 1;
-}
-
-.sort-icon:before {
-    content: '▲▼';
-    font-size: 10px;
-    color: #6c757d;
-}
-
-/* Summary row styles */
-.summary-row {
-    background-color: #e3f2fd !important;
+/* Improve contrast for small text elements */
+.demo-hero small,
+.bg-gradient-primary small {
     font-weight: 600;
-    border-top: 2px solid #2196f3 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-.summary-row td {
-    border-top: 2px solid #2196f3 !important;
-    padding: 1rem 0.75rem !important;
+/* Better contrast for all white text on gradients */
+.demo-hero,
+.bg-gradient-primary {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Clickable rows in tables */
-.clickable-row {
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+/* FIX BUTTON OVERLAY ISSUE */
+/* Ensure buttons maintain good contrast and proper z-index stacking */
+.demo-hero .btn,
+.bg-gradient-primary .btn {
+    text-shadow: none;
+    font-weight: 600;
+    position: relative;
+    z-index: 10; /* ADDED: Ensure buttons are above backdrop filters */
 }
 
-.clickable-row:hover {
-    background-color: rgba(0, 0, 0, 0.03);
+/* Fix for any muted text on gradient backgrounds */
+.demo-hero .text-muted,
+.bg-gradient-primary .text-muted {
+    color: rgba(255, 255, 255, 0.85) !important;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
-/* Forms */
-.form-control, .btn {
-    border-radius: 0;
-    box-shadow: none !important;
+/* Additional contrast improvements for demo stats */
+.demo-stats .col-6 .h3,
+.demo-stats .col-6 .h4,
+.demo-stats .col-4 .h4 {
+    color: white !important;
+    font-weight: 800;
+    margin-bottom: 0.25rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-.form-control {
-    border-color: #e9ecef;
+.demo-stats hr {
+    border-color: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+    border-width: 2px;
 }
 
-.form-control:focus {
-    border-color: #007bff;
-    box-shadow: none;
+/* FIX DEMO STATS BACKDROP FILTER OVERLAY ISSUE */
+/* Improve backdrop filter for better readability without affecting buttons */
+.demo-stats {
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1; /* ADDED: Lower z-index to stay behind buttons */
+    isolation: isolate; /* ADDED: Create new stacking context */
 }
 
-/* Buttons */
-.btn {
+/* ADDITIONAL Z-INDEX FIXES FOR BUTTON CONTAINERS */
+.demo-hero .d-flex {
+    position: relative;
+    z-index: 20; /* ADDED: Ensure button container is above everything else */
+}
+
+/* Ensure buttons in gradient sections have proper stacking */
+.demo-hero .btn-outline-light,
+.demo-hero .btn-light,
+.bg-gradient-primary .btn-outline-light,
+.bg-gradient-primary .btn-light {
+    position: relative;
+    z-index: 15; /* ADDED: Higher z-index for better stacking */
+    isolation: isolate; /* ADDED: Create isolated stacking context */
+}
+
+/* FIX HOVER TRANSFORM ISSUES THAT MIGHT AFFECT STACKING */
+.demo-hero .btn:hover,
+.bg-gradient-primary .btn:hover {
+    transform: translateY(-2px);
+    z-index: 20; /* ADDED: Even higher z-index on hover */
+}
+
+/* FIX ALL REMAINING GRAY TEXT ISSUES */
+
+/* Override Bootstrap's text-muted for better readability */
+.text-muted {
+    color: var(--text-light) !important; /* Now uses darker gray from CSS variables */
     font-weight: 400;
-    padding: .375rem 1rem;
-    text-transform: none;
-    letter-spacing: normal;
 }
 
-.btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+/* Fix gray text in demo preview stats section */
+.demo-preview-stats small.text-muted {
+    color: var(--text-color) !important;
+    font-weight: 500;
 }
 
-.btn-primary:hover {
-    background-color: #0069d9;
-    border-color: #0062cc;
+/* Specifically target card text that's too light */
+.card-text.text-muted {
+    color: var(--text-color) !important;
+    font-weight: 400;
 }
 
+/* Fix paragraph text that's muted */
+p.text-muted {
+    color: var(--text-color) !important;
+    font-weight: 400;
+}
+
+/* Ensure demo page specific text is readable */
+.demo-preview-stats .text-muted {
+    color: var(--text-color) !important;
+}
+
+/* Fix any remaining small muted text outside gradients */
+small.text-muted {
+    color: var(--text-color) !important;
+    font-weight: 500;
+}
+
+/* Button Styles */
 .btn-outline-primary {
-    color: #007bff;
-    border-color: #007bff;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+    background: white;
 }
 
 .btn-outline-primary:hover {
-    background-color: #007bff;
-    color: #fff;
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
-/* Remove box shadow from focus states */
-.btn:focus, .btn.focus,
-.form-control:focus {
-    box-shadow: none !important;
+/* FIX: btn-outline-light always uses purple text */
+.btn-outline-light {
+    color: var(--primary-color) !important;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    background: rgba(255, 255, 255, 0.25) !important;
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+    transition: var(--transition);
+    text-shadow: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Alerts */
-.alert {
-    border-radius: 0;
-    padding: 0.75rem 1.25rem;
-    border: 1px solid transparent;
+.btn-outline-light:hover {
+    background: white !important;
+    color: var(--primary-color) !important;
+    border-color: white !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    font-weight: 600;
 }
 
-/* Badges */
-.badge {
-    border-radius: 0;
-    font-weight: 400;
-    padding: 0.35em 0.65em;
+/* Enhanced styles specifically for gradient backgrounds */
+.demo-hero .btn-outline-light,
+.bg-gradient-primary .btn-outline-light {
+    color: #fff !important; /* White text by default */
+    background: rgba(102, 126, 234, 0.85) !important; /* Vibrant primary background */
+    border: 2px solid #fff !important;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    transition: var(--transition);
 }
 
-/* Modal */
-.modal-content {
-    border-radius: 0;
-    border: none;
+.demo-hero .btn-outline-light:hover,
+.bg-gradient-primary .btn-outline-light:hover {
+    background: #fff !important;
+    color: var(--primary-color) !important;
+    border-color: #fff !important;
+    box-shadow: var(--shadow-xl);
 }
 
-.modal-header, .modal-footer {
-    border-color: #e9ecef;
-}
-
-.modal-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-}
-
-.modal-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-}
-
-/* Footer */
-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #e9ecef;
-    margin-top: auto;
-}
-
-/* Dashboard specific styles */
-.stats-card {
-    transition: all 0.3s ease;
-}
-
-.stats-card:hover {
-    transform: translateY(-3px);
-}
-
-/* Utility classes */
-.text-muted {
-    color: #6c757d !important;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .container {
-        padding-left: 15px;
-        padding-right: 15px;
-    }
-    
-    h1 {
-        font-size: 1.8rem;
-    }
-    
-    .table th, .table td {
-        padding: 0.5rem;
-    }
-    
-    .btn {
-        padding: .25rem .75rem;
-    }
-    
-    .sortable-header {
-        padding-right: 15px !important;
-    }
-    
-    .sort-icon {
-        right: 5px;
-    }
-}
-
-/* Additional refinements for flat design */
-.form-control {
-    border-color: #e9ecef;
-}
-
-.form-control:focus {
-    border-color: #007bff;
-    box-shadow: none;
-}
-
-.btn {
-    text-transform: none;
-    letter-spacing: normal;
-}
-
-/* Remove box shadow from focus states */
-.btn:focus, .btn.focus,
-.form-control:focus {
-    box-shadow: none !important;
-}
-
-/* Make tables more flat */
-.table {
-    margin-bottom: 0;
-}
-
-.table td, .table th {
-    border-top: 1px solid #f0f0f0;
+/* Fix broken borders and rounded corners for dashboard insight bubbles */
+.card.clickable-card {
+    border-radius: 12px; /* Matches your --border-radius variable */
+    border-width: 2px;
+    border-style: solid;
+    overflow: hidden; /* Ensures corners are not visually clipped */
 }

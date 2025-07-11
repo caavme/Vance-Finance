@@ -1,0 +1,302 @@
+﻿{% extends "base.html" %}
+
+{% block content %}
+<div class="budget-categories-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">
+                <i class="bi bi-tags text-primary me-2"></i>Budget Categories
+            </h2>
+            <p class="text-muted mb-0">Manage your budget categories and customize your budgeting experience</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('budget') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Budget
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="bi bi-plus me-1"></i>Add Category
+            </button>
+        </div>
+    </div>
+
+    <!-- Income Categories -->
+    <div class="card mb-4">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-cash-stack me-2"></i>Income Categories
+            </h5>
+            <span class="badge bg-light text-success">{{ income_categories|length }} categories</span>
+        </div>
+        <div class="card-body">
+            {% if income_categories %}
+            <div class="row">
+                {% for category in income_categories %}
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="category-card">
+                        <div class="d-flex align-items-center">
+                            <div class="category-icon me-3" style="color: {{ category.color }}">
+                                <i class="{{ category.icon }} fs-3"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ category.name }}</h6>
+                                {% if category.description %}
+                                <p class="text-muted small mb-1">{{ category.description }}</p>
+                                {% endif %}
+                                <small class="text-muted">Sort order: {{ category.sort_order }}</small>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="editCategory({{ category.id }}, '{{ category.name }}', '{{ category.description }}', '{{ category.color }}', '{{ category.icon }}', {{ category.sort_order }})">
+                                            <i class="bi bi-pencil me-2"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="deleteCategory({{ category.id }}, '{{ category.name }}')">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-cash-stack text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">No Income Categories</h5>
+                <p class="text-muted">Add income categories to track different sources of income</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Expense Categories -->
+    <div class="card">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-credit-card me-2"></i>Expense Categories
+            </h5>
+            <span class="badge bg-light text-danger">{{ expense_categories|length }} categories</span>
+        </div>
+        <div class="card-body">
+            {% if expense_categories %}
+            <div class="row">
+                {% for category in expense_categories %}
+                <div class="col-lg-4 col-md-6 mb-3">
+                    <div class="category-card">
+                        <div class="d-flex align-items-center">
+                            <div class="category-icon me-3" style="color: {{ category.color }}">
+                                <i class="{{ category.icon }} fs-3"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ category.name }}</h6>
+                                {% if category.description %}
+                                <p class="text-muted small mb-1">{{ category.description }}</p>
+                                {% endif %}
+                                <small class="text-muted">Sort order: {{ category.sort_order }}</small>
+                            </div>
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-three-dots"></i>
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item" href="#" onclick="editCategory({{ category.id }}, '{{ category.name }}', '{{ category.description }}', '{{ category.color }}', '{{ category.icon }}', {{ category.sort_order }})">
+                                            <i class="bi bi-pencil me-2"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger" href="#" onclick="deleteCategory({{ category.id }}, '{{ category.name }}')">
+                                            <i class="bi bi-trash me-2"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-credit-card text-muted" style="font-size: 3rem;"></i>
+                <h5 class="mt-3">No Expense Categories</h5>
+                <p class="text-muted">Add expense categories to organize your spending</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add Budget Category</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="categoryForm">
+                <div class="modal-body">
+                    <input type="hidden" id="categoryId" name="category_id">
+
+                    <div class="mb-3">
+                        <label for="categoryName" class="form-label">Category Name *</label>
+                        <input type="text" class="form-control" id="categoryName" name="name" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="categoryDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="categoryDescription" name="description" rows="2" placeholder="Optional description"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="categoryColor" class="form-label">Color</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="color" class="form-control form-control-color me-2" id="categoryColor" name="color" value="#667eea" title="Choose category color">
+                                    <input type="text" class="form-control" id="colorHex" placeholder="#667eea">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="categoryIcon" class="form-label">Icon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="iconPreview">
+                                        <i class="bi bi-wallet2"></i>
+                                    </span>
+                                    <select class="form-select" id="categoryIcon" name="icon">
+                                        <option value="bi-wallet2">Wallet</option>
+                                        <option value="bi-cash-stack">Cash Stack</option>
+                                        <option value="bi-credit-card">Credit Card</option>
+                                        <option value="bi-house">House</option>
+                                        <option value="bi-car-front">Car</option>
+                                        <option value="bi-cart">Shopping Cart</option>
+                                        <option value="bi-heart-pulse">Healthcare</option>
+                                        <option value="bi-shield-check">Insurance</option>
+                                        <option value="bi-play-circle">Entertainment</option>
+                                        <option value="bi-bag">Shopping Bag</option>
+                                        <option value="bi-airplane">Travel</option>
+                                        <option value="bi-person">Personal</option>
+                                        <option value="bi-piggy-bank">Savings</option>
+                                        <option value="bi-graph-up-arrow">Investments</option>
+                                        <option value="bi-briefcase">Work</option>
+                                        <option value="bi-three-dots">Other</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Category Type</label>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_income" id="typeExpense" value="false" checked>
+                            <label class="form-check-label" for="typeExpense">
+                                <i class="bi bi-credit-card text-danger me-1"></i>Expense
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="is_income" id="typeIncome" value="true">
+                            <label class="form-check-label" for="typeIncome">
+                                <i class="bi bi-cash-stack text-success me-1"></i>Income
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveBtn">Save Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Icon and color preview functionality
+document.getElementById('categoryIcon').addEventListener('change', function() {
+    const iconPreview = document.getElementById('iconPreview');
+    iconPreview.innerHTML = `<i class="${this.value}"></i>`;
+});
+
+document.getElementById('categoryColor').addEventListener('change', function() {
+    document.getElementById('colorHex').value = this.value;
+});
+
+document.getElementById('colorHex').addEventListener('input', function() {
+    if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+        document.getElementById('categoryColor').value = this.value;
+    }
+});
+
+// Edit category function
+function editCategory(id, name, description, color, icon, sortOrder) {
+    document.getElementById('modalTitle').textContent = 'Edit Budget Category';
+    document.getElementById('categoryId').value = id;
+    document.getElementById('categoryName').value = name;
+    document.getElementById('categoryDescription').value = description;
+    document.getElementById('categoryColor').value = color;
+    document.getElementById('colorHex').value = color;
+    document.getElementById('categoryIcon').value = icon;
+    document.getElementById('iconPreview').innerHTML = `<i class="${icon}"></i>`;
+    document.getElementById('saveBtn').textContent = 'Update Category';
+
+    // Set form action for editing
+    document.getElementById('categoryForm').action = '/budget/categories/edit/' + id;
+
+    new bootstrap.Modal(document.getElementById('addCategoryModal')).show();
+}
+
+// Delete category function
+function deleteCategory(id, name) {
+    if (confirm(`Are you sure you want to delete the category "${name}"? This will also delete all associated budget items and transactions.`)) {
+        window.location.href = '/budget/categories/delete/' + id;
+    }
+}
+
+// Reset form when modal is hidden
+document.getElementById('addCategoryModal').addEventListener('hidden.bs.modal', function() {
+    document.getElementById('modalTitle').textContent = 'Add Budget Category';
+    document.getElementById('categoryForm').reset();
+    document.getElementById('categoryForm').action = '{{ url_for("budget_categories") }}';
+    document.getElementById('categoryId').value = '';
+    document.getElementById('saveBtn').textContent = 'Save Category';
+    document.getElementById('iconPreview').innerHTML = '<i class="bi bi-wallet2"></i>';
+    document.getElementById('colorHex').value = '#667eea';
+});
+</script>
+
+<style>
+    .category-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+
+        .category-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(102, 126, 234, 0.1);
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}

@@ -7,8 +7,122 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/wiki.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/budget.css') }}">
+
+    <!-- EMERGENCY OVERRIDE: Force all backgrounds to be white -->
+    <style>
+        /* Override all possible grey backgrounds with !important */
+        .card,
+        .card-header,
+        .card-body,
+        .card-footer,
+        .modal-content,
+        .modal-header,
+        .modal-body,
+        .modal-footer,
+        .wiki-section .card,
+        .wiki-section .card-header,
+        .goal-card,
+        .goal-card .card-header,
+        .budget-summary-card,
+        .budget-category-item,
+        .checklist,
+        .table thead th,
+        .table-light,
+        .bg-light,
+        .bg-secondary,
+        .accordion-item,
+        .accordion-header,
+        .accordion-button,
+        .list-group-item,
+        .nav-tabs .nav-link,
+        .nav-pills .nav-link,
+        .dropdown-menu,
+        .dropdown-item,
+        .alert-secondary {
+            background-color: white !important;
+            background: white !important;
+        }
+
+            /* Ensure text stays readable */
+            .card-header,
+            .modal-header,
+            .wiki-section .card-header,
+            .goal-card .card-header,
+            .table thead th {
+                color: #333 !important;
+            }
+
+        /* Force override Bootstrap's grey table headers */
+        .table thead th {
+            background-color: white !important;
+            background: white !important;
+        }
+
+        /* Override any dark mode styles completely */
+        @media (prefers-color-scheme: dark) {
+            .card,
+            .card-header,
+            .card-body,
+            .card-footer,
+            .modal-content,
+            .modal-header,
+            .modal-body,
+            .modal-footer,
+            .wiki-section .card,
+            .wiki-section .card-header,
+            .goal-card,
+            .goal-card .card-header,
+            .budget-summary-card,
+            .budget-category-item,
+            .checklist,
+            .table,
+            .table thead th,
+            .table-light,
+            .bg-light,
+            .bg-secondary,
+            .accordion-item,
+            .accordion-header,
+            .accordion-button,
+            .list-group-item {
+                background-color: white !important;
+                background: white !important;
+                color: #333 !important;
+            }
+        }
+
+        /* Fix any Bootstrap default grey backgrounds */
+        .bg-light {
+            background-color: white !important;
+        }
+
+        .table-light > th,
+        .table-light > td {
+            background-color: white !important;
+        }
+    </style>
 </head>
 <body>
+    {% if config.DEVELOPMENT_MODE %}
+    <!-- Development Server Banner -->
+    <div class="alert alert-warning alert-dismissible mb-0 rounded-0 border-0" style="background: linear-gradient(90deg, #dc3545, #fd7e14);">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between text-white">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>DEVELOPMENT SERVER:</strong>
+                    <span class="ms-2">This is a development environment. All data is for testing purposes only.</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-globe2 me-2"></i>
+                    <span class="badge bg-light text-dark">DEV</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Demo Mode Banner -->
     {% if 'demo_mode' in session %}
     <div class="alert alert-info alert-dismissible mb-0 rounded-0 border-0" style="background: linear-gradient(90deg, #17a2b8, #20c997);">
@@ -35,6 +149,9 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
+                {% if config.DEVELOPMENT_MODE %}
+                <span class="badge bg-danger me-2">DEV</span>
+                {% endif %}
                 {% if 'demo_mode' in session %}
                 <span class="badge bg-info me-2">DEMO</span>
                 {% endif %}
@@ -59,6 +176,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income') }}">
                             <i class="bi bi-cash-stack me-1"></i>Income
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('budget') }}">
+                            <i class="bi bi-pie-chart me-1"></i>Budget
                         </a>
                     </li>
                     <li class="nav-item">
@@ -113,13 +235,18 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('wiki') }}">
+                            <i class="bi bi-book me-1"></i>Wiki
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('logout') }}">
                             <i class="bi bi-box-arrow-right me-1"></i>{% if 'demo_mode' in session %}Exit{% else %}Logout{% endif %}
                         </a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">
+                        <a class="nav-link" href="{{ url_for('demo_page') }}">
                             <i class="bi bi-play-circle me-1"></i>Demo
                         </a>
                     </li>
@@ -131,6 +258,11 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">
                             <i class="bi bi-person-plus me-1"></i>Register
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('wiki') }}">
+                            <i class="bi bi-book me-1"></i>Wiki
                         </a>
                     </li>
                     {% endif %}
@@ -158,6 +290,9 @@
         <div class="container">
             <p class="mb-0">
                 Vance Finance &copy; 2025 CAAV Technology Consulting, LLC.
+                {% if config.DEVELOPMENT_MODE %}
+                <span class="badge bg-danger ms-2">Development Server</span>
+                {% endif %}
                 {% if 'demo_mode' in session %}
                 <span class="badge bg-info ms-2">Demo Mode</span>
                 {% endif %}

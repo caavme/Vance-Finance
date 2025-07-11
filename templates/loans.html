@@ -8,7 +8,9 @@
     </button>
 </div>
 
-<!-- Loans Table -->
+<!-- Loans Table 
+
+
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Your Loans</span>
@@ -79,6 +81,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="{{ url_for('loans') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- ADD THIS LINE -->
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">

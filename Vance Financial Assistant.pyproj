@@ -30,15 +30,24 @@
     <Content Include=".env.example" />
     <Content Include="gitignore .gitignore" />
     <Content Include="Procfile" />
+    <Content Include="static\css\budget.css" />
+    <Content Include="static\css\wiki.css" />
     <Content Include="templates\demo.html" />
+    <Content Include="templates\errors\403.html" />
+    <Content Include="templates\errors\404.html" />
+    <Content Include="templates\errors\500.html" />
     <Content Include="templates\import_backup.html" />
     <Content Include="templates\income.html" />
     <Content Include="templates\manage_backups.html" />
     <Content Include="templates\overview.html" />
     <Content Include="requirements.txt" />
+    <Content Include="templates\wiki.html" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="static\" />
+    <Folder Include="static\css\" />
     <Folder Include="templates\" />
+    <Folder Include="templates\errors\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
