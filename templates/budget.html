@@ -31,11 +31,14 @@
     {% if budget_summary %}
     <div class="row mb-4">
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card budget-summary-card bg-success text-white">
+            <div class="card budget-summary-card bg-success text-white clickable-budget-card" data-insight="budget-income" onclick="showBudgetInsights('budget-income')" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-0">Total Income</h6>
+                            <h6 class="card-title mb-0">
+                                Total Income
+                                <i class="bi bi-info-circle ms-1 opacity-75" title="Click for insights"></i>
+                            </h6>
                             <div class="budget-amount">
                                 <span class="fs-4 fw-bold">${{ "%.2f"|format(budget_summary.total_actual_income) }}</span>
                                 <small class="d-block">of ${{ "%.2f"|format(budget_summary.total_planned_income) }}</small>
@@ -51,11 +54,14 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card budget-summary-card bg-danger text-white">
+            <div class="card budget-summary-card bg-danger text-white clickable-budget-card" data-insight="budget-expenses" onclick="showBudgetInsights('budget-expenses')" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-0">Total Expenses</h6>
+                            <h6 class="card-title mb-0">
+                                Total Expenses
+                                <i class="bi bi-info-circle ms-1 opacity-75" title="Click for insights"></i>
+                            </h6>
                             <div class="budget-amount">
                                 <span class="fs-4 fw-bold">${{ "%.2f"|format(budget_summary.total_actual_expenses) }}</span>
                                 <small class="d-block">of ${{ "%.2f"|format(budget_summary.total_planned_expenses) }}</small>
@@ -71,11 +77,14 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card budget-summary-card {% if budget_summary.actual_surplus >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white">
+            <div class="card budget-summary-card {% if budget_summary.actual_surplus >= 0 %}bg-primary{% else %}bg-warning{% endif %} text-white clickable-budget-card" data-insight="budget-surplus" onclick="showBudgetInsights('budget-surplus')" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-0">Net Income</h6>
+                            <h6 class="card-title mb-0">
+                                Net Income
+                                <i class="bi bi-info-circle ms-1 opacity-75" title="Click for insights"></i>
+                            </h6>
                             <div class="budget-amount">
                                 <span class="fs-4 fw-bold">${{ "%.2f"|format(budget_summary.actual_surplus) }}</span>
                                 <small class="d-block">planned: ${{ "%.2f"|format(budget_summary.planned_surplus) }}</small>
@@ -88,11 +97,14 @@
         </div>
 
         <div class="col-lg-3 col-md-6 mb-3">
-            <div class="card budget-summary-card bg-info text-white">
+            <div class="card budget-summary-card bg-info text-white clickable-budget-card" data-insight="savings-rate" onclick="showBudgetInsights('savings-rate')" style="cursor: pointer;">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="card-title mb-0">Savings Rate</h6>
+                            <h6 class="card-title mb-0">
+                                Savings Rate
+                                <i class="bi bi-info-circle ms-1 opacity-75" title="Click for insights"></i>
+                            </h6>
                             <div class="budget-amount">
                                 <span class="fs-4 fw-bold">{{ "%.1f"|format(budget_summary.savings_rate) }}%</span>
                                 <small class="d-block">of income</small>
@@ -105,6 +117,25 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- Budget Insights Modal -->
+    <div class="modal fade" id="budgetInsightsModal" tabindex="-1" aria-labelledby="budgetInsightsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="budgetInsightsModalLabel">Budget Insights</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="budgetInsightsContent">
+                    <!-- Content will be dynamically loaded -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="budgetActionBtn" style="display: none;">Take Action</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <!-- Budget Categories -->
@@ -141,14 +172,17 @@
                             </thead>
                             <tbody>
                                 {% for cat_summary in budget_summary.categories %}
-                                <tr class="budget-category-row" data-type="{% if cat_summary.category.is_income %}income{% else %}expense{% endif %}">
+                                <tr class="budget-category-row clickable-category-row" data-type="{% if cat_summary.category.is_income %}income{% else %}expense{% endif %}" onclick="showCategoryInsights('{{ cat_summary.category.name }}', {{ cat_summary.item.planned_amount }}, {{ cat_summary.item.actual_amount }}, '{{ cat_summary.category.is_income }}', '{{ cat_summary.status }}', {{ cat_summary.percentage }})" style="cursor: pointer;">
                                     <td>
                                         <div class="d-flex align-items-center">
                                             <div class="category-icon me-2" style="color: {{ cat_summary.category.color }}">
                                                 <i class="{{ cat_summary.category.icon }}"></i>
                                             </div>
                                             <div>
-                                                <div class="fw-medium">{{ cat_summary.category.name }}</div>
+                                                <div class="fw-medium">
+                                                    {{ cat_summary.category.name }}
+                                                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights" style="font-size: 0.8rem;"></i>
+                                                </div>
                                                 {% if cat_summary.category.description %}
                                                 <small class="text-muted">{{ cat_summary.category.description }}</small>
                                                 {% endif %}
@@ -320,7 +354,348 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    // Budget data for insights
+    const budgetData = {
+        {% if budget_summary %}
+        totalPlannedIncome: {{ budget_summary.total_planned_income }},
+        totalActualIncome: {{ budget_summary.total_actual_income }},
+        totalPlannedExpenses: {{ budget_summary.total_planned_expenses }},
+        totalActualExpenses: {{ budget_summary.total_actual_expenses }},
+        plannedSurplus: {{ budget_summary.planned_surplus }},
+        actualSurplus: {{ budget_summary.actual_surplus }},
+        savingsRate: {{ budget_summary.savings_rate }}
+        {% else %}
+        totalPlannedIncome: 0,
+        totalActualIncome: 0,
+        totalPlannedExpenses: 0,
+        totalActualExpenses: 0,
+        plannedSurplus: 0,
+        actualSurplus: 0,
+        savingsRate: 0
+        {% endif %}
+    };
+
+    function showBudgetInsights(type) {
+        const modal = new bootstrap.Modal(document.getElementById('budgetInsightsModal'));
+        const content = document.getElementById('budgetInsightsContent');
+        const title = document.getElementById('budgetInsightsModalLabel');
+        const actionBtn = document.getElementById('budgetActionBtn');
+
+        let insights = generateBudgetInsights(type);
+
+        title.textContent = insights.title;
+        content.innerHTML = insights.content;
+
+        if (insights.action) {
+            actionBtn.style.display = 'inline-block';
+            actionBtn.onclick = insights.action;
+        } else {
+            actionBtn.style.display = 'none';
+        }
+
+        modal.show();
+    }
+
+    function showCategoryInsights(categoryName, planned, actual, isIncome, status, percentage) {
+        const modal = new bootstrap.Modal(document.getElementById('budgetInsightsModal'));
+        const content = document.getElementById('budgetInsightsContent');
+        const title = document.getElementById('budgetInsightsModalLabel');
+
+        const remaining = planned - actual;
+        const isIncomeCategory = isIncome === 'True';
+
+        title.textContent = `${categoryName} Category Insights`;
+        content.innerHTML = `
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="${isIncomeCategory ? 'text-success' : 'text-danger'}">📊 Category Performance</h6>
+                            <ul class="mb-0">
+                                <li><strong>Budgeted:</strong> $${planned.toFixed(2)}</li>
+                                <li><strong>Actual:</strong> $${actual.toFixed(2)}</li>
+                                <li><strong>Variance:</strong> $${Math.abs(remaining).toFixed(2)} ${remaining >= 0 ? 'under' : 'over'}</li>
+                                <li><strong>Progress:</strong> ${percentage.toFixed(1)}%</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h6 class="text-info">💡 Status Analysis</h6>
+                            <ul class="mb-0">
+                                <li><strong>Current Status:</strong>
+                                    <span class="badge bg-${status === 'excellent' ? 'success' : status === 'good' ? 'info' : status === 'warning' ? 'warning' : 'danger'}">
+                                        ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                    </span>
+                                </li>
+                                ${isIncomeCategory ?
+                                    `<li><strong>Income Target:</strong> ${percentage >= 100 ? 'Met ✓' : 'In Progress'}</li>` :
+                                    `<li><strong>Spending Control:</strong> ${percentage <= 80 ? 'Excellent ✓' : percentage <= 100 ? 'Good' : 'Needs Attention ⚠'}</li>`
+                                }
+                                <li><strong>Monthly Pace:</strong> $${(actual / (new Date().getDate() / 30) * 30).toFixed(2)} projected</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="alert ${status === 'excellent' ? 'alert-success' : status === 'good' ? 'alert-info' : status === 'warning' ? 'alert-warning' : 'alert-danger'} mt-3">
+                <h6><i class="bi bi-lightbulb me-2"></i>Recommendations:</h6>
+                <ul class="mb-0">
+                    ${isIncomeCategory ?
+                        percentage < 80 ?
+                            '<li>Income is tracking below budget - consider additional income opportunities</li>' :
+                            '<li>Income is on track - maintain current income sources</li>' :
+                        percentage > 100 ?
+                            '<li>Spending is over budget - review recent transactions and reduce discretionary spending</li>' :
+                        percentage > 80 ?
+                            '<li>Approaching budget limit - monitor spending closely for remainder of period</li>' :
+                            '<li>Spending is well controlled - maintain current habits</li>'
+                    }
+                    <li>Review transactions in this category for optimization opportunities</li>
+                    ${!isIncomeCategory && percentage > 90 ?
+                        '<li>Consider adjusting budget allocation or finding cost savings</li>' : ''}
+                </ul>
+            </div>
+        `;
+
+        modal.show();
+    }
+
+    function generateBudgetInsights(type) {
+        const incomeVariance = budgetData.totalActualIncome - budgetData.totalPlannedIncome;
+        const expenseVariance = budgetData.totalActualExpenses - budgetData.totalPlannedExpenses;
+        const surplusVariance = budgetData.actualSurplus - budgetData.plannedSurplus;
+
+        switch (type) {
+            case 'budget-income':
+                return {
+                    title: 'Budget Income Insights',
+                    content: `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-success">💰 Income Performance</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Planned Income:</strong> $${budgetData.totalPlannedIncome.toFixed(2)}</li>
+                                            <li><strong>Actual Income:</strong> $${budgetData.totalActualIncome.toFixed(2)}</li>
+                                            <li><strong>Variance:</strong> $${Math.abs(incomeVariance).toFixed(2)} ${incomeVariance >= 0 ? 'above' : 'below'} budget</li>
+                                            <li><strong>Achievement:</strong> ${((budgetData.totalActualIncome / budgetData.totalPlannedIncome) * 100).toFixed(1)}%</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-info">📈 Income Health</h6>
+                                        <ul class="mb-0">
+                                            ${incomeVariance >= 0 ?
+                                                '<li class="text-success">✓ Income exceeding budget</li>' :
+                                                '<li class="text-warning">⚠ Income below budget</li>'}
+                                            <li><strong>Monthly Trend:</strong> ${incomeVariance >= 0 ? 'Positive' : 'Needs attention'}</li>
+                                            <li><strong>Budget Impact:</strong> $${Math.abs(incomeVariance * 12).toFixed(2)} annual difference</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert ${incomeVariance >= 0 ? 'alert-success' : 'alert-warning'} mt-3">
+                            <h6><i class="bi bi-target me-2"></i>Action Items:</h6>
+                            <ul class="mb-0">
+                                ${incomeVariance >= 0 ?
+                                    '<li>Great job exceeding income goals!</li><li>Consider increasing savings or investment allocations</li>' :
+                                    '<li>Income is below budget - review income sources</li><li>Consider additional income opportunities</li>'}
+                                <li>Update budget categories based on actual income patterns</li>
+                                <li>Set realistic income goals for next period</li>
+                            </ul>
+                        </div>
+                    `,
+                    action: () => window.location.href = '{{ url_for("budget_transactions") }}'
+                };
+
+            case 'budget-expenses':
+                return {
+                    title: 'Budget Expenses Insights',
+                    content: `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-danger">💸 Expense Performance</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Planned Expenses:</strong> $${budgetData.totalPlannedExpenses.toFixed(2)}</li>
+                                            <li><strong>Actual Expenses:</strong> $${budgetData.totalActualExpenses.toFixed(2)}</li>
+                                            <li><strong>Variance:</strong> $${Math.abs(expenseVariance).toFixed(2)} ${expenseVariance >= 0 ? 'over' : 'under'} budget</li>
+                                            <li><strong>Spending Rate:</strong> ${((budgetData.totalActualExpenses / budgetData.totalPlannedExpenses) * 100).toFixed(1)}%</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-warning">📊 Expense Control</h6>
+                                        <ul class="mb-0">
+                                            ${expenseVariance <= 0 ?
+                                                '<li class="text-success">✓ Under budget - excellent control</li>' :
+                                                '<li class="text-warning">⚠ Over budget - needs attention</li>'}
+                                            <li><strong>Daily Average:</strong> $${(budgetData.totalActualExpenses / new Date().getDate()).toFixed(2)}</li>
+                                            <li><strong>Projected Monthly:</strong> $${(budgetData.totalActualExpenses / new Date().getDate() * 30).toFixed(2)}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert ${expenseVariance <= 0 ? 'alert-success' : 'alert-warning'} mt-3">
+                            <h6><i class="bi bi-exclamation-triangle me-2"></i>Optimization Tips:</h6>
+                            <ul class="mb-0">
+                                ${expenseVariance <= 0 ?
+                                    '<li>Great spending discipline - maintain current habits</li><li>Consider allocating savings to emergency fund or investments</li>' :
+                                    '<li>Review recent transactions for areas to cut back</li><li>Focus on reducing discretionary spending categories</li>'}
+                                <li>Track daily spending to stay within budget</li>
+                                <li>Set up spending alerts for categories approaching limits</li>
+                                ${expenseVariance > budgetData.totalPlannedExpenses * 0.1 ? '<li class="text-danger">Consider revising budget or reducing expenses significantly</li>' : ''}
+                            </ul>
+                        </div>
+                    `,
+                    action: () => window.location.href = '{{ url_for("budget_categories") }}'
+                };
+
+            case 'budget-surplus':
+                return {
+                    title: 'Net Income (Surplus) Insights',
+                    content: `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="${budgetData.actualSurplus >= 0 ? 'text-success' : 'text-danger'}">🎯 Surplus Analysis</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Planned Surplus:</strong> $${budgetData.plannedSurplus.toFixed(2)}</li>
+                                            <li><strong>Actual Surplus:</strong> $${budgetData.actualSurplus.toFixed(2)}</li>
+                                            <li><strong>Variance:</strong> $${Math.abs(surplusVariance).toFixed(2)} ${surplusVariance >= 0 ? 'better' : 'worse'} than planned</li>
+                                            <li><strong>Status:</strong> ${budgetData.actualSurplus >= 0 ? 'Positive ✓' : 'Deficit ⚠'}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-info">💡 Financial Position</h6>
+                                        <ul class="mb-0">
+                                            ${budgetData.actualSurplus >= 500 ? '<li class="text-success">✓ Strong surplus for savings/investments</li>' :
+                                              budgetData.actualSurplus >= 100 ? '<li class="text-info">→ Moderate surplus available</li>' :
+                                              budgetData.actualSurplus >= 0 ? '<li class="text-warning">⚠ Minimal surplus</li>' :
+                                              '<li class="text-danger">⚠ Budget deficit</li>'}
+                                            <li><strong>Savings Potential:</strong> $${Math.max(0, budgetData.actualSurplus).toFixed(2)}</li>
+                                            <li><strong>Annual Impact:</strong> $${(budgetData.actualSurplus * 12).toFixed(2)}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert ${budgetData.actualSurplus >= 0 ? 'alert-success' : 'alert-danger'} mt-3">
+                            <h6><i class="bi bi-lightbulb me-2"></i>Strategic Recommendations:</h6>
+                            <ul class="mb-0">
+                                ${budgetData.actualSurplus >= 500 ?
+                                    '<li>Excellent surplus - consider maximizing retirement contributions</li><li>Build emergency fund if not already established</li><li>Explore investment opportunities</li>' :
+                                  budgetData.actualSurplus >= 100 ?
+                                    '<li>Good surplus - focus on emergency fund first</li><li>Consider small investment contributions</li>' :
+                                  budgetData.actualSurplus >= 0 ?
+                                    '<li>Minimal surplus - look for additional savings opportunities</li><li>Review expenses for potential cuts</li>' :
+                                    '<li class="text-danger">Deficit requires immediate attention</li><li>Reduce expenses or increase income</li><li>Review all non-essential spending</li>'}
+                                <li>Set up automatic transfers to savings accounts</li>
+                                <li>Monitor surplus trends month-over-month</li>
+                            </ul>
+                        </div>
+                    `,
+                    action: () => window.location.href = '{{ url_for("budget_goals") }}'
+                };
+
+            case 'savings-rate':
+                return {
+                    title: 'Savings Rate Insights',
+                    content: `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-info">🏦 Savings Performance</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Current Rate:</strong> ${budgetData.savingsRate.toFixed(1)}%</li>
+                                            <li><strong>Monthly Savings:</strong> $${Math.max(0, budgetData.actualSurplus).toFixed(2)}</li>
+                                            <li><strong>Annual Savings:</strong> $${(Math.max(0, budgetData.actualSurplus) * 12).toFixed(2)}</li>
+                                            <li><strong>Target Rate:</strong> 20% (recommended)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-success">📈 Savings Health</h6>
+                                        <ul class="mb-0">
+                                            ${budgetData.savingsRate >= 20 ? '<li class="text-success">✓ Excellent savings rate</li>' :
+                                              budgetData.savingsRate >= 15 ? '<li class="text-info">→ Good savings rate</li>' :
+                                              budgetData.savingsRate >= 10 ? '<li class="text-warning">⚠ Fair savings rate</li>' :
+                                              budgetData.savingsRate >= 0 ? '<li class="text-danger">⚠ Low savings rate</li>' :
+                                              '<li class="text-danger">⚠ Negative savings (deficit)</li>'}
+                                            <li><strong>Benchmark:</strong> ${budgetData.savingsRate >= 20 ? 'Above' : budgetData.savingsRate >= 10 ? 'Below' : 'Well below'} recommended 20%</li>
+                                            <li><strong>Gap to Target:</strong> ${Math.max(0, 20 - budgetData.savingsRate).toFixed(1)}%</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert ${budgetData.savingsRate >= 20 ? 'alert-success' : budgetData.savingsRate >= 10 ? 'alert-info' : 'alert-warning'} mt-3">
+                            <h6><i class="bi bi-piggy-bank me-2"></i>Savings Strategy:</h6>
+                            <ul class="mb-0">
+                                ${budgetData.savingsRate >= 20 ?
+                                    '<li>Outstanding savings rate - you\'re on track for financial independence</li><li>Consider increasing investment allocation</li><li>Maintain this excellent discipline</li>' :
+                                  budgetData.savingsRate >= 15 ?
+                                    '<li>Good savings rate - work toward 20% target</li><li>Look for additional expense reductions</li>' :
+                                  budgetData.savingsRate >= 10 ?
+                                    '<li>Fair savings rate - significant improvement needed</li><li>Review discretionary spending categories</li><li>Consider additional income sources</li>' :
+                                  budgetData.savingsRate >= 0 ?
+                                    '<li>Low savings rate - prioritize expense reduction</li><li>Create aggressive cost-cutting plan</li><li>Consider lifestyle adjustments</li>' :
+                                    '<li class="text-danger">Negative savings requires immediate action</li><li>Emergency expense reduction needed</li><li>Consider debt consolidation</li>'}
+                                <li>Automate savings to make it effortless</li>
+                                <li>Set monthly savings goals and track progress</li>
+                            </ul>
+                        </div>
+                    `,
+                    action: () => window.location.href = '{{ url_for("budget_goals") }}'
+                };
+
+            default:
+                return {
+                    title: 'Budget Insights',
+                    content: '<p>No insights available for this metric.</p>'
+                };
+        }
+    }
+
+    // Add hover effects for clickable cards
+    document.addEventListener('DOMContentLoaded', function() {
+        const clickableCards = document.querySelectorAll('.clickable-budget-card, .clickable-category-row');
+
+        clickableCards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                this.style.transition = 'all 0.2s ease';
+            });
+
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+        });
+
         // Category filter functionality
         const filterButtons = document.querySelectorAll('input[name="categoryFilter"]');
         const categoryRows = document.querySelectorAll('.budget-category-row');

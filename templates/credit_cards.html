@@ -4,6 +4,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">Credit Cards</h1>
     <div>
+        <a href="{{ url_for('recalculate_minimum_payments') }}" class="btn btn-outline-warning me-2">
+            <i class="bi bi-arrow-clockwise me-1"></i> Recalculate Minimums
+        </a>
         <button type="button" class="btn btn-outline-info me-2" data-bs-toggle="modal" data-bs-target="#paymentCalculatorModal">
             <i class="bi bi-calculator me-1"></i> Payment Calculator
         </button>
@@ -17,6 +20,7 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span>Your Credit Cards</span>
+        <small class="text-muted">Minimum payments calculated automatically (2% of balance or $25 minimum + annual fees if monthly)</small>
     </div>
     <div class="card-body p-0">
         {% if credit_cards %}
@@ -53,18 +57,22 @@
                             <span class="sort-icon"></span>
                         </th>
                         <th class="sortable-header" data-column="7">
-                            Due Day
+                            Annual Fee
                             <span class="sort-icon"></span>
                         </th>
                         <th class="sortable-header" data-column="8">
-                            Next Due Date
+                            Due Day
                             <span class="sort-icon"></span>
                         </th>
                         <th class="sortable-header" data-column="9">
-                            Min Payment
+                            Next Due Date
                             <span class="sort-icon"></span>
                         </th>
                         <th class="sortable-header" data-column="10">
+                            Min Payment
+                            <span class="sort-icon"></span>
+                        </th>
+                        <th class="sortable-header" data-column="11">
                             Auto-Pay
                             <span class="sort-icon"></span>
                         </th>
@@ -81,6 +89,7 @@
                         <td><strong>{{ "%.1f"|format(overall_utilization) }}%</strong></td>
                         <td><strong>${{ "%.2f"|format(total_available) }}</strong></td>
                         <td><strong>{{ "%.2f"|format(avg_interest_rate) }}%</strong></td>
+                        <td><strong>${{ "%.2f"|format(total_annual_fees or 0) }}</strong></td>
                         <td>—</td>
                         <td>—</td>
                         <td><strong>${{ "%.2f"|format(total_min_payments) }}</strong></td>
@@ -122,9 +131,39 @@
                             {% endif %}
                         </td>
                         <td data-sort="{{ card.interest_rate or 0 }}">{% if card.interest_rate %}{{ "%.2f"|format(card.interest_rate) }}%{% else %}&mdash;{% endif %}</td>
+                        <td data-sort="{{ card.annual_fee or 0 }}">
+                            {% if card.annual_fee and card.annual_fee > 0 %}
+                            <div class="d-flex flex-column">
+                                <span class="fw-bold">${{ "%.2f"|format(card.annual_fee) }}</span>
+                                <small class="text-muted">
+                                    {% if card.annual_fee_frequency == 'monthly' %}
+                                    <i class="bi bi-calendar-month me-1"></i>Monthly
+                                    {% else %}
+                                    <i class="bi bi-calendar-year me-1"></i>Yearly
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% else %}
+                            <span class="text-success">No Fee</span>
+                            {% endif %}
+                        </td>
                         <td data-sort="{{ card.payment_due_date.day }}">{{ card.payment_due_date.day }}</td>
                         <td data-sort="{{ card.payment_due_date.strftime('%Y-%m-%d') }}">{{ card.payment_due_date.strftime('%m/%d/%Y') }}</td>
-                        <td data-sort="{{ card.minimum_payment or 0 }}">{% if card.minimum_payment %}${{ "%.2f"|format(card.minimum_payment) }}{% else %}&mdash;{% endif %}</td>
+                        <td data-sort="{{ card.minimum_payment or 0 }}">
+                            {% if card.minimum_payment %}
+                            <div class="d-flex flex-column">
+                                <span class="text-success fw-bold">${{ "%.2f"|format(card.minimum_payment) }}</span>
+                                <small class="text-muted">
+                                    Auto-calculated
+                                    {% if card.annual_fee and card.annual_fee > 0 and card.annual_fee_frequency == 'monthly' %}
+                                    <br><i class="bi bi-info-circle"></i> Includes monthly fee
+                                    {% endif %}
+                                </small>
+                            </div>
+                            {% else %}
+                            &mdash;
+                            {% endif %}
+                        </td>
                         <td>
                             {% if card.auto_pay_minimum %}
                             <span class="badge bg-success">Min Payment</span>
@@ -135,9 +174,14 @@
                             {% endif %}
                         </td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCardModal{{ card.id }}">
-                                <i class="bi bi-pencil-square me-1"></i>Edit
-                            </button>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editCardModal{{ card.id }}">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCreditCard({{ card.id }}, '{{ card.name }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -146,9 +190,43 @@
         </div>
         {% else %}
         <div class="text-center py-4 text-muted">
-            <p class="mb-0">No credit cards added yet.</p>
+            <i class="bi bi-credit-card fs-1"></i>
+            <p class="mt-2">No credit cards added yet.</p>
         </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Enhanced Minimum Payment Calculation Info Card -->
+<div class="card mb-4 border-info">
+    <div class="card-header bg-info text-white">
+        <h6 class="mb-0">
+            <i class="bi bi-info-circle me-2"></i>Automatic Minimum Payment Calculation
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6>How It Works:</h6>
+                <ul class="mb-0">
+                    <li><strong>Standard Method:</strong> 2% of current balance</li>
+                    <li><strong>Interest Method:</strong> Monthly interest + 1% principal (when interest rate provided)</li>
+                    <li><strong>Annual Fee (Monthly):</strong> Added to minimum payment if charged monthly</li>
+                    <li><strong>Minimum Floor:</strong> $25 absolute minimum (before fees)</li>
+                    <li><strong>Maximum Cap:</strong> Never exceeds current balance + fees</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <h6>Updates Automatically When:</h6>
+                <ul class="mb-0">
+                    <li>You add a new credit card</li>
+                    <li>You update the balance, interest rate, or annual fee</li>
+                    <li>You change annual fee frequency (yearly/monthly)</li>
+                    <li>You click "Recalculate Minimums"</li>
+                    <li>You visit the credit cards page</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -168,26 +246,104 @@
                                 <h6 class="mb-0">Payment Parameters</h6>
                             </div>
                             <div class="card-body">
+                                <!-- Calculation Mode Selection -->
                                 <div class="mb-3">
-                                    <label for="totalPayment" class="form-label">Total Payment Amount ($)</label>
-                                    <input type="number" step="0.01" class="form-control" id="totalPayment" placeholder="Enter amount to allocate">
+                                    <label class="form-label">Calculation Mode</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="calculationMode" id="oneTimeMode" value="onetime" checked onchange="toggleCalculationMode()">
+                                        <label class="form-check-label" for="oneTimeMode">
+                                            <strong>One-Time Payment</strong><br>
+                                            <small class="text-muted">Enter a specific amount to allocate</small>
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="calculationMode" id="monthlyMode" value="monthly" onchange="toggleCalculationMode()">
+                                        <label class="form-check-label" for="monthlyMode">
+                                            <strong>Monthly Budget</strong><br>
+                                            <small class="text-muted">Plan based on monthly payment budget</small>
+                                        </label>
+                                    </div>
                                 </div>
+
+                                <!-- One-Time Payment Fields -->
+                                <div id="oneTimeFields">
+                                    <div class="mb-3">
+                                        <label for="totalPayment" class="form-label">Total Payment Amount ($)</label>
+                                        <input type="number" step="0.01" class="form-control" id="totalPayment" placeholder="Enter amount to allocate">
+                                    </div>
+                                </div>
+
+                                <!-- Monthly Budget Fields -->
+                                <div id="monthlyFields" style="display: none;">
+                                    <div class="mb-3">
+                                        <label for="monthlyBudget" class="form-label">Monthly Credit Card Budget ($)</label>
+                                        <input type="number" step="0.01" class="form-control" id="monthlyBudget" placeholder="Enter monthly budget for credit cards">
+                                        <small class="text-muted">How much can you afford monthly for credit card payments?</small>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="payoffTimeframe" class="form-label">Desired Payoff Timeframe</label>
+                                        <select class="form-select" id="payoffTimeframe">
+                                            <option value="12">1 Year</option>
+                                            <option value="18">1.5 Years</option>
+                                            <option value="24" selected>2 Years</option>
+                                            <option value="36">3 Years</option>
+                                            <option value="48">4 Years</option>
+                                            <option value="60">5 Years</option>
+                                            <option value="custom">Custom Months</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3" id="customMonthsField" style="display: none;">
+                                        <label for="customMonths" class="form-label">Custom Timeframe (Months)</label>
+                                        <input type="number" min="1" max="120" class="form-control" id="customMonths" placeholder="Enter number of months">
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body p-2">
+                                                <small class="text-muted">
+                                                    <strong>Current Monthly Minimums:</strong> ${{ "%.2f"|format(total_min_payments) }}
+                                                    <br><strong>Total Balance:</strong> ${{ "%.2f"|format(total_balance) }}
+                                                    <br><strong>Monthly Fees:</strong> ${{ "%.2f"|format(total_monthly_fees or 0) }}
+                                                </small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="mb-3">
                                     <label for="targetUtilization" class="form-label">Target Utilization (%)</label>
                                     <input type="number" step="0.1" min="0" max="100" class="form-control" id="targetUtilization" value="10" placeholder="Enter target utilization">
                                 </div>
+
                                 <div class="mb-3">
                                     <label for="paymentStrategy" class="form-label">Payment Strategy</label>
                                     <select class="form-select" id="paymentStrategy">
                                         <option value="utilization">Reduce High Utilization First</option>
-                                        <option value="interest">Pay High Interest First</option>
+                                        <option value="interest">Pay High Interest First (Avalanche)</option>
                                         <option value="balance">Pay High Balance First</option>
+                                        <option value="minimums">Cover All Minimums First</option>
+                                        <option value="snowball">Pay Low Balance First (Snowball)</option>
                                         <option value="even">Distribute Evenly</option>
                                     </select>
                                 </div>
+
                                 <button type="button" class="btn btn-primary w-100" onclick="calculatePayments()">
                                     <i class="bi bi-calculator me-1"></i>Calculate Payments
                                 </button>
+
+                                <!-- Monthly Budget Summary -->
+                                <div id="monthlyBudgetSummary" class="mt-3" style="display: none;">
+                                    <div class="card border-info">
+                                        <div class="card-header bg-info text-white py-2">
+                                            <h6 class="mb-0"><i class="bi bi-info-circle me-1"></i>Monthly Budget Analysis</h6>
+                                        </div>
+                                        <div class="card-body p-2">
+                                            <div id="budgetAnalysisContent"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -200,7 +356,7 @@
                                 <div id="calculationResults">
                                     <div class="text-muted text-center py-4">
                                         <i class="bi bi-calculator fs-1"></i>
-                                        <p class="mt-2">Enter payment amount and click "Calculate Payments" to see recommendations.</p>
+                                        <p class="mt-2">Select calculation mode and click "Calculate Payments" to see recommendations.</p>
                                     </div>
                                 </div>
                             </div>
@@ -227,44 +383,70 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="{{ url_for('credit_cards') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- ADD THIS LINE -->
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="name" class="form-label">Card Name/Issuer</label>
-                            <input type="text" class="form-control" id="name" name="name" required>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Chase Sapphire, Capital One Venture" required>
                         </div>
                         <div class="col-md-6">
                             <label for="last_four" class="form-label">Last 4 Digits</label>
-                            <input type="text" pattern="[0-9]{4}" maxlength="4" class="form-control" id="last_four" name="last_four" required>
+                            <input type="text" pattern="[0-9]{4}" maxlength="4" class="form-control" id="last_four" name="last_four" placeholder="1234" required>
                         </div>
                         <div class="col-md-6">
                             <label for="limit" class="form-label">Credit Limit ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="limit" name="limit">
+                            <input type="number" step="0.01" class="form-control" id="limit" name="limit" placeholder="5000.00">
                         </div>
                         <div class="col-md-6">
                             <label for="current_balance" class="form-label">Current Balance ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="current_balance" name="current_balance" value="0">
+                            <input type="number" step="0.01" class="form-control" id="current_balance" name="current_balance" value="0" onchange="calculateMinPaymentPreview('add')">
                         </div>
                         <div class="col-md-6">
-                            <label for="interest_rate" class="form-label">Interest Rate (%)</label>
-                            <input type="number" step="0.01" class="form-control" id="interest_rate" name="interest_rate">
+                            <label for="interest_rate" class="form-label">Interest Rate (%) <small class="text-muted">Optional</small></label>
+                            <input type="number" step="0.01" class="form-control" id="interest_rate" name="interest_rate" placeholder="18.99" onchange="calculateMinPaymentPreview('add')">
                         </div>
+
+                        <!-- Annual Fee Section -->
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <h6 class="text-primary">Annual Fee Information</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="annual_fee" class="form-label">Annual Fee ($)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="annual_fee" name="annual_fee" value="0" placeholder="0.00" onchange="calculateMinPaymentPreview('add')">
+                            <small class="text-muted">Enter the total annual fee amount</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="annual_fee_frequency" class="form-label">Fee Frequency</label>
+                            <select class="form-select" id="annual_fee_frequency" name="annual_fee_frequency" onchange="updateFeeFrequencyInfo('add'); calculateMinPaymentPreview('add')">
+                                <option value="yearly">Yearly (Charged once per year)</option>
+                                <option value="monthly">Monthly (Divided by 12 months)</option>
+                            </select>
+                            <small class="text-muted" id="feeFrequencyInfo">Fee will be charged once per year</small>
+                        </div>
+
                         <div class="col-md-6">
                             <label for="due_day" class="form-label">Due Day of Month</label>
                             <select class="form-select" id="due_day" name="due_day" required>
                                 {% for day in range(1, 32) %}
-                                <option value="{{ day }}">{{ day }}</option>
+                                <option value="{{ day }}" {% if day= =15 %}selected{% endif %}>{{ day }}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" id="payment_due_date" name="payment_due_date">
                         </div>
                         <div class="col-md-6">
-                            <label for="minimum_payment" class="form-label">Minimum Payment ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="minimum_payment" name="minimum_payment">
+                            <label for="minimum_payment" class="form-label">
+                                Minimum Payment ($)
+                                <small class="text-muted">(Auto-calculated)</small>
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment" name="minimum_payment" readonly placeholder="Will be calculated automatically">
+                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
+                            <div id="minPaymentPreview" class="mt-1"></div>
                         </div>
                         <div class="col-md-6">
                             <label for="auto_payment_amount" class="form-label">Auto-Payment Amount ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="auto_payment_amount" name="auto_payment_amount">
+                            <input type="number" step="0.01" class="form-control" id="auto_payment_amount" name="auto_payment_amount" placeholder="Optional fixed payment amount">
                         </div>
                         <div class="col-12">
                             <div class="form-check">
@@ -295,6 +477,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="{{ url_for('edit_card', card_id=card.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- ADD THIS LINE -->
                 <div class="modal-body">
                     <div class="row g-3">
                         <div class="col-12">
@@ -311,24 +494,55 @@
                         </div>
                         <div class="col-md-6">
                             <label for="current_balance{{ card.id }}" class="form-label">Current Balance ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="current_balance{{ card.id }}" name="current_balance" value="{{ card.current_balance }}" required>
+                            <input type="number" step="0.01" class="form-control" id="current_balance{{ card.id }}" name="current_balance" value="{{ card.current_balance }}" required onchange="calculateMinPaymentPreview('{{ card.id }}')">
                         </div>
                         <div class="col-md-6">
-                            <label for="interest_rate{{ card.id }}" class="form-label">Interest Rate (%)</label>
-                            <input type="number" step="0.01" class="form-control" id="interest_rate{{ card.id }}" name="interest_rate" value="{{ card.interest_rate or '' }}">
+                            <label for="interest_rate{{ card.id }}" class="form-label">Interest Rate (%) <small class="text-muted">Optional</small></label>
+                            <input type="number" step="0.01" class="form-control" id="interest_rate{{ card.id }}" name="interest_rate" value="{{ card.interest_rate or '' }}" onchange="calculateMinPaymentPreview('{{ card.id }}')">
                         </div>
+
+                        <!-- Annual Fee Section -->
+                        <div class="col-12">
+                            <hr class="my-3">
+                            <h6 class="text-primary">Annual Fee Information</h6>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="annual_fee{{ card.id }}" class="form-label">Annual Fee ($)</label>
+                            <input type="number" step="0.01" min="0" class="form-control" id="annual_fee{{ card.id }}" name="annual_fee" value="{{ card.annual_fee or 0 }}" onchange="calculateMinPaymentPreview('{{ card.id }}')">
+                            <small class="text-muted">Enter the total annual fee amount</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="annual_fee_frequency{{ card.id }}" class="form-label">Fee Frequency</label>
+                            <select class="form-select" id="annual_fee_frequency{{ card.id }}" name="annual_fee_frequency" onchange="updateFeeFrequencyInfo('{{ card.id }}'); calculateMinPaymentPreview('{{ card.id }}')">
+                                <option value="yearly" {% if card.annual_fee_frequency !='monthly' %}selected{% endif %}>Yearly (Charged once per year)</option>
+                                <option value="monthly" {% if card.annual_fee_frequency= ='monthly' %}selected{% endif %}>Monthly (Divided by 12 months)</option>
+                            </select>
+                            <small class="text-muted" id="feeFrequencyInfo{{ card.id }}">
+                                {% if card.annual_fee_frequency == 'monthly' %}
+                                Fee will be divided into monthly charges
+                                {% else %}
+                                Fee will be charged once per year
+                                {% endif %}
+                            </small>
+                        </div>
+
                         <div class="col-md-6">
                             <label for="due_day{{ card.id }}" class="form-label">Due Day of Month</label>
                             <select class="form-select" id="due_day{{ card.id }}" name="due_day" required>
                                 {% for day in range(1, 32) %}
-                                <option value="{{ day }}" {% if card.payment_due_date.day==day %}selected{% endif %}>{{ day }}</option>
+                                <option value="{{ day }}" {% if card.payment_due_date.day= =day %}selected{% endif %}>{{ day }}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" id="payment_due_date{{ card.id }}" name="payment_due_date" value="{{ card.payment_due_date.strftime('%Y-%m-%d') }}">
                         </div>
                         <div class="col-md-6">
-                            <label for="minimum_payment{{ card.id }}" class="form-label">Minimum Payment ($)</label>
-                            <input type="number" step="0.01" class="form-control" id="minimum_payment{{ card.id }}" name="minimum_payment" value="{{ card.minimum_payment or '' }}">
+                            <label for="minimum_payment{{ card.id }}" class="form-label">
+                                Minimum Payment ($)
+                                <small class="text-muted">(Auto-calculated)</small>
+                            </label>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment{{ card.id }}" name="minimum_payment" value="{{ card.minimum_payment or '' }}" readonly>
+                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
+                            <div id="minPaymentPreview{{ card.id }}" class="mt-1"></div>
                         </div>
                         <div class="col-md-6">
                             <label for="auto_payment_amount{{ card.id }}" class="form-label">Auto-Payment Amount ($)</label>
@@ -355,7 +569,7 @@
 {% endfor %}
 
 <script>
-    // Credit card data for calculations
+    // Credit card data for calculations including annual fees
     const creditCards = [
         {% for card in credit_cards %}
         {
@@ -365,19 +579,251 @@
             limit: {{ card.limit or 0 }},
             currentBalance: {{ card.current_balance or 0 }},
             interestRate: {{ card.interest_rate or 0 }},
-            minimumPayment: {{ card.minimum_payment or 0 }}
+            minimumPayment: {{ card.minimum_payment or 0 }},
+            annualFee: {{ card.annual_fee or 0 }},
+            annualFeeFrequency: "{{ card.annual_fee_frequency or 'yearly' }}"
         }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
+    // Total minimum payments and balance for calculations
+    const totalMinimumPayments = {{ total_min_payments }};
+    const totalBalance = {{ total_balance }};
+    const totalMonthlyFees = {{ total_monthly_fees or 0 }};
+
+    // Update fee frequency information text
+    function updateFeeFrequencyInfo(cardId) {
+        const frequencySelect = document.getElementById('annual_fee_frequency' + (cardId === 'add' ? '' : cardId));
+        const infoElement = document.getElementById('feeFrequencyInfo' + (cardId === 'add' ? '' : cardId));
+
+        if (frequencySelect && infoElement) {
+            if (frequencySelect.value === 'monthly') {
+                infoElement.textContent = 'Fee will be divided into monthly charges';
+            } else {
+                infoElement.textContent = 'Fee will be charged once per year';
+            }
+        }
+    }
+
+    // Enhanced minimum payment preview calculation including annual fees
+    function calculateMinPaymentPreview(cardId) {
+        const balanceField = document.getElementById('current_balance' + (cardId === 'add' ? '' : cardId));
+        const interestField = document.getElementById('interest_rate' + (cardId === 'add' ? '' : cardId));
+        const annualFeeField = document.getElementById('annual_fee' + (cardId === 'add' ? '' : cardId));
+        const annualFeeFrequencyField = document.getElementById('annual_fee_frequency' + (cardId === 'add' ? '' : cardId));
+        const previewDiv = document.getElementById('minPaymentPreview' + (cardId === 'add' ? '' : cardId));
+
+        if (!balanceField || !previewDiv) return;
+
+        const balance = parseFloat(balanceField.value) || 0;
+        const interestRate = parseFloat(interestField?.value) || 0;
+        const annualFee = parseFloat(annualFeeField?.value) || 0;
+        const annualFeeFrequency = annualFeeFrequencyField?.value || 'yearly';
+
+        // Calculate base minimum payment
+        let minPayment = balance * 0.02; // 2% of balance
+
+        // If interest rate provided, calculate interest + principal method
+        if (interestRate > 0) {
+            const monthlyInterestRate = interestRate / 100 / 12;
+            const monthlyInterest = balance * monthlyInterestRate;
+            const principalPayment = balance * 0.01; // 1% principal
+            const interestPlusPrincipal = monthlyInterest + principalPayment;
+
+            // Use higher of the two methods
+            minPayment = Math.max(minPayment, interestPlusPrincipal);
+        }
+
+        // Apply minimum floor (before adding fees)
+        minPayment = Math.max(minPayment, 25.0); // $25 minimum
+
+        // Add monthly fee if applicable
+        let monthlyFee = 0;
+        if (annualFee > 0 && annualFeeFrequency === 'monthly') {
+            monthlyFee = annualFee / 12;
+            minPayment += monthlyFee;
+        }
+
+        // Don't exceed balance + monthly fee
+        minPayment = Math.min(minPayment, balance + monthlyFee);
+
+        if (balance <= 0 && monthlyFee <= 0) {
+            previewDiv.innerHTML = '<small class="text-muted">No balance or fees = $0.00 minimum</small>';
+            return;
+        }
+
+        let previewText = `<small class="text-success"><strong>Preview: $${minPayment.toFixed(2)}</strong>`;
+        if (monthlyFee > 0) {
+            previewText += `<br><span class="text-info">Includes $${monthlyFee.toFixed(2)} monthly fee</span>`;
+        }
+        previewText += '</small>';
+
+        previewDiv.innerHTML = previewText;
+    }
+
+    // Toggle calculation mode
+    function toggleCalculationMode() {
+        const oneTimeMode = document.getElementById('oneTimeMode').checked;
+        const monthlyMode = document.getElementById('monthlyMode').checked;
+
+        document.getElementById('oneTimeFields').style.display = oneTimeMode ? 'block' : 'none';
+        document.getElementById('monthlyFields').style.display = monthlyMode ? 'block' : 'none';
+        document.getElementById('monthlyBudgetSummary').style.display = 'none';
+
+        // Clear results when switching modes
+        document.getElementById('calculationResults').innerHTML = `
+            <div class="text-muted text-center py-4">
+                <i class="bi bi-calculator fs-1"></i>
+                <p class="mt-2">Select calculation mode and click "Calculate Payments" to see recommendations.</p>
+            </div>
+        `;
+        document.getElementById('applyPaymentsBtn').style.display = 'none';
+    }
+
+    // Handle custom timeframe selection
+    document.getElementById('payoffTimeframe').addEventListener('change', function() {
+        const customField = document.getElementById('customMonthsField');
+        customField.style.display = this.value === 'custom' ? 'block' : 'none';
+    });
+
+    function calculateMonthlyBudgetAnalysis(monthlyBudget, timeframeMonths) {
+        const totalInterestPerMonth = creditCards.reduce((total, card) => {
+            if (card.interestRate > 0 && card.currentBalance > 0) {
+                return total + (card.currentBalance * (card.interestRate / 100 / 12));
+            }
+            return total;
+        }, 0);
+
+        const principalPayment = monthlyBudget - totalMinimumPayments;
+        const effectivePrincipal = Math.max(0, monthlyBudget - totalInterestPerMonth - totalMonthlyFees);
+
+        // Estimate payoff time with current budget
+        let estimatedPayoffMonths = 'Unknown';
+        if (effectivePrincipal > 0) {
+            estimatedPayoffMonths = Math.ceil(totalBalance / effectivePrincipal);
+        }
+
+        // Calculate total interest over timeframe
+        const totalInterestPaid = totalInterestPerMonth * (estimatedPayoffMonths !== 'Unknown' ? estimatedPayoffMonths : timeframeMonths);
+
+        return {
+            monthlyBudget: monthlyBudget,
+            currentMinimums: totalMinimumPayments,
+            extraPrincipal: principalPayment,
+            monthlyInterest: totalInterestPerMonth,
+            monthlyFees: totalMonthlyFees,
+            effectivePrincipal: effectivePrincipal,
+            estimatedPayoffMonths: estimatedPayoffMonths,
+            totalInterestPaid: totalInterestPaid,
+            isViable: monthlyBudget >= totalMinimumPayments
+        };
+    }
+
+    function displayBudgetAnalysis(analysis) {
+        const contentDiv = document.getElementById('budgetAnalysisContent');
+
+        let statusClass = 'text-success';
+        let statusIcon = 'bi-check-circle';
+        let statusText = 'Budget looks good!';
+
+        if (!analysis.isViable) {
+            statusClass = 'text-danger';
+            statusIcon = 'bi-exclamation-triangle';
+            statusText = 'Budget below minimums!';
+        } else if (analysis.extraPrincipal <= 0) {
+            statusClass = 'text-warning';
+            statusIcon = 'bi-exclamation-triangle';
+            statusText = 'Only covering minimums';
+        }
+
+        let html = `
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="${statusClass}">
+                        <i class="${statusIcon} me-1"></i><strong>${statusText}</strong>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <small><strong>Monthly Budget:</strong> $${analysis.monthlyBudget.toFixed(2)}</small>
+                </div>
+                <div class="col-6">
+                    <small><strong>Required Minimums:</strong> $${analysis.currentMinimums.toFixed(2)}</small>
+                </div>
+                <div class="col-6">
+                    <small><strong>Extra Principal:</strong> $${analysis.extraPrincipal.toFixed(2)}</small>
+                </div>
+                <div class="col-6">
+                    <small><strong>Monthly Interest:</strong> $${analysis.monthlyInterest.toFixed(2)}</small>
+                </div>
+                <div class="col-6">
+                    <small><strong>Monthly Fees:</strong> $${analysis.monthlyFees.toFixed(2)}</small>
+                </div>
+                <div class="col-6">
+                    <small><strong>Effective Principal:</strong> $${analysis.effectivePrincipal.toFixed(2)}</small>
+                </div>
+                <div class="col-12">
+                    <small><strong>Estimated Payoff:</strong> ${
+                        analysis.estimatedPayoffMonths === 'Unknown' ?
+                        'Unable to pay off with current budget' :
+                        `${analysis.estimatedPayoffMonths} months (${Math.floor(analysis.estimatedPayoffMonths / 12)} years, ${analysis.estimatedPayoffMonths % 12} months)`
+                    }</small>
+                </div>
+                <div class="col-12">
+                    <small><strong>Total Interest:</strong> $${analysis.totalInterestPaid.toFixed(2)}</small>
+                </div>
+            </div>
+        `;
+
+        contentDiv.innerHTML = html;
+        document.getElementById('monthlyBudgetSummary').style.display = 'block';
+    }
+
     function calculatePayments() {
-        const totalPayment = parseFloat(document.getElementById('totalPayment').value) || 0;
+        const calculationMode = document.querySelector('input[name="calculationMode"]:checked').value;
         const targetUtilization = parseFloat(document.getElementById('targetUtilization').value) || 10;
         const strategy = document.getElementById('paymentStrategy').value;
 
-        if (totalPayment <= 0) {
-            alert('Please enter a valid payment amount.');
-            return;
+        let totalPayment = 0;
+        let budgetAnalysis = null;
+
+        if (calculationMode === 'onetime') {
+            totalPayment = parseFloat(document.getElementById('totalPayment').value) || 0;
+            if (totalPayment <= 0) {
+                alert('Please enter a valid payment amount.');
+                return;
+            }
+        } else {
+            // Monthly budget mode
+            const monthlyBudget = parseFloat(document.getElementById('monthlyBudget').value) || 0;
+            if (monthlyBudget <= 0) {
+                alert('Please enter a valid monthly budget amount.');
+                return;
+            }
+
+            const timeframeSelect = document.getElementById('payoffTimeframe');
+            let timeframeMonths = parseInt(timeframeSelect.value);
+            if (timeframeSelect.value === 'custom') {
+                timeframeMonths = parseInt(document.getElementById('customMonths').value) || 24;
+            }
+
+            // Analyze the budget
+            budgetAnalysis = calculateMonthlyBudgetAnalysis(monthlyBudget, timeframeMonths);
+            displayBudgetAnalysis(budgetAnalysis);
+
+            if (!budgetAnalysis.isViable) {
+                document.getElementById('calculationResults').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Insufficient Budget!</strong><br>
+                        Your monthly budget ($${monthlyBudget.toFixed(2)}) is less than the required minimum payments ($${totalMinimumPayments.toFixed(2)}).
+                        <br><br>Please increase your budget or consider debt consolidation options.
+                    </div>
+                `;
+                return;
+            }
+
+            // Use the monthly budget as the payment amount
+            totalPayment = monthlyBudget;
         }
 
         // Calculate payments based on strategy
@@ -410,53 +856,91 @@
                 maxPayment: Math.max(0, card.currentBalance - (card.limit * targetUtilization / 100)),
                 suggestedPayment: 0,
                 interestRate: card.interestRate,
-                minimumPayment: card.minimumPayment
+                minimumPayment: card.minimumPayment,
+                annualFee: card.annualFee,
+                annualFeeFrequency: card.annualFeeFrequency
             });
         });
 
-        // Apply payment strategy
-        switch (strategy) {
-            case 'utilization':
-                // Pay highest utilization first
-                payments.sort((a, b) => b.currentUtilization - a.currentUtilization);
-                break;
-            case 'interest':
-                // Pay highest interest rate first
-                payments.sort((a, b) => b.interestRate - a.interestRate);
-                break;
-            case 'balance':
-                // Pay highest balance first
-                payments.sort((a, b) => b.currentBalance - a.currentBalance);
-                break;
-            case 'even':
-                // Distribute evenly (no sorting needed)
-                break;
-        }
-
-        // Allocate payments
-        if (strategy === 'even') {
-            // Distribute evenly among all cards
-            const perCardPayment = remainingPayment / payments.length;
+        // Handle "minimums first" strategy
+        if (strategy === 'minimums') {
+            // First, allocate minimum payments
+            let totalMinimums = 0;
             payments.forEach(payment => {
-                payment.suggestedPayment = Math.min(perCardPayment, payment.maxPayment);
-                remainingPayment -= payment.suggestedPayment;
+                totalMinimums += payment.minimumPayment;
             });
-        } else {
-            // Apply waterfall method - pay each card to target utilization in priority order
+
+            if (totalPayment < totalMinimums) {
+                document.getElementById('calculationResults').innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Payment amount ($${totalPayment.toFixed(2)}) is less than total minimum payments required ($${totalMinimums.toFixed(2)}).
+                        <br>Consider increasing your payment amount or paying minimums individually.
+                    </div>
+                `;
+                return;
+            }
+
+            // Allocate minimums first
+            payments.forEach(payment => {
+                payment.suggestedPayment = payment.minimumPayment;
+                remainingPayment -= payment.minimumPayment;
+            });
+
+            // Apply remaining payment using utilization strategy
+            payments.sort((a, b) => b.currentUtilization - a.currentUtilization);
             for (let payment of payments) {
                 if (remainingPayment <= 0) break;
+                const additionalPayment = Math.min(remainingPayment, payment.maxPayment - payment.suggestedPayment);
+                payment.suggestedPayment += additionalPayment;
+                remainingPayment -= additionalPayment;
+            }
+        } else {
+            // Apply other payment strategies
+            switch (strategy) {
+                case 'utilization':
+                    payments.sort((a, b) => b.currentUtilization - a.currentUtilization);
+                    break;
+                case 'interest':
+                    payments.sort((a, b) => b.interestRate - a.interestRate);
+                    break;
+                case 'balance':
+                    payments.sort((a, b) => b.currentBalance - a.currentBalance);
+                    break;
+                case 'snowball':
+                    // Snowball: pay smallest balance first
+                    payments.sort((a, b) => a.currentBalance - b.currentBalance);
+                    break;
+                case 'even':
+                    // Distribute evenly (no sorting needed)
+                    break;
+            }
 
-                const paymentAmount = Math.min(remainingPayment, payment.maxPayment);
-                payment.suggestedPayment = paymentAmount;
-                remainingPayment -= paymentAmount;
+            // Allocate payments
+            if (strategy === 'even') {
+                // Distribute evenly among all cards
+                const perCardPayment = remainingPayment / payments.length;
+                payments.forEach(payment => {
+                    payment.suggestedPayment = Math.min(perCardPayment, payment.maxPayment);
+                    remainingPayment -= payment.suggestedPayment;
+                });
+            } else {
+                // Apply waterfall method - pay each card to target utilization in priority order
+                for (let payment of payments) {
+                    if (remainingPayment <= 0) break;
+
+                    const paymentAmount = Math.min(remainingPayment, payment.maxPayment);
+                    payment.suggestedPayment = paymentAmount;
+                    remainingPayment -= paymentAmount;
+                }
             }
         }
 
         // Display results
-        displayPaymentResults(payments, totalPayment - remainingPayment, remainingPayment);
+        displayPaymentResults(payments, totalPayment - remainingPayment, remainingPayment, calculationMode, budgetAnalysis);
     }
 
-    function displayPaymentResults(payments, totalAllocated, remaining) {
+    function displayPaymentResults(payments, totalAllocated, remaining, calculationMode, budgetAnalysis) {
         const resultsDiv = document.getElementById('calculationResults');
 
         let html = `
@@ -464,7 +948,7 @@
                 <div class="col-md-4">
                     <div class="card border-primary">
                         <div class="card-body text-center">
-                            <h6 class="card-title">Total Allocated</h6>
+                            <h6 class="card-title">${calculationMode === 'monthly' ? 'Monthly' : 'Total'} Allocated</h6>
                             <h4 class="text-primary">$${totalAllocated.toFixed(2)}</h4>
                         </div>
                     </div>
@@ -488,6 +972,19 @@
             </div>
         `;
 
+        if (calculationMode === 'monthly' && budgetAnalysis) {
+            html += `
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Monthly Budget Plan:</strong> This shows your recommended monthly payment allocation.
+                    ${budgetAnalysis.estimatedPayoffMonths !== 'Unknown' ?
+                        `Following this plan, you'll pay off all cards in approximately ${budgetAnalysis.estimatedPayoffMonths} months.` :
+                        'Consider increasing your budget for faster payoff.'
+                    }
+                </div>
+            `;
+        }
+
         html += `
             <div class="table-responsive">
                 <table class="table table-sm">
@@ -496,9 +993,11 @@
                             <th>Card</th>
                             <th>Current Balance</th>
                             <th>Current Util.</th>
+                            <th>Min Payment</th>
                             <th>Suggested Payment</th>
                             <th>New Balance</th>
                             <th>New Util.</th>
+                            ${calculationMode === 'monthly' ? '<th>Payoff Time*</th>' : ''}
                         </tr>
                     </thead>
                     <tbody>
@@ -508,11 +1007,29 @@
             const newBalance = payment.currentBalance - payment.suggestedPayment;
             const newUtilization = (newBalance / payment.limit * 100);
 
+            // Estimate individual payoff time for monthly mode
+            let payoffTime = '';
+            if (calculationMode === 'monthly' && payment.suggestedPayment > payment.minimumPayment) {
+                const monthlyInterest = payment.currentBalance * (payment.interestRate / 100 / 12);
+                const monthlyFee = (payment.annualFee > 0 && payment.annualFeeFrequency === 'monthly') ? payment.annualFee / 12 : 0;
+                const monthlyPrincipal = payment.suggestedPayment - monthlyInterest - monthlyFee;
+                if (monthlyPrincipal > 0) {
+                    const months = Math.ceil(payment.currentBalance / monthlyPrincipal);
+                    payoffTime = `${months}mo`;
+                } else {
+                    payoffTime = 'Never';
+                }
+            } else if (calculationMode === 'monthly') {
+                payoffTime = 'Min only';
+            }
+
             html += `
                 <tr ${payment.suggestedPayment > 0 ? 'class="table-success"' : ''}>
                     <td>
                         <strong>${payment.name}</strong><br>
                         <small class="text-muted">xxxx-${payment.lastFour}</small>
+                        ${(payment.annualFee > 0 && payment.annualFeeFrequency === 'monthly') ?
+                            `<br><small class="text-info">+$${(payment.annualFee / 12).toFixed(2)}/mo fee</small>` : ''}
                     </td>
                     <td>$${payment.currentBalance.toFixed(2)}</td>
                     <td>
@@ -520,8 +1037,12 @@
                             ${payment.currentUtilization.toFixed(1)}%
                         </span>
                     </td>
+                    <td>$${payment.minimumPayment.toFixed(2)}</td>
                     <td>
                         <strong>$${payment.suggestedPayment.toFixed(2)}</strong>
+                        ${payment.suggestedPayment >= payment.minimumPayment ?
+                            '<br><small class="text-success">✓ Covers minimum</small>' :
+                            '<br><small class="text-danger">⚠ Below minimum</small>'}
                     </td>
                     <td>$${newBalance.toFixed(2)}</td>
                     <td>
@@ -529,6 +1050,7 @@
                             ${newUtilization.toFixed(1)}%
                         </span>
                     </td>
+                    ${calculationMode === 'monthly' ? `<td><small>${payoffTime}</small></td>` : ''}
                 </tr>
             `;
         });
@@ -539,11 +1061,15 @@
             </div>
         `;
 
+        if (calculationMode === 'monthly') {
+            html += `<small class="text-muted">*Estimated payoff time assumes consistent monthly payments, current interest rates, and includes monthly fees.</small>`;
+        }
+
         if (remaining > 0) {
             html += `
                 <div class="alert alert-info mt-3">
                     <i class="bi bi-info-circle me-2"></i>
-                    You have $${remaining.toFixed(2)} remaining. Consider applying this to your highest interest rate card or saving it for next month.
+                    You have $${remaining.toFixed(2)} remaining. Consider applying this to your highest interest rate card or saving it for emergencies.
                 </div>
             `;
         }
@@ -553,9 +1079,9 @@
     }
 
     function applyCalculatedPayments() {
-        alert('Payment recommendations calculated! You can now manually update your card balances or set up the suggested payments with your bank.');
-        // In a real implementation, you might want to integrate with banking APIs or
-        // provide a way to automatically update the balances in your system
+        const calculationMode = document.querySelector('input[name="calculationMode"]:checked').value;
+        const modeText = calculationMode === 'monthly' ? 'monthly payment plan' : 'payment recommendations';
+        alert(`${modeText.charAt(0).toUpperCase() + modeText.slice(1)} calculated! You can now manually update your card balances or set up the suggested payments with your bank.`);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -605,8 +1131,18 @@
             });
         });
 
+        // Initialize fee frequency info for existing cards
+        {% for card in credit_cards %}
+        updateFeeFrequencyInfo('{{ card.id }}');
+        {% endfor %}
+
         // Table sorting functionality
         initTableSorting('creditCardsTable');
+
+        // Initialize minimum payment previews for edit modals
+        {% for card in credit_cards %}
+        calculateMinPaymentPreview('{{ card.id }}');
+        {% endfor %}
     });
 
     // Function to toggle auto-payment amount field based on checkbox

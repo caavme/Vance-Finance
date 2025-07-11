@@ -13,7 +13,7 @@
                     <p class="lead mb-0">Complete documentation and developer guide</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <span class="badge bg-light text-primary fs-6">v1.0</span>
+                    <span class="badge bg-light text-primary fs-6">v1.1.5</span>
                 </div>
             </div>
         </div>
@@ -37,30 +37,43 @@
                             <a href="#features" class="list-group-item list-group-item-action {% if active_section == 'features' %}active{% endif %}">
                                 <i class="bi bi-star me-2"></i>Features
                             </a>
-                            <a href="#installation" class="list-group-item list-group-item-action {% if active_section == 'installation' %}active{% endif %}">
-                                <i class="bi bi-download me-2"></i>Installation
-                            </a>
-                            <a href="#configuration" class="list-group-item list-group-item-action {% if active_section == 'configuration' %}active{% endif %}">
-                                <i class="bi bi-gear me-2"></i>Configuration
-                            </a>
-                            <a href="#database" class="list-group-item list-group-item-action {% if active_section == 'database' %}active{% endif %}">
-                                <i class="bi bi-database me-2"></i>Database Schema
-                            </a>
-                            <a href="#api" class="list-group-item list-group-item-action {% if active_section == 'api' %}active{% endif %}">
-                                <i class="bi bi-code-slash me-2"></i>API Reference
+                            <a href="#components" class="list-group-item list-group-item-action {% if active_section == 'components' %}active{% endif %}">
+                                <i class="bi bi-puzzle me-2"></i>App Components
                             </a>
                             <a href="#user-guide" class="list-group-item list-group-item-action {% if active_section == 'user-guide' %}active{% endif %}">
                                 <i class="bi bi-person-check me-2"></i>User Guide
                             </a>
-                            <a href="#development" class="list-group-item list-group-item-action {% if active_section == 'development' %}active{% endif %}">
-                                <i class="bi bi-code me-2"></i>Development
-                            </a>
-                            <a href="#deployment" class="list-group-item list-group-item-action {% if active_section == 'deployment' %}active{% endif %}">
-                                <i class="bi bi-cloud me-2"></i>Deployment
-                            </a>
-                            <a href="#security" class="list-group-item list-group-item-action {% if active_section == 'security' %}active{% endif %}">
-                                <i class="bi bi-shield-check me-2"></i>Security
-                            </a>
+
+                            <!-- Self-Host Parent Section with Collapsible Subsections -->
+                            <div class="installation-section">
+                                <a href="#installation" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center {% if active_section == 'installation' %}active{% endif %}" data-bs-toggle="collapse" data-bs-target="#installationSubmenu" aria-expanded="true">
+                                    <span><i class="bi bi-server me-2"></i>Self-Host</span>
+                                    <i class="bi bi-chevron-down toggle-icon"></i>
+                                </a>
+                                <div class="collapse show" id="installationSubmenu">
+                                    <div class="list-group list-group-flush ms-3">
+                                        <a href="#configuration" class="list-group-item list-group-item-action subsection {% if active_section == 'configuration' %}active{% endif %}">
+                                            <i class="bi bi-gear me-2"></i>Configuration
+                                        </a>
+                                        <a href="#database" class="list-group-item list-group-item-action subsection {% if active_section == 'database' %}active{% endif %}">
+                                            <i class="bi bi-database me-2"></i>Database Schema
+                                        </a>
+                                        <a href="#api" class="list-group-item list-group-item-action subsection {% if active_section == 'api' %}active{% endif %}">
+                                            <i class="bi bi-code-slash me-2"></i>API Reference
+                                        </a>
+                                        <a href="#development" class="list-group-item list-group-item-action subsection {% if active_section == 'development' %}active{% endif %}">
+                                            <i class="bi bi-code me-2"></i>Development
+                                        </a>
+                                        <a href="#deployment" class="list-group-item list-group-item-action subsection {% if active_section == 'deployment' %}active{% endif %}">
+                                            <i class="bi bi-cloud me-2"></i>Deployment
+                                        </a>
+                                        <a href="#security" class="list-group-item list-group-item-action subsection {% if active_section == 'security' %}active{% endif %}">
+                                            <i class="bi bi-shield-check me-2"></i>Security
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
                             <a href="#backup" class="list-group-item list-group-item-action {% if active_section == 'backup' %}active{% endif %}">
                                 <i class="bi bi-archive me-2"></i>Backup & Recovery
                             </a>
@@ -86,15 +99,17 @@
                             </h2>
                         </div>
                         <div class="card-body">
-                            <p class="lead">Vance Finance is a comprehensive personal finance management web application designed to help users track their income, bills, credit cards, loans, and subscriptions.</p>
+                            <p class="lead">Vance Finance is a comprehensive personal finance management web application designed to help users track their income, bills, credit cards, loans, subscriptions, and budgets with advanced analytics and insights.</p>
 
                             <h5>Key Objectives</h5>
                             <ul>
-                                <li>Simplify personal finance management</li>
-                                <li>Provide clear financial insights</li>
-                                <li>Support multiple income and expense types</li>
-                                <li>Ensure data security and backup capabilities</li>
+                                <li>Simplify comprehensive personal finance management</li>
+                                <li>Provide clear financial insights and analytics</li>
+                                <li>Support multiple income frequencies and expense types</li>
+                                <li>Enable flexible budgeting with goal tracking</li>
+                                <li>Ensure data security and comprehensive backup capabilities</li>
                                 <li>Offer an intuitive, responsive user interface</li>
+                                <li>Provide interactive demo mode for testing and showcasing</li>
                             </ul>
 
                             <h5>Technology Stack</h5>
@@ -103,20 +118,36 @@
                                     <h6>Backend</h6>
                                     <ul>
                                         <li>Python 3.7+</li>
-                                        <li>Flask 3.0+</li>
-                                        <li>SQLAlchemy</li>
-                                        <li>Werkzeug</li>
+                                        <li>Flask 3.0+ with Flask-WTF for CSRF protection</li>
+                                        <li>SQLAlchemy ORM with migrations</li>
+                                        <li>Werkzeug for security and utilities</li>
+                                        <li>Gunicorn for production deployment</li>
                                     </ul>
                                 </div>
                                 <div class="col-md-6">
                                     <h6>Frontend</h6>
                                     <ul>
-                                        <li>HTML5/CSS3</li>
-                                        <li>Bootstrap 5</li>
-                                        <li>JavaScript (ES6+)</li>
-                                        <li>Bootstrap Icons</li>
+                                        <li>HTML5/CSS3 with modern features</li>
+                                        <li>Bootstrap 5 with custom themes</li>
+                                        <li>JavaScript (ES6+) with dynamic interactions</li>
+                                        <li>Bootstrap Icons comprehensive icon set</li>
+                                        <li>Responsive design for all devices</li>
                                     </ul>
                                 </div>
+                            </div>
+
+                            <h5>Recent Updates (v1.1.5)</h5>
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-star me-2"></i>Latest Features</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Budget Management System</strong>: Complete budgeting with categories, periods, transactions, and goals</li>
+                                    <li><strong>Enhanced Income Tracking</strong>: Support for 7 different income frequencies including one-time income</li>
+                                    <li><strong>Advanced Credit Card Management</strong>: Automatic minimum payment calculations and payment calculators</li>
+                                    <li><strong>Comprehensive Backup System</strong>: Automatic backups, JSON exports, and data recovery</li>
+                                    <li><strong>Demo Mode</strong>: Interactive demo with realistic sample data</li>
+                                    <li><strong>CSRF Protection</strong>: Enhanced security for all forms</li>
+                                    <li><strong>Financial Analytics</strong>: Debt-to-income ratios, utilization tracking, and projections</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -127,61 +158,766 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <h2 class="h4 mb-0">
-                                <i class="bi bi-star text-primary me-2"></i>Features
+                                <i class="bi bi-star text-primary me-2"></i>Complete Feature Set
                             </h2>
                         </div>
                         <div class="card-body">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <h5>Core Financial Management</h5>
+                                <div class="col-lg-6">
+                                    <h5><i class="bi bi-cash-stack text-success me-2"></i>Income Management</h5>
                                     <ul>
-                                        <li><strong>Income Tracking</strong>: Biweekly and bimonthly payment schedules</li>
-                                        <li><strong>Bill Management</strong>: Recurring and one-time bills with categories</li>
-                                        <li><strong>Credit Card Monitoring</strong>: Track balances, limits, and utilization</li>
-                                        <li><strong>Loan Management</strong>: Auto, mortgage, student, and personal loans</li>
-                                        <li><strong>Subscription Tracking</strong>: Monthly, yearly, and weekly billing cycles</li>
-                                    </ul>
-                                </div>
-                                <div class="col-md-6">
-                                    <h5>Analytics & Insights</h5>
-                                    <ul>
-                                        <li><strong>Debt-to-Income Ratio</strong>: Automatic financial health metrics</li>
-                                        <li><strong>Future Projections</strong>: 90-day financial timeline</li>
-                                        <li><strong>Cash Flow Analysis</strong>: Monthly income vs. expenses</li>
-                                        <li><strong>Payment Scheduling</strong>: Track upcoming payments</li>
+                                        <li><strong>7 Payment Frequencies</strong>: Weekly, bi-weekly, monthly, bi-monthly, quarterly, annually, one-time</li>
+                                        <li><strong>Flexible Scheduling</strong>: Custom payment days, day-of-week selection</li>
+                                        <li><strong>Future Projections</strong>: 90-day income forecasting</li>
+                                        <li><strong>Monthly Estimations</strong>: Automatic conversion to monthly equivalents</li>
+                                        <li><strong>Active/Inactive Status</strong>: Temporarily disable income sources</li>
+                                        <li><strong>Income Timeline</strong>: Visual timeline of upcoming payments</li>
                                     </ul>
 
-                                    <h5>Data Management</h5>
+                                    <h5><i class="bi bi-receipt text-danger me-2"></i>Bill & Expense Management</h5>
                                     <ul>
-                                        <li><strong>Export/Import</strong>: JSON-based backup and restoration</li>
-                                        <li><strong>Database Backups</strong>: Automatic SQLite backups</li>
-                                        <li><strong>Demo Mode</strong>: Realistic sample data showcase</li>
+                                        <li><strong>Recurring Bills</strong>: Monthly, bi-monthly tracking</li>
+                                        <li><strong>One-time Bills</strong>: Special event or irregular expenses</li>
+                                        <li><strong>Categories</strong>: Utilities, Housing, Insurance, Medical, Transportation, Other</li>
+                                        <li><strong>Due Date Tracking</strong>: Urgent bill alerts (7-day window)</li>
+                                        <li><strong>Payment Status</strong>: Mark bills as paid/unpaid</li>
+                                        <li><strong>Include/Exclude</strong>: Control which bills affect calculations</li>
                                     </ul>
+
+                                    <h5><i class="bi bi-credit-card text-warning me-2"></i>Credit Card Management</h5>
+                                    <ul>
+                                        <li><strong>Comprehensive Tracking</strong>: Limits, balances, utilization, interest rates</li>
+                                        <li><strong>Automatic Minimum Payments</strong>: Smart calculation with multiple methods</li>
+                                        <li><strong>Annual Fee Tracking</strong>: Monthly or yearly fee calculations</li>
+                                        <li><strong>Auto-Pay Configuration</strong>: Minimum payment or fixed amount options</li>
+                                        <li><strong>Payment Calculator</strong>: Advanced payment strategy calculator</li>
+                                        <li><strong>Utilization Monitoring</strong>: Per-card and overall utilization tracking</li>
+                                        <li><strong>Payment Strategies</strong>: Debt avalanche, snowball, utilization-first options</li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <h5><i class="bi bi-arrow-repeat text-info me-2"></i>Subscription Tracking</h5>
+                                    <ul>
+                                        <li><strong>Multiple Billing Cycles</strong>: Weekly, monthly, quarterly, yearly</li>
+                                        <li><strong>Category Organization</strong>: Entertainment, Software, News, Music, Gaming, etc.</li>
+                                        <li><strong>Auto-Renewal Tracking</strong>: Monitor which subscriptions auto-renew</li>
+                                        <li><strong>Active/Inactive Status</strong>: Pause tracking without deletion</li>
+                                        <li><strong>Next Billing Alerts</strong>: Upcoming subscription renewals</li>
+                                        <li><strong>Cost Analysis</strong>: Monthly equivalent calculations</li>
+                                    </ul>
+
+                                    <h5><i class="bi bi-bank text-primary me-2"></i>Loan Management</h5>
+                                    <ul>
+                                        <li><strong>Multiple Loan Types</strong>: Personal, Auto, Mortgage, Student, Business</li>
+                                        <li><strong>Progress Tracking</strong>: Visual progress bars showing payoff status</li>
+                                        <li><strong>Payment Scheduling</strong>: Next payment date tracking</li>
+                                        <li><strong>Interest Rate Monitoring</strong>: Track and compare rates</li>
+                                        <li><strong>Principal vs Balance</strong>: Track original amount vs current balance</li>
+                                        <li><strong>Term Tracking</strong>: Monitor loan terms in months</li>
+                                    </ul>
+
+                                    <h5><i class="bi bi-pie-chart text-success me-2"></i>Budget Management (NEW)</h5>
+                                    <ul>
+                                        <li><strong>Budget Categories</strong>: Income and expense categorization with colors and icons</li>
+                                        <li><strong>Budget Periods</strong>: Monthly, quarterly, yearly, or custom periods</li>
+                                        <li><strong>Budget Items</strong>: Planned vs actual amount tracking</li>
+                                        <li><strong>Transaction Recording</strong>: Manual transaction entry with categories</li>
+                                        <li><strong>Budget Goals</strong>: Savings goals with progress tracking</li>
+                                        <li><strong>Auto-Contributions</strong>: Automatic monthly goal contributions</li>
+                                        <li><strong>Budget Analytics</strong>: Performance insights and recommendations</li>
+                                    </ul>
+
+                                    <h5><i class="bi bi-graph-up-arrow text-secondary me-2"></i>Financial Analytics</h5>
+                                    <ul>
+                                        <li><strong>Debt-to-Income Ratio</strong>: Real-time financial health monitoring</li>
+                                        <li><strong>Credit Utilization Analysis</strong>: Individual and overall utilization tracking</li>
+                                        <li><strong>Cash Flow Projections</strong>: 90-day financial timeline</li>
+                                        <li><strong>Savings Rate Calculation</strong>: Monthly savings as percentage of income</li>
+                                        <li><strong>Payment Strategy Analysis</strong>: Compare different debt payoff strategies</li>
+                                        <li><strong>Budget Performance</strong>: Category-wise budget vs actual analysis</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h5><i class="bi bi-shield-check text-primary me-2"></i>Data Management & Security</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Backup & Recovery</h6>
+                                        <ul>
+                                            <li><strong>Automatic Backups</strong>: Before all data modifications</li>
+                                            <li><strong>Manual Backups</strong>: On-demand database snapshots</li>
+                                            <li><strong>JSON Export/Import</strong>: Portable data format</li>
+                                            <li><strong>Backup Management</strong>: View, download, delete backup files</li>
+                                            <li><strong>Data Recovery</strong>: Multiple restoration options</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Security Features</h6>
+                                        <ul>
+                                            <li><strong>CSRF Protection</strong>: Cross-site request forgery prevention</li>
+                                            <li><strong>Password Hashing</strong>: Werkzeug PBKDF2 with salt</li>
+                                            <li><strong>Session Security</strong>: Secure session management</li>
+                                            <li><strong>User Data Isolation</strong>: Complete data separation by user</li>
+                                            <li><strong>Input Validation</strong>: Server-side form validation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4">
+                                <h5><i class="bi bi-play-circle text-info me-2"></i>Demo & User Experience</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Interactive Demo</h6>
+                                        <ul>
+                                            <li><strong>Realistic Sample Data</strong>: Complete financial scenario</li>
+                                            <li><strong>Full Functionality</strong>: All features available in demo</li>
+                                            <li><strong>Demo Reset</strong>: Restore original demo data</li>
+                                            <li><strong>Demo Mode Indicators</strong>: Clear demo mode identification</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>User Interface</h6>
+                                        <ul>
+                                            <li><strong>Responsive Design</strong>: Mobile-first responsive layout</li>
+                                            <li><strong>Bootstrap 5</strong>: Modern component library</li>
+                                            <li><strong>Custom Themes</strong>: Tailored styling for financial data</li>
+                                            <li><strong>Interactive Elements</strong>: Dynamic forms and calculators</li>
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Installation -->
+                <!-- App Components -->
+                <section id="components" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-puzzle text-primary me-2"></i>Application Components
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <p class="lead">Vance Finance is built with a modular component architecture where each financial entity operates independently while contributing to comprehensive financial insights.</p>
+
+                            <h5>Core Components Overview</h5>
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <div class="card border-success">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-person-circle text-success fs-1"></i>
+                                            <h6 class="mt-2">User Management</h6>
+                                            <small>Authentication, authorization, data isolation</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-info">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-cash-stack text-info fs-1"></i>
+                                            <h6 class="mt-2">Financial Entities</h6>
+                                            <small>Income, bills, cards, loans, subscriptions</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card border-warning">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-graph-up text-warning fs-1"></i>
+                                            <h6 class="mt-2">Analytics Engine</h6>
+                                            <small>Calculations, projections, insights</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>1. User Management Component</h5>
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-person-circle me-2"></i>Purpose</h6>
+                                <p>Handles user authentication, session management, and data isolation. Ensures each user can only access their own financial data.</p>
+                            </div>
+
+                            <h6>Key Features:</h6>
+                            <ul>
+                                <li><strong>Secure Registration</strong>: Username, email, and password with hashing</li>
+                                <li><strong>Session Management</strong>: Flask session-based authentication</li>
+                                <li><strong>Data Isolation</strong>: All database queries filtered by user_id</li>
+                                <li><strong>Demo Mode</strong>: Special demo user with sample data</li>
+                            </ul>
+
+                            <h6>Database Schema:</h6>
+                            <pre class="bg-light p-3 rounded"><code>User Model:
+- id: Primary key
+- username: Unique identifier
+- email: Contact information
+- password_hash: Secure password storage
+- Relationships: One-to-many with all financial entities</code></pre>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Authentication Guard</strong>: Protects all financial routes</li>
+                                <li><strong>Data Filter</strong>: Automatically filters all queries by user</li>
+                                <li><strong>Session Context</strong>: Provides user context to all components</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>2. Income Management Component</h5>
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-cash-stack me-2"></i>Purpose</h6>
+                                <p>Tracks multiple income sources with flexible payment frequencies and provides monthly income calculations for financial health analysis.</p>
+                            </div>
+
+                            <h6>Income Frequencies Supported:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Weekly</strong>: Every 7 days on specified day of week</li>
+                                        <li><strong>Bi-weekly</strong>: Every 14 days from start date</li>
+                                        <li><strong>Monthly</strong>: Specific day each month</li>
+                                        <li><strong>Bi-monthly</strong>: Two specific days each month</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Quarterly</strong>: Every 3 months</li>
+                                        <li><strong>Annually</strong>: Once per year</li>
+                                        <li><strong>One-time</strong>: Single payment on specific date</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Calculation Engine:</h6>
+                            <pre class="bg-light p-3 rounded"><code>Monthly Income Calculation:
+- Weekly: amount × 52 ÷ 12
+- Bi-weekly: amount × 26 ÷ 12  
+- Monthly: amount × 1
+- Bi-monthly: amount × 2
+- Quarterly: amount ÷ 3
+- Annually: amount ÷ 12
+- One-time: Excluded from monthly calculations</code></pre>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Dashboard Integration</strong>: Shows next 5 income payments</li>
+                                <li><strong>Analytics Feed</strong>: Provides monthly income for debt-to-income calculations</li>
+                                <li><strong>Timeline Generation</strong>: Contributes to 90-day financial projections</li>
+                                <li><strong>Budget Integration</strong>: Feeds budget planning with income estimates</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>3. Bill Management Component</h5>
+                            <div class="alert alert-danger">
+                                <h6><i class="bi bi-receipt me-2"></i>Purpose</h6>
+                                <p>Manages recurring and one-time bills with due date tracking, categories, and payment status. Provides expense calculations for financial analysis.</p>
+                            </div>
+
+                            <h6>Bill Categories:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Utilities</strong>: Electric, water, gas, internet</li>
+                                        <li><strong>Housing</strong>: Rent, mortgage, HOA fees</li>
+                                        <li><strong>Insurance</strong>: Health, auto, home, life</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Medical</strong>: Healthcare expenses</li>
+                                        <li><strong>Transportation</strong>: Car payments, transit</li>
+                                        <li><strong>Other</strong>: Miscellaneous expenses</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Key Features:</h6>
+                            <ul>
+                                <li><strong>Due Date Tracking</strong>: Automatic urgent bill detection (7-day window)</li>
+                                <li><strong>Recurring Flag</strong>: Distinguishes monthly recurring vs one-time bills</li>
+                                <li><strong>Payment Status</strong>: Mark bills as paid/unpaid</li>
+                                <li><strong>Include/Exclude Toggle</strong>: Control impact on financial calculations</li>
+                                <li><strong>Category Organization</strong>: Group bills by expense type</li>
+                            </ul>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Dashboard Alerts</strong>: Urgent bills prominently displayed</li>
+                                <li><strong>Expense Calculations</strong>: Feeds monthly expense totals</li>
+                                <li><strong>Overview Timeline</strong>: Shows future bill dates in projections</li>
+                                <li><strong>Budget Integration</strong>: Bill amounts can feed budget categories</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>4. Credit Card Management Component</h5>
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-credit-card me-2"></i>Purpose</h6>
+                                <p>Comprehensive credit card tracking with automatic minimum payment calculations, utilization monitoring, and payment strategy optimization.</p>
+                            </div>
+
+                            <h6>Advanced Features:</h6>
+                            <ul>
+                                <li><strong>Automatic Minimum Payments</strong>: Multiple calculation methods with smart defaults</li>
+                                <li><strong>Annual Fee Handling</strong>: Monthly or yearly fee calculations</li>
+                                <li><strong>Auto-Pay Configuration</strong>: Minimum payment or fixed amount options</li>
+                                <li><strong>Payment Calculator</strong>: Advanced debt payoff strategy calculator</li>
+                                <li><strong>Utilization Tracking</strong>: Per-card and overall utilization monitoring</li>
+                            </ul>
+
+                            <h6>Minimum Payment Calculation:</h6>
+                            <pre class="bg-light p-3 rounded"><code>Calculation Methods:
+1. Standard: 2% of current balance
+2. Interest + Principal: Monthly interest + 1% principal
+3. Minimum Floor: $25 absolute minimum
+4. Annual Fee Addition: Monthly fees added if applicable
+5. Balance Cap: Never exceeds current balance + fees
+
+Final Amount: MAX(method1, method2, $25) + monthly_fees</code></pre>
+
+                            <h6>Payment Strategies:</h6>
+                            <ul>
+                                <li><strong>High Utilization First</strong>: Reduce cards with highest utilization</li>
+                                <li><strong>High Interest First (Avalanche)</strong>: Pay highest interest rate cards</li>
+                                <li><strong>High Balance First</strong>: Focus on largest balances</li>
+                                <li><strong>Low Balance First (Snowball)</strong>: Pay smallest balances first</li>
+                                <li><strong>Even Distribution</strong>: Spread payments equally</li>
+                                <li><strong>Minimums First</strong>: Ensure all minimums are covered</li>
+                            </ul>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Dashboard Summary</strong>: Total utilization and upcoming payments</li>
+                                <li><strong>Debt Calculations</strong>: Minimum payments feed into monthly expenses</li>
+                                <li><strong>Financial Health</strong>: Utilization affects credit score estimates</li>
+                                <li><strong>Payment Planning</strong>: Integrated with overall debt strategy</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>5. Subscription Management Component</h5>
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-arrow-repeat me-2"></i>Purpose</h6>
+                                <p>Tracks recurring subscription services with multiple billing cycles, categories, and auto-renewal status. Helps identify subscription spending patterns.</p>
+                            </div>
+
+                            <h6>Billing Cycle Support:</h6>
+                            <ul>
+                                <li><strong>Weekly</strong>: 52 payments per year</li>
+                                <li><strong>Monthly</strong>: 12 payments per year</li>
+                                <li><strong>Quarterly</strong>: 4 payments per year</li>
+                                <li><strong>Yearly</strong>: 1 payment per year</li>
+                            </ul>
+
+                            <h6>Category Organization:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Entertainment</strong>: Netflix, Hulu, Spotify</li>
+                                        <li><strong>Software</strong>: Adobe, Microsoft Office</li>
+                                        <li><strong>News</strong>: Newspapers, magazines</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Gaming</strong>: Game subscriptions</li>
+                                        <li><strong>Productivity</strong>: Business tools</li>
+                                        <li><strong>Other</strong>: Miscellaneous services</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Expense Calculations</strong>: Monthly equivalent amounts feed total expenses</li>
+                                <li><strong>Bills Integration</strong>: Can be managed alongside bills</li>
+                                <li><strong>Timeline Projections</strong>: Shows upcoming renewal dates</li>
+                                <li><strong>Spending Analysis</strong>: Category-wise subscription spending</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>6. Loan Management Component</h5>
+                            <div class="alert alert-primary">
+                                <h6><i class="bi bi-bank me-2"></i>Purpose</h6>
+                                <p>Tracks various loan types with progress monitoring, payment scheduling, and payoff visualization. Supports multiple loan categories and terms.</p>
+                            </div>
+
+                            <h6>Loan Types Supported:</h6>
+                            <ul>
+                                <li><strong>Personal Loans</strong>: Unsecured personal debt</li>
+                                <li><strong>Auto Loans</strong>: Vehicle financing</li>
+                                <li><strong>Mortgages</strong>: Home financing</li>
+                                <li><strong>Student Loans</strong>: Education financing</li>
+                                <li><strong>Business Loans</strong>: Commercial financing</li>
+                            </ul>
+
+                            <h6>Progress Tracking:</h6>
+                            <pre class="bg-light p-3 rounded"><code>Progress Calculation:
+Progress % = (Principal Amount - Current Balance) / Principal Amount × 100
+
+Visual indicators:
+- Progress bars showing completion percentage
+- Remaining balance vs original amount
+- Monthly payment impact on timeline</code></pre>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Monthly Expenses</strong>: Loan payments contribute to debt calculations</li>
+                                <li><strong>Debt-to-Income</strong>: Loan payments factor into DTI ratio</li>
+                                <li><strong>Payment Timeline</strong>: Shows upcoming loan payments</li>
+                                <li><strong>Financial Health</strong>: Loan progress affects net worth calculations</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>7. Budget Management Component (NEW)</h5>
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-pie-chart me-2"></i>Purpose</h6>
+                                <p>Complete budgeting system with categories, periods, transactions, and goals. Provides planned vs actual analysis with intelligent insights.</p>
+                            </div>
+
+                            <h6>Budget Structure:</h6>
+                            <ul>
+                                <li><strong>Categories</strong>: Income and expense categories with colors and icons</li>
+                                <li><strong>Periods</strong>: Monthly, quarterly, yearly, or custom time periods</li>
+                                <li><strong>Items</strong>: Planned amounts for each category per period</li>
+                                <li><strong>Transactions</strong>: Actual spending/income recorded manually</li>
+                                <li><strong>Goals</strong>: Savings goals with progress tracking and auto-contributions</li>
+                            </ul>
+
+                            <h6>Default Categories Created:</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Income Categories:</h6>
+                                    <ul>
+                                        <li>Salary (Primary employment)</li>
+                                        <li>Side Income (Freelance, gigs)</li>
+                                        <li>Investment Income (Dividends, interest)</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Expense Categories:</h6>
+                                    <ul>
+                                        <li>Housing, Transportation, Food & Groceries</li>
+                                        <li>Healthcare, Insurance, Entertainment</li>
+                                        <li>Shopping, Travel, Personal Care</li>
+                                        <li>Savings, Investments, Debt Payments</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Budget Analytics:</h6>
+                            <pre class="bg-light p-3 rounded"><code>Performance Analysis:
+- Planned vs Actual comparison
+- Category performance status (Excellent/Good/Warning/Over Budget)
+- Percentage completion tracking
+- Variance analysis and recommendations
+- Savings rate calculation
+- Budget insights and strategic recommendations</code></pre>
+
+                            <h6>Component Interactions:</h6>
+                            <ul>
+                                <li><strong>Financial Entity Integration</strong>: Can import data from bills, income, etc.</li>
+                                <li><strong>Goal Tracking</strong>: Links savings goals with budget performance</li>
+                                <li><strong>Analytics Feed</strong>: Provides budgeting data for financial insights</li>
+                                <li><strong>Transaction Recording</strong>: Manual entry for non-automated expenses</li>
+                            </ul>
+
+                            <hr class="my-4">
+
+                            <h5>8. Analytics Engine</h5>
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-graph-up-arrow me-2"></i>Purpose</h6>
+                                <p>Processes data from all components to generate financial insights, health metrics, and projections. The brain of the financial analysis system.</p>
+                            </div>
+
+                            <h6>Key Calculations:</h6>
+                            <ul>
+                                <li><strong>Debt-to-Income Ratio</strong>: Total monthly debt payments ÷ Total monthly income</li>
+                                <li><strong>Credit Utilization</strong>: Total balances ÷ Total credit limits</li>
+                                <li><strong>Monthly Cash Flow</strong>: Total monthly income - Total monthly expenses</li>
+                                <li><strong>Savings Rate</strong>: Net income ÷ Total income × 100</li>
+                                <li><strong>Future Projections</strong>: 90-day timeline of income and expenses</li>
+                            </ul>
+
+                            <h6>Data Flow Architecture:</h6>
+                            <pre class="bg-light p-3 rounded"><code>Component → Analytics Engine → Insights
+
+Income Sources → Monthly Income Calculation
+Bills + Subscriptions + Loans + Credit Cards → Monthly Expenses
+Budget Transactions → Spending Analysis
+All Components → Financial Timeline Generation
+Combined Data → Health Metrics & Recommendations</code></pre>
+
+                            <h6>Analytics Outputs:</h6>
+                            <ul>
+                                <li><strong>Dashboard Metrics</strong>: Key financial health indicators</li>
+                                <li><strong>Financial Timeline</strong>: 90-day projection of cash flow</li>
+                                <li><strong>Debt Analysis</strong>: DTI ratios and debt management insights</li>
+                                <li><strong>Budget Performance</strong>: Category analysis and recommendations</li>
+                                <li><strong>Goal Progress</strong>: Savings goal achievement tracking</li>
+                            </ul>
+
+                            <h5>Component Integration Summary</h5>
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6><i class="bi bi-diagram-3 me-2"></i>How Components Work Together</h6>
+                                    <ol>
+                                        <li><strong>User Context</strong>: User management provides authentication and data isolation</li>
+                                        <li><strong>Data Collection</strong>: Financial components collect and store user's financial data</li>
+                                        <li><strong>Real-time Analysis</strong>: Analytics engine processes all component data for insights</li>
+                                        <li><strong>Dashboard Integration</strong>: All components contribute to unified dashboard view</li>
+                                        <li><strong>Cross-Component Features</strong>: Include/exclude toggles, timeline generation, backup system</li>
+                                        <li><strong>Budget Integration</strong>: Budget system can import and analyze data from all components</li>
+                                    </ol>
+
+                                    <p class="mb-0"><strong>Result:</strong> A comprehensive financial management system where each component operates independently but contributes to holistic financial insights and recommendations.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- User Guide -->
+                <section id="user-guide" class="wiki-section">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h2 class="h4 mb-0">
+                                <i class="bi bi-person-check text-primary me-2"></i>Complete User Guide
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <h5>Getting Started</h5>
+                            <ol>
+                                <li><strong>Create Account</strong>: Register with username, email, and password</li>
+                                <li><strong>Explore Demo First</strong>: Visit <code>/demo</code> to see the app with sample data</li>
+                                <li><strong>Set Up Income Sources</strong>: Add your income with appropriate frequencies</li>
+                                <li><strong>Add Financial Obligations</strong>: Enter bills, credit cards, loans, and subscriptions</li>
+                                <li><strong>Configure Budget (Optional)</strong>: Set up budget categories and tracking</li>
+                                <li><strong>Monitor & Analyze</strong>: Use dashboard and analytics for financial insights</li>
+                            </ol>
+
+                            <h5>Dashboard Overview</h5>
+                            <p>Your financial command center provides:</p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Quick Insights</h6>
+                                    <ul>
+                                        <li><strong>Urgent Bills</strong>: Bills due within 7 days</li>
+                                        <li><strong>Credit Card Summary</strong>: Balances and utilization</li>
+                                        <li><strong>Financial Health Metrics</strong>: Debt-to-income ratio</li>
+                                        <li><strong>Next Income Payments</strong>: Upcoming income dates</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Financial Analytics</h6>
+                                    <ul>
+                                        <li><strong>Monthly Cash Flow</strong>: Income vs expenses</li>
+                                        <li><strong>Savings Rate</strong>: Percentage of income saved</li>
+                                        <li><strong>Credit Utilization</strong>: Overall credit usage</li>
+                                        <li><strong>Upcoming Obligations</strong>: Next 30 days of payments</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Income Management Guide</h5>
+                            <h6>Setting Up Income Sources</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Frequency</th>
+                                            <th>Best For</th>
+                                            <th>Configuration</th>
+                                            <th>Example</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Bi-weekly</strong></td>
+                                            <td>Most salary jobs</td>
+                                            <td>Next payment date</td>
+                                            <td>Every other Friday</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Bi-monthly</strong></td>
+                                            <td>Salary paid twice monthly</td>
+                                            <td>Two payment days per month</td>
+                                            <td>15th and 30th</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Monthly</strong></td>
+                                            <td>Freelance, contract work</td>
+                                            <td>Day of month</td>
+                                            <td>Every 25th</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>One-time</strong></td>
+                                            <td>Bonuses, tax refunds</td>
+                                            <td>Specific date</td>
+                                            <td>March 15, 2025</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h5>Credit Card Management Guide</h5>
+                            <h6>Understanding Minimum Payments</h6>
+                            <p>The system automatically calculates minimum payments using multiple methods:</p>
+                            <div class="alert alert-info">
+                                <h6>Calculation Priority:</h6>
+                                <ol>
+                                    <li><strong>Interest + Principal Method</strong>: Monthly interest + 1% of balance (if interest rate provided)</li>
+                                    <li><strong>Percentage Method</strong>: 2% of current balance</li>
+                                    <li><strong>Minimum Floor</strong>: $25 absolute minimum</li>
+                                    <li><strong>Annual Fee Addition</strong>: Monthly fees added if applicable</li>
+                                </ol>
+                                <p class="mb-0">The system uses the highest calculated amount but never exceeds your current balance plus fees.</p>
+                            </div>
+
+                            <h6>Credit Card Payment Calculator</h6>
+                            <p>Use the advanced payment calculator for debt payoff strategies:</p>
+                            <ul>
+                                <li><strong>One-time Payment Mode</strong>: Allocate a specific amount across cards</li>
+                                <li><strong>Monthly Budget Mode</strong>: Plan based on monthly payment capacity</li>
+                                <li><strong>Strategy Selection</strong>: Choose from 6 different payment strategies</li>
+                                <li><strong>Target Utilization</strong>: Set desired credit utilization goals</li>
+                            </ul>
+
+                            <h5>Budget Management Guide</h5>
+                            <h6>Setting Up Your First Budget</h6>
+                            <ol>
+                                <li><strong>Navigate to Budget</strong>: Click "Setup Budget" from the budget dashboard</li>
+                                <li><strong>Choose Period</strong>: Select current month or create custom period</li>
+                                <li><strong>Set Category Amounts</strong>: Enter planned amounts for each category</li>
+                                <li><strong>Save Setup</strong>: Your budget is now active and tracking</li>
+                                <li><strong>Record Transactions</strong>: Add actual spending and income</li>
+                                <li><strong>Monitor Performance</strong>: Review budget vs actual regularly</li>
+                            </ol>
+
+                            <h6>Budget Categories Explained</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Essential Categories</h6>
+                                    <ul>
+                                        <li><strong>Housing</strong>: Rent, mortgage, utilities</li>
+                                        <li><strong>Transportation</strong>: Car payments, gas, insurance</li>
+                                        <li><strong>Food & Groceries</strong>: Essential food expenses</li>
+                                        <li><strong>Healthcare</strong>: Medical expenses and insurance</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Discretionary Categories</h6>
+                                    <ul>
+                                        <li><strong>Entertainment</strong>: Movies, dining out, hobbies</li>
+                                        <li><strong>Shopping</strong>: Clothing, electronics</li>
+                                        <li><strong>Travel</strong>: Vacations and trips</li>
+                                        <li><strong>Personal Care</strong>: Gym, salon, personal services</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Financial Health Indicators</h5>
+
+                            <h6>Debt-to-Income Ratio</h6>
+                            <p>Calculated as: <code>(Total Monthly Debt Payments / Total Monthly Income) × 100</code></p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><span class="badge bg-success">Excellent</span>: Under 20%</li>
+                                        <li><span class="badge bg-info">Good</span>: 20-35%</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><span class="badge bg-warning">Fair</span>: 36-49%</li>
+                                        <li><span class="badge bg-danger">Poor</span>: Over 50%</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Credit Utilization</h6>
+                            <p>Per-card and overall utilization: <code>(Current Balance / Credit Limit) × 100</code></p>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><span class="badge bg-success">Excellent</span>: Under 10%</li>
+                                        <li><span class="badge bg-info">Good</span>: 10-30%</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><span class="badge bg-warning">Fair</span>: 30-50%</li>
+                                        <li><span class="badge bg-danger">Poor</span>: Over 50%</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Data Management</h5>
+                            <h6>Backup and Export</h6>
+                            <ul>
+                                <li><strong>Automatic Backups</strong>: Created before any data changes</li>
+                                <li><strong>Manual Backup</strong>: Dashboard → Create New Backup</li>
+                                <li><strong>JSON Export</strong>: Backup → Export Data (portable format)</li>
+                                <li><strong>Data Import</strong>: Backup → Import Data (restore from JSON)</li>
+                                <li><strong>Backup Management</strong>: View, download, or delete backup files</li>
+                            </ul>
+
+                            <h6>Include/Exclude Feature</h6>
+                            <p>Control which financial items affect your calculations:</p>
+                            <ul>
+                                <li><strong>Include</strong>: Item counts toward debt-to-income and financial health metrics</li>
+                                <li><strong>Exclude</strong>: Item is tracked but doesn't affect calculations (useful for business expenses, etc.)</li>
+                                <li><strong>Toggle</strong>: Easily switch inclusion status for any bill, card, loan, or subscription</li>
+                            </ul>
+
+                            <h5>Pro Tips</h5>
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-lightbulb me-2"></i>Maximize Your Financial Management</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Start with Demo</strong>: Explore all features with sample data first</li>
+                                    <li><strong>Regular Updates</strong>: Update balances and payments monthly for accuracy</li>
+                                    <li><strong>Use Categories</strong>: Organize bills and subscriptions by category for better insights</li>
+                                    <li><strong>Monitor Trends</strong>: Watch your debt-to-income ratio and utilization trends</li>
+                                    <li><strong>Set Goals</strong>: Use budget goals to work toward specific financial targets</li>
+                                    <li><strong>Backup Regularly</strong>: Export your data periodically for safekeeping</li>
+                                    <li><strong>Payment Strategies</strong>: Use the credit card calculator to optimize debt payoff</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Self-Host Section (Installation) -->
                 <section id="installation" class="wiki-section">
                     <div class="card mb-4">
                         <div class="card-header">
                             <h2 class="h4 mb-0">
-                                <i class="bi bi-download text-primary me-2"></i>Installation & Setup
+                                <i class="bi bi-server text-primary me-2"></i>Self-Host Installation
                             </h2>
                         </div>
                         <div class="card-body">
-                            <h5>Prerequisites</h5>
                             <div class="alert alert-info">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <strong>Complete Self-Hosting Guide:</strong> This section covers everything you need to set up, configure, and deploy Vance Finance on your own infrastructure. Use the navigation menu to jump to specific topics.
+                            </div>
+
+                            <h5>Prerequisites</h5>
+                            <div class="alert alert-warning">
                                 <ul class="mb-0">
                                     <li>Python 3.7 or higher</li>
                                     <li>pip (Python package manager)</li>
                                     <li>Git (for cloning repository)</li>
+                                    <li>Virtual environment support (recommended)</li>
                                 </ul>
                             </div>
 
-                            <h5>Local Development Setup</h5>
+                            <h5>Quick Start Guide</h5>
                             <ol>
                                 <li>
                                     <strong>Clone the Repository</strong>
@@ -212,7 +948,7 @@ cp .env.example .env
 
 # Edit .env with your settings
 SECRET_KEY=your-secret-key-here
-FLASK_ENV=development</code></pre>
+DEVELOPMENT_MODE=true</code></pre>
                                 </li>
 
                                 <li>
@@ -223,26 +959,76 @@ FLASK_ENV=development</code></pre>
                                 <li>
                                     <strong>Access the Application</strong>
                                     <div class="alert alert-success">
-                                        Visit <a href="http://localhost:5001" target="_blank">http://localhost:5001</a>
+                                        Visit <a href="http://localhost:5000" target="_blank">http://localhost:5000</a>
                                     </div>
                                 </li>
                             </ol>
 
                             <div class="alert alert-primary">
                                 <h6><i class="bi bi-lightbulb me-2"></i>Quick Start with Demo</h6>
-                                Visit <code>/demo</code> to explore the application with pre-populated sample data.
+                                Visit <code>/demo</code> to explore the application with pre-populated sample data including all new features like budget management and advanced credit card tools.
+                            </div>
+
+                            <h5>Production Deployment Options</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card border-primary">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-cloud me-2"></i>Cloud Deployment</h6>
+                                            <p class="card-text">Deploy to Heroku, DigitalOcean, or AWS with pre-configured deployment files.</p>
+                                            <a href="#deployment" class="btn btn-primary btn-sm">Deploy Guide →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-info">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-box me-2"></i>Docker Deployment</h6>
+                                            <p class="card-text">Use included Dockerfile for containerized deployment.</p>
+                                            <a href="#deployment" class="btn btn-info btn-sm">Docker Guide →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h5>Next Steps</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card border-success">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-gear me-2"></i>Configuration</h6>
+                                            <p class="card-text">Set up environment variables, database connections, and application settings.</p>
+                                            <a href="#configuration" class="btn btn-success btn-sm">Configure →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card border-warning">
+                                        <div class="card-body">
+                                            <h6 class="card-title"><i class="bi bi-shield-check me-2"></i>Security</h6>
+                                            <p class="card-text">Implement CSRF protection, secure sessions, and production security.</p>
+                                            <a href="#security" class="btn btn-warning btn-sm">Secure →</a>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- Configuration -->
-                <section id="configuration" class="wiki-section">
+                <!-- Configuration Sub-section -->
+                <section id="configuration" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Configuration</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
                                 <i class="bi bi-gear text-primary me-2"></i>Configuration
-                            </h2>
+                            </h3>
                         </div>
                         <div class="card-body">
                             <h5>Environment Variables</h5>
@@ -259,9 +1045,9 @@ FLASK_ENV=development</code></pre>
                                     <tbody>
                                         <tr>
                                             <td><code>SECRET_KEY</code></td>
-                                            <td>Flask session encryption key</td>
+                                            <td>Flask session encryption key (CSRF protection)</td>
                                             <td>Auto-generated</td>
-                                            <td>No</td>
+                                            <td>Production</td>
                                         </tr>
                                         <tr>
                                             <td><code>DATABASE_URL</code></td>
@@ -270,15 +1056,15 @@ FLASK_ENV=development</code></pre>
                                             <td>No</td>
                                         </tr>
                                         <tr>
-                                            <td><code>FLASK_ENV</code></td>
-                                            <td>Flask environment mode</td>
-                                            <td>development</td>
+                                            <td><code>DEVELOPMENT_MODE</code></td>
+                                            <td>Enable development features</td>
+                                            <td>true</td>
                                             <td>No</td>
                                         </tr>
                                         <tr>
                                             <td><code>PORT</code></td>
                                             <td>Application port</td>
-                                            <td>5001</td>
+                                            <td>5000</td>
                                             <td>No</td>
                                         </tr>
                                     </tbody>
@@ -290,28 +1076,47 @@ FLASK_ENV=development</code></pre>
                                 <div class="col-md-6">
                                     <h6>Development (SQLite)</h6>
                                     <pre class="bg-light p-3 rounded"><code>DATABASE_URL=sqlite:///finance_tracker.db</code></pre>
+                                    <p><small>Automatic setup with safe migrations</small></p>
                                 </div>
                                 <div class="col-md-6">
                                     <h6>Production (PostgreSQL)</h6>
                                     <pre class="bg-light p-3 rounded"><code>DATABASE_URL=postgresql://user:password@host:port/database</code></pre>
+                                    <p><small>Recommended for production deployments</small></p>
                                 </div>
                             </div>
+
+                            <h5>New Configuration Features</h5>
+                            <ul>
+                                <li><strong>CSRF Protection</strong>: Automatically enabled with Flask-WTF</li>
+                                <li><strong>Proxy Support</strong>: Nginx proxy headers supported</li>
+                                <li><strong>Auto-Migration</strong>: Database schema automatically updated</li>
+                                <li><strong>Backup Configuration</strong>: Automatic backup directory creation</li>
+                            </ul>
                         </div>
                     </div>
                 </section>
 
-                <!-- Database Schema -->
-                <section id="database" class="wiki-section">
+                <!-- Database Schema Sub-section -->
+                <section id="database" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Database Schema</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
                                 <i class="bi bi-database text-primary me-2"></i>Database Schema
-                            </h2>
+                            </h3>
                         </div>
                         <div class="card-body">
-                            <h5>Core Tables</h5>
+                            <h5>Complete Database Schema</h5>
+                            <p>Vance Finance uses a comprehensive database schema with 11 core tables supporting all financial management features. The schema includes automatic migration support and foreign key relationships for data integrity.</p>
 
-                            <h6>Users Table</h6>
+                            <h5>Core Financial Tables</h5>
+
+                            <h6>1. Users Table</h6>
                             <pre class="bg-light p-3 rounded"><code>CREATE TABLE user (
     id INTEGER PRIMARY KEY,
     username VARCHAR(80) UNIQUE NOT NULL,
@@ -319,7 +1124,7 @@ FLASK_ENV=development</code></pre>
     email VARCHAR(120) UNIQUE NOT NULL
 );</code></pre>
 
-                            <h6>Bills Table</h6>
+                            <h6>2. Bills Table</h6>
                             <pre class="bg-light p-3 rounded"><code>CREATE TABLE bill (
     id INTEGER PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -328,11 +1133,12 @@ FLASK_ENV=development</code></pre>
     category VARCHAR(50),
     is_paid BOOLEAN DEFAULT FALSE,
     recurring BOOLEAN DEFAULT FALSE,
+    include_in_calculations BOOLEAN DEFAULT TRUE,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
 );</code></pre>
 
-                            <h6>Credit Cards Table</h6>
+                            <h6>3. Credit Cards Table</h6>
                             <pre class="bg-light p-3 rounded"><code>CREATE TABLE credit_card (
     id INTEGER PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -342,264 +1148,1032 @@ FLASK_ENV=development</code></pre>
     payment_due_date DATE NOT NULL,
     minimum_payment FLOAT,
     interest_rate FLOAT,
+    is_paid BOOLEAN DEFAULT FALSE,
     auto_pay_minimum BOOLEAN DEFAULT FALSE,
     auto_payment_amount FLOAT,
+    include_in_calculations BOOLEAN DEFAULT TRUE,
     user_id INTEGER NOT NULL,
     FOREIGN KEY (user_id) REFERENCES user(id)
 );</code></pre>
 
-                            <h5>Relationships</h5>
+                            <h6>4. Income Sources Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE income_source (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    amount FLOAT NOT NULL,
+    frequency VARCHAR(20) NOT NULL, -- weekly, biweekly, monthly, etc.
+    payment_day_1 INTEGER,
+    payment_day_2 INTEGER,
+    next_payment_date DATE,
+    day_of_week VARCHAR(10),
+    one_time_date DATE,
+    is_active BOOLEAN DEFAULT TRUE,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>5. Subscriptions Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE subscription (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    amount FLOAT NOT NULL,
+    billing_cycle VARCHAR(20) NOT NULL, -- Monthly, Yearly, Weekly
+    next_billing_date DATE NOT NULL,
+    category VARCHAR(50),
+    is_active BOOLEAN DEFAULT TRUE,
+    auto_renew BOOLEAN DEFAULT TRUE,
+    include_in_calculations BOOLEAN DEFAULT TRUE,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>6. Loans Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE loan (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    loan_type VARCHAR(50) NOT NULL, -- Personal, Auto, Mortgage, Student
+    principal_amount FLOAT NOT NULL,
+    current_balance FLOAT NOT NULL,
+    monthly_payment FLOAT NOT NULL,
+    interest_rate FLOAT,
+    next_payment_date DATE NOT NULL,
+    term_months INTEGER,
+    is_paid_off BOOLEAN DEFAULT FALSE,
+    include_in_calculations BOOLEAN DEFAULT TRUE,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h5>Budget Management Tables (NEW in v1.1.4)</h5>
+
+                            <h6>7. Budget Categories Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE budget_category (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    color VARCHAR(7) DEFAULT '#667eea', -- Hex color code
+    icon VARCHAR(50) DEFAULT 'bi-wallet2', -- Bootstrap icon class
+    is_active BOOLEAN DEFAULT TRUE,
+    is_income BOOLEAN DEFAULT FALSE, -- True for income, False for expense
+    sort_order INTEGER DEFAULT 0,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>8. Budget Periods Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE budget_period (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(100) NOT NULL, -- e.g., "January 2025", "Q1 2025"
+    period_type VARCHAR(20) NOT NULL, -- monthly, quarterly, yearly, custom
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    auto_rollover BOOLEAN DEFAULT FALSE, -- Auto-create next period
+    notes TEXT,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>9. Budget Items Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE budget_item (
+    id INTEGER PRIMARY KEY,
+    category_id INTEGER NOT NULL,
+    period_id INTEGER NOT NULL,
+    planned_amount FLOAT NOT NULL DEFAULT 0.0,
+    actual_amount FLOAT DEFAULT 0.0, -- Auto-calculated from transactions
+    notes TEXT,
+    alert_threshold FLOAT, -- Alert when % of budget is reached
+    is_rollover BOOLEAN DEFAULT FALSE, -- Unused budget rolls to next period
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES budget_category(id),
+    FOREIGN KEY (period_id) REFERENCES budget_period(id),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>10. Budget Transactions Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE budget_transaction (
+    id INTEGER PRIMARY KEY,
+    category_id INTEGER NOT NULL,
+    period_id INTEGER NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    amount FLOAT NOT NULL,
+    transaction_date DATE NOT NULL,
+    transaction_type VARCHAR(20) DEFAULT 'manual', -- manual, bill, subscription, loan
+    reference_id INTEGER, -- ID of linked bill/subscription/loan
+    receipt_url VARCHAR(255), -- Optional receipt/proof
+    tags VARCHAR(255), -- Comma-separated tags
+    notes TEXT,
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (category_id) REFERENCES budget_category(id),
+    FOREIGN KEY (period_id) REFERENCES budget_period(id),
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h6>11. Budget Goals Table</h6>
+                            <pre class="bg-light p-3 rounded"><code>CREATE TABLE budget_goal (
+    id INTEGER PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    target_amount FLOAT NOT NULL,
+    current_amount FLOAT DEFAULT 0.0,
+    target_date DATE,
+    category VARCHAR(50), -- emergency, vacation, purchase, debt_payoff
+    priority VARCHAR(20) DEFAULT 'medium', -- low, medium, high
+    is_active BOOLEAN DEFAULT TRUE,
+    is_achieved BOOLEAN DEFAULT FALSE,
+    auto_contribute FLOAT DEFAULT 0.0, -- Automatic monthly contribution
+    user_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);</code></pre>
+
+                            <h5>Database Relationships</h5>
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-diagram-3 me-2"></i>Relationship Overview</h6>
+                                <ul class="mb-0">
+                                    <li><strong>User → All Entities</strong>: One-to-many relationships with complete data isolation</li>
+                                    <li><strong>Budget Categories → Budget Items</strong>: One-to-many (categories can have multiple budget allocations)</li>
+                                    <li><strong>Budget Periods → Budget Items</strong>: One-to-many (periods contain multiple category budgets)</li>
+                                    <li><strong>Budget Categories → Transactions</strong>: One-to-many (categories track multiple transactions)</li>
+                                    <li><strong>Budget Periods → Transactions</strong>: One-to-many (periods contain multiple transactions)</li>
+                                </ul>
+                            </div>
+
+                            <h5>Database Features</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Migration Support</h6>
+                                    <ul>
+                                        <li><strong>Safe Migrations</strong>: Automatic schema updates with backup</li>
+                                        <li><strong>Column Additions</strong>: Dynamic addition of new features</li>
+                                        <li><strong>Data Preservation</strong>: Existing data maintained during updates</li>
+                                        <li><strong>Rollback Support</strong>: Database backups for recovery</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Data Integrity</h6>
+                                    <ul>
+                                        <li><strong>Foreign Key Constraints</strong>: Referential integrity maintained</li>
+                                        <li><strong>Cascade Operations</strong>: Related data properly managed</li>
+                                        <li><strong>User Isolation</strong>: Complete data separation by user</li>
+                                        <li><strong>Validation</strong>: Server-side data validation</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Database Performance</h5>
                             <ul>
-                                <li><strong>One-to-Many</strong>: User → Bills, CreditCards, Subscriptions, Loans, IncomeSources</li>
-                                <li><strong>Foreign Keys</strong>: All entities reference the user table for data isolation</li>
+                                <li><strong>Indexed Queries</strong>: Primary keys and foreign keys automatically indexed</li>
+                                <li><strong>Query Optimization</strong>: SQLAlchemy ORM with optimized queries</li>
+                                <li><strong>Connection Pooling</strong>: Efficient database connection management</li>
+                                <li><strong>Pagination</strong>: Large datasets handled efficiently</li>
                             </ul>
+
+                            <h5>Migration History</h5>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Version</th>
+                                            <th>Changes</th>
+                                            <th>Migration</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>v1.0</td>
+                                            <td>Initial schema: User, Bill, CreditCard</td>
+                                            <td>Create initial tables</td>
+                                        </tr>
+                                        <tr>
+                                            <td>v1.1</td>
+                                            <td>Added: Subscription, Loan, IncomeSource</td>
+                                            <td>Add new financial entity tables</td>
+                                        </tr>
+                                        <tr>
+                                            <td>v1.1.2</td>
+                                            <td>Added: include_in_calculations columns</td>
+                                            <td>ALTER TABLE add column operations</td>
+                                        </tr>
+                                        <tr>
+                                            <td>v1.1.3</td>
+                                            <td>Added: auto_pay_minimum, auto_payment_amount</td>
+                                            <td>Credit card feature enhancements</td>
+                                        </tr>
+                                        <tr>
+                                            <td>v1.1.4</td>
+                                            <td>Added: Complete budget management schema</td>
+                                            <td>5 new budget-related tables</td>
+                                        </tr>
+                                        <tr>
+                                            <td>v1.1.5</td>
+                                            <td>Added: one_time_date for income sources</td>
+                                            <td>Enhanced income frequency support</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- API Reference -->
-                <section id="api" class="wiki-section">
+                <!-- API Reference Sub-section -->
+                <section id="api" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">API Reference</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
                                 <i class="bi bi-code-slash text-primary me-2"></i>API Reference
-                            </h2>
+                            </h3>
                         </div>
                         <div class="card-body">
-                            <h5>Authentication Routes</h5>
+                            <h5>Authentication Endpoints</h5>
 
                             <div class="api-endpoint mb-3">
                                 <h6><span class="badge bg-success">POST</span> /register</h6>
-                                <p>Register a new user account.</p>
-                                <strong>Request Body:</strong>
-                                <pre class="bg-light p-2 rounded"><code>{
-    "username": "string",
-    "email": "string", 
-    "password": "string"
-}</code></pre>
+                                <p>Register a new user account with CSRF protection.</p>
+                                <strong>Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>username: string (required)
+email: string (required)
+password: string (required)
+csrf_token: string (required)</code></pre>
                             </div>
 
                             <div class="api-endpoint mb-3">
                                 <h6><span class="badge bg-success">POST</span> /login</h6>
-                                <p>Authenticate user login.</p>
-                                <strong>Request Body:</strong>
-                                <pre class="bg-light p-2 rounded"><code>{
-    "username": "string",
-    "password": "string"
-}</code></pre>
+                                <p>Authenticate user login with session management.</p>
+                                <strong>Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>username: string (required)
+password: string (required)
+csrf_token: string (required)</code></pre>
                             </div>
 
-                            <h5>Financial Management Routes</h5>
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET</span> /logout</h6>
+                                <p>End user session and redirect to login.</p>
+                                <strong>Response:</strong> Redirect to login page with flash message.
+                            </div>
+
+                            <h5>Dashboard & Overview</h5>
 
                             <div class="api-endpoint mb-3">
                                 <h6><span class="badge bg-primary">GET</span> /dashboard</h6>
-                                <p>Main dashboard with financial overview.</p>
-                                <strong>Response:</strong> HTML page with urgent bills, credit card summaries, and key metrics.
+                                <p>Main financial dashboard with comprehensive overview.</p>
+                                <strong>Response Data:</strong>
+                                <ul>
+                                    <li>Urgent bills (due within 7 days)</li>
+                                    <li>Credit card summaries with utilization</li>
+                                    <li>Financial health metrics (debt-to-income ratio)</li>
+                                    <li>Next 5 income payment dates</li>
+                                    <li>Monthly cash flow analysis</li>
+                                </ul>
                             </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-primary">GET</span> /overview</h6>
+                                <p>Financial timeline with 90-day projections.</p>
+                                <strong>Query Parameters:</strong>
+                                <pre class="bg-light p-2 rounded"><code>start_date: YYYY-MM-DD (optional)
+end_date: YYYY-MM-DD (optional)
+include_excluded: boolean (optional)</code></pre>
+                            </div>
+
+                            <h5>Financial Management Endpoints</h5>
 
                             <div class="api-endpoint mb-3">
                                 <h6><span class="badge bg-warning">GET/POST</span> /bills</h6>
                                 <p>Manage bills and recurring payments.</p>
-                                <strong>POST Request Body:</strong>
-                                <pre class="bg-light p-2 rounded"><code>{
-    "name": "string",
-    "amount": "float",
-    "due_date": "YYYY-MM-DD",
-    "category": "string",
-    "recurring": "boolean"
-}</code></pre>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>name: string (required)
+amount: float (required)
+due_date: YYYY-MM-DD (required)
+category: string (optional)
+recurring: boolean (optional)
+include_in_calculations: boolean (optional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /credit-cards</h6>
+                                <p>Credit card management with automatic minimum payment calculation.</p>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>name: string (required)
+last_four: string (required)
+limit: float (optional)
+current_balance: float (required)
+interest_rate: float (optional)
+due_day: integer (required)
+auto_pay_minimum: boolean (optional)
+auto_payment_amount: float (optional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /income</h6>
+                                <p>Income source management with flexible frequencies.</p>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>name: string (required)
+amount: float (required)
+frequency: string (required) // weekly, biweekly, monthly, bimonthly, quarterly, annually, onetime
+payment_day_1: integer (conditional)
+payment_day_2: integer (conditional)
+next_payment_date: YYYY-MM-DD (conditional)
+day_of_week: string (conditional)
+one_time_date: YYYY-MM-DD (conditional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <h5>Budget Management Endpoints (NEW)</h5>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-primary">GET</span> /budget</h6>
+                                <p>Budget dashboard with analytics and insights.</p>
+                                <strong>Response Data:</strong>
+                                <ul>
+                                    <li>Budget summary with planned vs actual</li>
+                                    <li>Category performance analysis</li>
+                                    <li>Recent transactions</li>
+                                    <li>Active budget goals</li>
+                                    <li>Budget insights and recommendations</li>
+                                </ul>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /budget/transactions</h6>
+                                <p>Record and manage budget transactions.</p>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>category_id: integer (required)
+description: string (required)
+amount: float (required)
+transaction_date: YYYY-MM-DD (required)
+notes: string (optional)
+tags: string (optional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /budget/goals</h6>
+                                <p>Create and manage financial goals.</p>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>title: string (required)
+description: string (optional)
+target_amount: float (required)
+target_date: YYYY-MM-DD (optional)
+category: string (optional)
+priority: string (optional) // low, medium, high
+auto_contribute: float (optional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <h5>Data Management Endpoints</h5>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-info">GET</span> /backup/export</h6>
+                                <p>Export all user data to JSON format.</p>
+                                <strong>Response:</strong> JSON file download with complete user data backup.
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET/POST</span> /backup/import</h6>
+                                <p>Import data from JSON backup file.</p>
+                                <strong>POST Form Data:</strong>
+                                <pre class="bg-light p-2 rounded"><code>backup_file: file (required) // JSON file
+clear_existing: boolean (optional)
+csrf_token: string (required)</code></pre>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-success">GET</span> /backup/manual</h6>
+                                <p>Create manual database backup.</p>
+                                <strong>Response:</strong> Flash message with backup status.
+                            </div>
+
+                            <h5>Demo Mode Endpoints</h5>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-primary">GET</span> /demo</h6>
+                                <p>Demo landing page with feature showcase.</p>
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-success">GET</span> /demo/login</h6>
+                                <p>Automatic login as demo user with sample data.</p>
+                                <strong>Response:</strong> Automatic session creation and redirect to dashboard.
+                            </div>
+
+                            <div class="api-endpoint mb-3">
+                                <h6><span class="badge bg-warning">GET</span> /demo/reset</h6>
+                                <p>Reset demo data to original state.</p>
+                                <strong>Authentication:</strong> Demo mode only.
+                            </div>
+
+                            <h5>Error Handling</h5>
+                            <div class="alert alert-warning">
+                                <h6>Common HTTP Status Codes</h6>
+                                <ul class="mb-0">
+                                    <li><strong>200 OK</strong>: Successful request</li>
+                                    <li><strong>302 Found</strong>: Redirect (after POST operations)</li>
+                                    <li><strong>400 Bad Request</strong>: CSRF token missing or invalid</li>
+                                    <li><strong>403 Forbidden</strong>: Unauthorized access to user data</li>
+                                    <li><strong>404 Not Found</strong>: Resource not found</li>
+                                    <li><strong>500 Internal Server Error</strong>: Server error with automatic rollback</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <!-- User Guide -->
-                <section id="user-guide" class="wiki-section">
+                <!-- Development Sub-section -->
+                <section id="development" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
-                                <i class="bi bi-person-check text-primary me-2"></i>User Guide
-                            </h2>
-                        </div>
-                        <div class="card-body">
-                            <h5>Getting Started</h5>
-                            <ol>
-                                <li><strong>Create Account</strong>: Register with username, email, and password</li>
-                                <li><strong>Add Income Sources</strong>: Set up your biweekly or bimonthly income</li>
-                                <li><strong>Add Bills</strong>: Enter recurring bills with due dates and categories</li>
-                                <li><strong>Add Credit Cards</strong>: Track balances, limits, and payment schedules</li>
-                                <li><strong>Add Loans</strong>: Monitor loan balances and payment schedules</li>
-                                <li><strong>Add Subscriptions</strong>: Keep track of recurring services</li>
-                            </ol>
-
-                            <h5>Dashboard Overview</h5>
-                            <p>The dashboard provides:</p>
-                            <ul>
-                                <li><strong>Urgent Bills</strong>: Bills due within 7 days</li>
-                                <li><strong>Credit Card Summary</strong>: Current balances and utilization</li>
-                                <li><strong>Financial Metrics</strong>: Debt-to-income ratio and monthly cash flow</li>
-                                <li><strong>Next Income</strong>: Upcoming income payment dates</li>
-                            </ul>
-
-                            <h5>Financial Insights</h5>
-
-                            <h6>Debt-to-Income Ratio</h6>
-                            <p>Calculated as: <code>(Total Monthly Expenses / Total Monthly Income) × 100</code></p>
-                            <ul>
-                                <li><span class="badge bg-success">Excellent</span>: &lt; 20%</li>
-                                <li><span class="badge bg-info">Good</span>: 20-35%</li>
-                                <li><span class="badge bg-warning">Fair</span>: 36-49%</li>
-                                <li><span class="badge bg-danger">Poor</span>: &gt; 50%</li>
-                            </ul>
-
-                            <h6>Credit Utilization</h6>
-                            <p>Per card and overall utilization calculated as: <code>(Current Balance / Credit Limit) × 100</code></p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Development -->
-                <section id="development" class="wiki-section">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h2 class="h4 mb-0">
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Development</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
                                 <i class="bi bi-code text-primary me-2"></i>Development Guide
-                            </h2>
+                            </h3>
                         </div>
                         <div class="card-body">
-                            <h5>Setting Up Development Environment</h5>
+                            <h5>Development Environment Setup</h5>
 
                             <h6>1. Install Development Dependencies</h6>
-                            <pre class="bg-light p-3 rounded"><code>pip install -r requirements.txt</code></pre>
+                            <pre class="bg-light p-3 rounded"><code># Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-                            <h6>2. Enable Debug Mode</h6>
-                            <pre class="bg-light p-3 rounded"><code>export FLASK_ENV=development
-export FLASK_DEBUG=1</code></pre>
+# Install dependencies
+pip install -r requirements.txt</code></pre>
 
-                            <h6>3. Database Development</h6>
-                            <pre class="bg-light p-3 rounded"><code># The application automatically creates tables on first run
-python Vance_Financial_Assistant.py</code></pre>
+                            <h6>2. Enable Development Mode</h6>
+                            <pre class="bg-light p-3 rounded"><code># Set environment variables
+export DEVELOPMENT_MODE=true
+export SECRET_KEY=your-dev-secret-key
 
-                            <h5>Code Structure</h5>
-                            <h6>Models (SQLAlchemy)</h6>
-                            <p>Located in <code>Vance_Financial_Assistant.py</code>:</p>
+# Or create .env file
+echo "DEVELOPMENT_MODE=true" > .env
+echo "SECRET_KEY=your-dev-secret-key" >> .env</code></pre>
+
+                            <h6>3. Development Features</h6>
                             <ul>
-                                <li><code>User</code>: User authentication and profile</li>
-                                <li><code>Bill</code>: Bill and recurring payment tracking</li>
-                                <li><code>CreditCard</code>: Credit card management</li>
-                                <li><code>IncomeSource</code>: Income tracking with flexible schedules</li>
-                                <li><code>Subscription</code>: Recurring service subscriptions</li>
-                                <li><code>Loan</code>: Loan and debt management</li>
+                                <li><strong>Debug Mode</strong>: Detailed error pages and automatic reloading</li>
+                                <li><strong>Debug Routes</strong>: Special endpoints for testing and debugging</li>
+                                <li><strong>Auto-Migration</strong>: Database schema automatically updated</li>
+                                <li><strong>Demo Data</strong>: Rich sample data for testing</li>
                             </ul>
 
-                            <h5>Best Practices</h5>
+                            <h5>Project Structure</h5>
+                            <pre class="bg-light p-3 rounded"><code>vance-finance/
+├── Vance_Financial_Assistant.py  # Main application file
+├── requirements.txt               # Python dependencies
+├── static_setup.py               # Static file setup script
+├── wsgi.py                       # WSGI entry point
+├── config.py                     # Configuration management
+├── demo.py                       # Demo data generator
+├── .env.example                  # Environment template
+├── Dockerfile                    # Container configuration
+├── templates/                    # Jinja2 templates
+│   ├── base.html                # Base template
+│   ├── dashboard.html           # Main dashboard
+│   ├── bills.html               # Bill management
+│   ├── credit_cards.html        # Credit card management
+│   ├── income.html              # Income management
+│   ├── budget.html              # Budget dashboard
+│   ├── budget_transactions.html # Budget transactions
+│   ├── budget_goals.html        # Budget goals
+│   └── errors/                  # Error pages
+├── static/                      # Static assets
+│   └── css/                     # Stylesheets
+│       ├── style.css           # Main styles
+│       ├── budget.css          # Budget-specific styles
+│       └── wiki.css            # Documentation styles
+└── backups/                     # Database backups (auto-created)</code></pre>
+
+                            <h5>Code Architecture</h5>
+
+                            <h6>Models (SQLAlchemy)</h6>
+                            <p>All models are defined in the main application file:</p>
                             <ul>
-                                <li><strong>Security</strong>: Always validate user input and check ownership</li>
-                                <li><strong>Backup</strong>: Call <code>backup_database()</code> before destructive operations</li>
-                                <li><strong>Error Handling</strong>: Use try/catch blocks and flash user-friendly messages</li>
-                                <li><strong>Session Management</strong>: Check for <code>user_id</code> in session for protected routes</li>
+                                <li><strong>User</strong>: Authentication and profile management</li>
+                                <li><strong>Bill</strong>: Recurring and one-time bill tracking</li>
+                                <li><strong>CreditCard</strong>: Credit card management with calculations</li>
+                                <li><strong>IncomeSource</strong>: Flexible income frequency tracking</li>
+                                <li><strong>Subscription</strong>: Recurring service subscriptions</li>
+                                <li><strong>Loan</strong>: Loan and debt management</li>
+                                <li><strong>Budget Models</strong>: Complete budgeting system (5 tables)</li>
+                            </ul>
+
+                            <h6>Utility Functions</h6>
+                            <ul>
+                                <li><strong>calculate_monthly_income()</strong>: Convert various frequencies to monthly</li>
+                                <li><strong>calculate_monthly_expenses()</strong>: Aggregate monthly expense calculations</li>
+                                <li><strong>get_future_income_dates()</strong>: Generate income payment schedules</li>
+                                <li><strong>calculate_minimum_payment()</strong>: Advanced credit card minimum payment calculation</li>
+                                <li><strong>backup_database()</strong>: Automated backup system</li>
+                                <li><strong>safe_migrate_database()</strong>: Safe database migration</li>
+                            </ul>
+
+                            <h5>Development Best Practices</h5>
+
+                            <h6>Security Guidelines</h6>
+                            <ul>
+                                <li><strong>CSRF Protection</strong>: All forms must include CSRF tokens</li>
+                                <li><strong>User Validation</strong>: Always verify user_id in session</li>
+                                <li><strong>Data Isolation</strong>: Filter all queries by user_id</li>
+                                <li><strong>Input Validation</strong>: Validate and sanitize all form inputs</li>
+                                <li><strong>Error Handling</strong>: Use try/catch blocks with rollback</li>
+                            </ul>
+
+                            <h6>Database Guidelines</h6>
+                            <ul>
+                                <li><strong>Backup First</strong>: Call backup_database() before destructive operations</li>
+                                <li><strong>Transaction Safety</strong>: Use database transactions for related operations</li>
+                                <li><strong>Migration Testing</strong>: Test migrations on backup data first</li>
+                                <li><strong>Foreign Keys</strong>: Maintain referential integrity</li>
+                            </ul>
+
+                            <h6>Frontend Guidelines</h6>
+                            <ul>
+                                <li><strong>Responsive Design</strong>: Mobile-first approach with Bootstrap 5</li>
+                                <li><strong>Accessibility</strong>: Proper labels, ARIA attributes, and keyboard navigation</li>
+                                <li><strong>Progressive Enhancement</strong>: Core functionality works without JavaScript</li>
+                                <li><strong>Error Feedback</strong>: Clear user feedback for all operations</li>
+                            </ul>
+
+                            <h5>Testing</h5>
+
+                            <h6>Manual Testing Checklist</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>User Registration/Login</strong>: Account creation and authentication</li>
+                                        <li><strong>Data Entry</strong>: All form submissions with validation</li>
+                                        <li><strong>Calculations</strong>: Financial calculations and analytics</li>
+                                        <li><strong>Navigation</strong>: All routes and redirects</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul>
+                                        <li><strong>Demo Mode</strong>: Demo functionality and data integrity</li>
+                                        <li><strong>Backup/Restore</strong>: Data export/import functionality</li>
+                                        <li><strong>Mobile Interface</strong>: Responsive design testing</li>
+                                        <li><strong>Error Handling</strong>: Invalid inputs and edge cases</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h6>Debug Routes (Development Only)</h6>
+                            <div class="alert alert-warning">
+                                <strong>Remove in Production:</strong> These routes should not be available in production.
+                            </div>
+                            <ul>
+                                <li><code>/debug/paths</code> - View file system paths and configuration</li>
+                                <li><code>/debug/users</code> - View user database information</li>
+                                <li><code>/test/backup</code> - Test backup functionality</li>
+                            </ul>
+
+                            <h5>Contributing</h5>
+                            <h6>Adding New Features</h6>
+                            <ol>
+                                <li><strong>Database Model</strong>: Add new SQLAlchemy model if needed</li>
+                                <li><strong>Migration</strong>: Update safe_migrate_database() function</li>
+                                <li><strong>Routes</strong>: Add Flask routes with proper authentication</li>
+                                <li><strong>Templates</strong>: Create responsive HTML templates</li>
+                                <li><strong>Integration</strong>: Update analytics and dashboard integration</li>
+                                <li><strong>Demo Data</strong>: Add sample data to demo system</li>
+                                <li><strong>Documentation</strong>: Update wiki and README</li>
+                            </ol>
+
+                            <h6>Code Style</h6>
+                            <ul>
+                                <li><strong>Python</strong>: Follow PEP 8 style guidelines</li>
+                                <li><strong>HTML</strong>: Proper indentation and semantic markup</li>
+                                <li><strong>CSS</strong>: Use Bootstrap classes with minimal custom CSS</li>
+                                <li><strong>JavaScript</strong>: ES6+ features with progressive enhancement</li>
+                                <li><strong>Comments</strong>: Document complex calculations and business logic</li>
                             </ul>
                         </div>
                     </div>
                 </section>
 
-                <!-- Deployment -->
-                <section id="deployment" class="wiki-section">
+                <!-- Deployment Sub-section -->
+                <section id="deployment" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
-                                <i class="bi bi-cloud text-primary me-2"></i>Deployment
-                            </h2>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Deployment</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
+                                <i class="bi bi-cloud text-primary me-2"></i>Deployment Options
+                            </h3>
                         </div>
                         <div class="card-body">
-                            <h5>Local Production</h5>
+                            <h5>Production Environment Setup</h5>
 
-                            <h6>1. Set Production Environment</h6>
-                            <pre class="bg-light p-3 rounded"><code>export FLASK_ENV=production
-export SECRET_KEY=your-production-secret-key</code></pre>
+                            <h6>1. Environment Configuration</h6>
+                            <pre class="bg-light p-3 rounded"><code># Production environment variables
+export DEVELOPMENT_MODE=false
+export SECRET_KEY=your-production-secret-key-here
+export DATABASE_URL=your-production-database-url
+export PORT=5000</code></pre>
 
-                            <h6>2. Use Production Database</h6>
-                            <pre class="bg-light p-3 rounded"><code>export DATABASE_URL=postgresql://user:pass@host:port/db</code></pre>
-
-                            <h6>3. Run with Gunicorn</h6>
-                            <pre class="bg-light p-3 rounded"><code>gunicorn wsgi:app</code></pre>
+                            <h6>2. Security Configuration</h6>
+                            <ul>
+                                <li><strong>Secret Key</strong>: Generate a secure 32+ character secret key</li>
+                                <li><strong>Database Security</strong>: Use database authentication and SSL</li>
+                                <li><strong>HTTPS</strong>: Enable SSL/TLS encryption</li>
+                                <li><strong>Firewall</strong>: Restrict access to necessary ports only</li>
+                            </ul>
 
                             <h5>Docker Deployment</h5>
 
-                            <h6>1. Build Image</h6>
-                            <pre class="bg-light p-3 rounded"><code>docker build -t vance-finance .</code></pre>
+                            <h6>Using the Included Dockerfile</h6>
+                            <pre class="bg-light p-3 rounded"><code># Build the Docker image
+docker build -t vance-finance .
 
-                            <h6>2. Run Container</h6>
-                            <pre class="bg-light p-3 rounded"><code>docker run -p 5000:5000 \
+# Run with environment variables
+docker run -d \
+  --name vance-finance \
+  -p 5000:5000 \
   -e SECRET_KEY=your-secret-key \
   -e DATABASE_URL=your-database-url \
+  -e DEVELOPMENT_MODE=false \
   vance-finance</code></pre>
+
+                            <h6>Docker Compose</h6>
+                            <pre class="bg-light p-3 rounded"><code># docker-compose.yml
+version: '3.8'
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=your-secret-key
+      - DATABASE_URL=sqlite:///finance_tracker.db
+      - DEVELOPMENT_MODE=false
+    volumes:
+      - ./backups:/app/backups
+      - ./data:/app/data</code></pre>
 
                             <h5>Heroku Deployment</h5>
 
-                            <h6>1. Create Heroku App</h6>
-                            <pre class="bg-light p-3 rounded"><code>heroku create your-app-name</code></pre>
+                            <h6>1. Heroku Setup</h6>
+                            <pre class="bg-light p-3 rounded"><code># Install Heroku CLI and login
+heroku login
 
-                            <h6>2. Set Environment Variables</h6>
-                            <pre class="bg-light p-3 rounded"><code>heroku config:set SECRET_KEY=your-secret-key
-heroku config:set FLASK_ENV=production</code></pre>
+# Create Heroku app
+heroku create your-app-name
 
-                            <h6>3. Deploy</h6>
-                            <pre class="bg-light p-3 rounded"><code>git push heroku main</code></pre>
+# Add PostgreSQL database
+heroku addons:create heroku-postgresql:hobby-dev</code></pre>
+
+                            <h6>2. Environment Configuration</h6>
+                            <pre class="bg-light p-3 rounded"><code># Set environment variables
+heroku config:set SECRET_KEY=your-secret-key
+heroku config:set DEVELOPMENT_MODE=false
+
+# Database URL is automatically set by Heroku PostgreSQL addon</code></pre>
+
+                            <h6>3. Deploy Application</h6>
+                            <pre class="bg-light p-3 rounded"><code># Deploy to Heroku
+git push heroku main
+
+# Migrate database (if needed)
+heroku run python -c "from Vance_Financial_Assistant import app, db; app.app_context().push(); db.create_all()"</code></pre>
+
+                            <h5>Traditional Server Deployment</h5>
+
+                            <h6>Using Gunicorn (Recommended)</h6>
+                            <pre class="bg-light p-3 rounded"><code># Install Gunicorn
+pip install gunicorn
+
+# Run with Gunicorn
+gunicorn --bind 0.0.0.0:5000 --workers 4 wsgi:app
+
+# Or with configuration file
+gunicorn --config gunicorn.conf.py wsgi:app</code></pre>
+
+                            <h6>Nginx Configuration</h6>
+                            <pre class="bg-light p-3 rounded"><code># /etc/nginx/sites-available/vance-finance
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location /static {
+        alias /path/to/your/app/static;
+        expires 1d;
+    }
+}</code></pre>
+
+                            <h6>Systemd Service (Linux)</h6>
+                            <pre class="bg-light p-3 rounded"><code># /etc/systemd/system/vance-finance.service
+[Unit]
+Description=Vance Finance Application
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/path/to/your/app
+Environment=PATH=/path/to/your/app/venv/bin
+ExecStart=/path/to/your/app/venv/bin/gunicorn --workers 3 --bind unix:vance-finance.sock -m 007 wsgi:app
+Restart=always
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+                            <h5>DigitalOcean App Platform</h5>
+
+                            <h6>App Spec Configuration</h6>
+                            <pre class="bg-light p-3 rounded"><code># .do/app.yaml
+name: vance-finance
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: your-username/vance-finance
+    branch: main
+  run_command: gunicorn --worker-tmp-dir /dev/shm --config gunicorn.conf.py wsgi:app
+  environment_slug: python
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  envs:
+  - key: SECRET_KEY
+    value: your-secret-key
+  - key: DEVELOPMENT_MODE
+    value: "false"
+databases:
+- name: db
+  engine: PG
+  version: "13"</code></pre>
+
+                            <h5>AWS Deployment</h5>
+
+                            <h6>Elastic Beanstalk</h6>
+                            <ol>
+                                <li>Install EB CLI: <code>pip install awsebcli</code></li>
+                                <li>Initialize: <code>eb init</code></li>
+                                <li>Create environment: <code>eb create production</code></li>
+                                <li>Set environment variables: <code>eb setenv SECRET_KEY=your-key DEVELOPMENT_MODE=false</code></li>
+                                <li>Deploy: <code>eb deploy</code></li>
+                            </ol>
+
+                            <h5>Database Considerations</h5>
+
+                            <h6>SQLite (Development/Small Deployments)</h6>
+                            <ul>
+                                <li><strong>Pros</strong>: No setup required, automatic backups, simple</li>
+                                <li><strong>Cons</strong>: Single-user, no clustering, limited concurrency</li>
+                                <li><strong>Best For</strong>: Personal use, small deployments, development</li>
+                            </ul>
+
+                            <h6>PostgreSQL (Production Recommended)</h6>
+                            <ul>
+                                <li><strong>Pros</strong>: Multi-user, scalable, ACID compliant, full-featured</li>
+                                <li><strong>Cons</strong>: Requires setup and maintenance</li>
+                                <li><strong>Best For</strong>: Production deployments, multi-user environments</li>
+                            </ul>
+
+                            <h5>Monitoring & Maintenance</h5>
+
+                            <h6>Health Checks</h6>
+                            <ul>
+                                <li><strong>Health Endpoint</strong>: <code>/health</code> returns application status</li>
+                                <li><strong>Database Connectivity</strong>: Verify database connections</li>
+                                <li><strong>Backup Status</strong>: Monitor backup creation and storage</li>
+                                <li><strong>Error Rates</strong>: Track application errors and performance</li>
+                            </ul>
+
+                            <h6>Backup Strategy</h6>
+                            <ul>
+                                <li><strong>Automated Backups</strong>: Application creates backups automatically</li>
+                                <li><strong>Database Dumps</strong>: Regular database exports</li>
+                                <li><strong>File System Backups</strong>: Backup entire application directory</li>
+                                <li><strong>Off-site Storage</strong>: Store backups in separate location</li>
+                            </ul>
+
+                            <h5>Scaling Considerations</h5>
+                            <ul>
+                                <li><strong>Horizontal Scaling</strong>: Multiple application instances with load balancer</li>
+                                <li><strong>Database Scaling</strong>: Read replicas, connection pooling</li>
+                                <li><strong>Static Assets</strong>: CDN for static file delivery</li>
+                                <li><strong>Caching</strong>: Redis or Memcached for session storage</li>
+                            </ul>
                         </div>
                     </div>
                 </section>
 
-                <!-- Security -->
-                <section id="security" class="wiki-section">
+                <!-- Security Sub-section -->
+                <section id="security" class="wiki-section subsection">
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h2 class="h4 mb-0">
-                                <i class="bi bi-shield-check text-primary me-2"></i>Security
-                            </h2>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="#installation">Self-Host</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Security</li>
+                                </ol>
+                            </nav>
+                            <h3 class="h5 mb-0 mt-2">
+                                <i class="bi bi-shield-check text-primary me-2"></i>Security Implementation
+                            </h3>
                         </div>
                         <div class="card-body">
-                            <h5>Authentication</h5>
+                            <h5>Authentication Security</h5>
+
+                            <h6>Password Security</h6>
                             <ul>
-                                <li><strong>Password Hashing</strong>: Werkzeug PBKDF2 with salt</li>
-                                <li><strong>Session Management</strong>: Flask secure sessions</li>
-                                <li><strong>User Isolation</strong>: All data filtered by user_id</li>
+                                <li><strong>Hashing Algorithm</strong>: Werkzeug PBKDF2 with SHA-256</li>
+                                <li><strong>Salt</strong>: Unique salt per password</li>
+                                <li><strong>Iterations</strong>: High iteration count for security</li>
+                                <li><strong>No Plain Text</strong>: Passwords never stored in plain text</li>
                             </ul>
+
+                            <h6>Session Management</h6>
+                            <ul>
+                                <li><strong>Flask Sessions</strong>: Secure server-side session management</li>
+                                <li><strong>Session Expiry</strong>: Automatic session timeout</li>
+                                <li><strong>Secure Cookies</strong>: HTTPOnly and Secure flags in production</li>
+                                <li><strong>Session Validation</strong>: User ID validation on each request</li>
+                            </ul>
+
+                            <h5>CSRF Protection</h5>
+
+                            <h6>Implementation Details</h6>
+                            <ul>
+                                <li><strong>Flask-WTF</strong>: CSRF protection enabled globally</li>
+                                <li><strong>Token Generation</strong>: Unique tokens per session</li>
+                                <li><strong>Form Protection</strong>: All POST forms include CSRF tokens</li>
+                                <li><strong>AJAX Protection</strong>: CSRF tokens in AJAX requests</li>
+                            </ul>
+
+                            <h6>CSRF Token Usage</h6>
+                            <pre class="bg-light p-3 rounded"><code>&lt;form method="POST"&gt;
+    &lt;input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/&gt;
+    &lt;!-- form fields --&gt;
+&lt;/form&gt;</code></pre>
 
                             <h5>Data Protection</h5>
+
+                            <h6>Input Validation</h6>
                             <ul>
-                                <li><strong>Input Validation</strong>: Server-side validation for all forms</li>
-                                <li><strong>SQL Injection</strong>: SQLAlchemy ORM parameterized queries</li>
-                                <li><strong>CSRF Protection</strong>: Flask session-based protection</li>
-                                <li><strong>XSS Prevention</strong>: Jinja2 template auto-escaping</li>
+                                <li><strong>Server-Side Validation</strong>: All inputs validated on server</li>
+                                <li><strong>Type Checking</strong>: Proper data type validation</li>
+                                <li><strong>Range Validation</strong>: Numeric ranges and string lengths</li>
+                                <li><strong>Sanitization</strong>: HTML and SQL injection prevention</li>
                             </ul>
 
+                            <h6>SQL Injection Prevention</h6>
+                            <ul>
+                                <li><strong>SQLAlchemy ORM</strong>: Parameterized queries by default</li>
+                                <li><strong>No Raw SQL</strong>: Avoid raw SQL queries</li>
+                                <li><strong>Input Sanitization</strong>: All user inputs properly escaped</li>
+                                <li><strong>Prepared Statements</strong>: Database-level protection</li>
+                            </ul>
+
+                            <h6>XSS Prevention</h6>
+                            <ul>
+                                <li><strong>Jinja2 Auto-Escaping</strong>: Template auto-escaping enabled</li>
+                                <li><strong>Content Security Policy</strong>: CSP headers for additional protection</li>
+                                <li><strong>Input Sanitization</strong>: User content properly escaped</li>
+                                <li><strong>Output Encoding</strong>: Context-appropriate encoding</li>
+                            </ul>
+
+                            <h5>User Data Isolation</h5>
+
+                            <h6>Database Security</h6>
+                            <ul>
+                                <li><strong>User ID Filtering</strong>: All queries filtered by user_id</li>
+                                <li><strong>Foreign Key Constraints</strong>: Referential integrity enforced</li>
+                                <li><strong>Access Control</strong>: Users can only access their own data</li>
+                                <li><strong>Authorization Checks</strong>: Ownership verification on all operations</li>
+                            </ul>
+
+                            <h6>Route Protection</h6>
+                            <pre class="bg-light p-3 rounded"><code>@app.route('/protected')
+def protected_route():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    # Verify data ownership
+    item = Model.query.get_or_404(item_id)
+    if item.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('dashboard'))</code></pre>
+
                             <h5>Production Security Checklist</h5>
-                            <div class="checklist">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security1">
-                                    <label class="form-check-label" for="security1">Set secure SECRET_KEY</label>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Application Security</h6>
+                                    <div class="checklist">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security1">
+                                            <label class="form-check-label" for="security1">Set secure SECRET_KEY (32+ characters)</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security2">
+                                            <label class="form-check-label" for="security2">Disable DEVELOPMENT_MODE</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security3">
+                                            <label class="form-check-label" for="security3">Remove debug routes</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security4">
+                                            <label class="form-check-label" for="security4">Enable CSRF protection</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security5">
+                                            <label class="form-check-label" for="security5">Validate all CSRF tokens</label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security2">
-                                    <label class="form-check-label" for="security2">Enable HTTPS</label>
+                                <div class="col-md-6">
+                                    <h6>Infrastructure Security</h6>
+                                    <div class="checklist">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security6">
+                                            <label class="form-check-label" for="security6">Enable HTTPS/SSL</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security7">
+                                            <label class="form-check-label" for="security7">Configure secure headers</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security8">
+                                            <label class="form-check-label" for="security8">Set up database access controls</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security9">
+                                            <label class="form-check-label" for="security9">Implement rate limiting</label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="security10">
+                                            <label class="form-check-label" for="security10">Regular security updates</label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security3">
-                                    <label class="form-check-label" for="security3">Configure secure headers</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security4">
-                                    <label class="form-check-label" for="security4">Set up database access controls</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security5">
-                                    <label class="form-check-label" for="security5">Implement rate limiting</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="security6">
-                                    <label class="form-check-label" for="security6">Regular dependency updates</label>
-                                </div>
+                            </div>
+
+                            <h5>Security Headers</h5>
+                            <h6>Recommended Headers</h6>
+                            <pre class="bg-light p-3 rounded"><code># Add to your Flask app or web server configuration
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+X-XSS-Protection: 1; mode=block
+Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'
+Referrer-Policy: strict-origin-when-cross-origin</code></pre>
+
+                            <h5>Backup Security</h5>
+                            <ul>
+                                <li><strong>Backup Encryption</strong>: Encrypt sensitive backup data</li>
+                                <li><strong>Access Control</strong>: Restrict backup file access</li>
+                                <li><strong>Secure Storage</strong>: Store backups in secure locations</li>
+                                <li><strong>Regular Testing</strong>: Test backup restoration procedures</li>
+                            </ul>
+
+                            <h5>Monitoring & Alerting</h5>
+                            <ul>
+                                <li><strong>Failed Login Attempts</strong>: Monitor and alert on suspicious activity</li>
+                                <li><strong>CSRF Violations</strong>: Track CSRF token failures</li>
+                                <li><strong>Error Monitoring</strong>: Monitor application errors and exceptions</li>
+                                <li><strong>Access Logs</strong>: Log and monitor all access attempts</li>
+                            </ul>
+
+                            <h5>Security Best Practices</h5>
+                            <div class="alert alert-warning">
+                                <h6><i class="bi bi-exclamation-triangle me-2"></i>Important Security Guidelines</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Regular Updates</strong>: Keep all dependencies up to date</li>
+                                    <li><strong>Principle of Least Privilege</strong>: Grant minimum necessary permissions</li>
+                                    <li><strong>Defense in Depth</strong>: Multiple layers of security</li>
+                                    <li><strong>Security Testing</strong>: Regular security assessments</li>
+                                    <li><strong>Incident Response</strong>: Have a plan for security incidents</li>
+                                </ul>
                             </div>
                         </div>
                     </div>
@@ -614,42 +2188,159 @@ heroku config:set FLASK_ENV=production</code></pre>
                             </h2>
                         </div>
                         <div class="card-body">
-                            <h5>Automatic Backups</h5>
-                            <p>The application automatically creates backups:</p>
+                            <h5>Comprehensive Backup System</h5>
+                            <p>Vance Finance includes a multi-layered backup system designed to protect your financial data with multiple recovery options.</p>
+
+                            <h5>Automatic Backup Features</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Triggered Backups</h6>
+                                    <ul>
+                                        <li><strong>Before User Registration</strong>: Database backed up before new user creation</li>
+                                        <li><strong>Before Data Modification</strong>: All ADD, EDIT, DELETE operations trigger backup</li>
+                                        <li><strong>Before Data Import</strong>: Backup created before importing external data</li>
+                                        <li><strong>Before Bulk Operations</strong>: Mass updates and batch processes</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Backup Types</h6>
+                                    <ul>
+                                        <li><strong>SQLite File Copy</strong>: Complete database file duplication</li>
+                                        <li><strong>JSON Export</strong>: Structured data export for portability</li>
+                                        <li><strong>Timestamp Naming</strong>: Backups named with creation timestamp</li>
+                                        <li><strong>Verification</strong>: Backup integrity verification</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Manual Backup Options</h5>
+
+                            <h6>Database Backup</h6>
                             <ul>
-                                <li>Before user registration</li>
-                                <li>Before any data modification</li>
-                                <li>Before data imports</li>
+                                <li><strong>One-Click Backup</strong>: Create instant database backup from dashboard</li>
+                                <li><strong>Route</strong>: <code>/backup/manual</code></li>
+                                <li><strong>File Location</strong>: <code>backups/finance_tracker_backup_YYYYMMDD_HHMMSS.db</code></li>
+                                <li><strong>Verification</strong>: Automatic file size and integrity verification</li>
                             </ul>
 
-                            <h5>Manual Backups</h5>
+                            <h6>JSON Data Export</h6>
                             <ul>
-                                <li><strong>Database Backup</strong>: Creates SQLite file copy</li>
-                                <li><strong>JSON Export</strong>: Exports all user data to portable format</li>
-                                <li><strong>Scheduled Backups</strong>: Can be automated via cron jobs</li>
+                                <li><strong>Complete Export</strong>: All user data in structured JSON format</li>
+                                <li><strong>Route</strong>: <code>/backup/export</code></li>
+                                <li><strong>Includes</strong>: Bills, credit cards, subscriptions, loans, income sources, budget data</li>
+                                <li><strong>Portable Format</strong>: Cross-platform compatible data format</li>
                             </ul>
+
+                            <h5>Backup Management</h5>
+
+                            <h6>Backup Browser</h6>
+                            <ul>
+                                <li><strong>View All Backups</strong>: Complete list with dates and sizes</li>
+                                <li><strong>Download</strong>: Download any backup file</li>
+                                <li><strong>Delete</strong>: Remove old or unnecessary backups</li>
+                                <li><strong>Storage Info</strong>: Total backup count and disk usage</li>
+                            </ul>
+
+                            <h6>Backup File Naming</h6>
+                            <pre class="bg-light p-3 rounded"><code>Database Backups:
+finance_tracker_backup_20250711_143022.db
+
+JSON Exports:
+vance_financial_backup_username_20250711_143022.json</code></pre>
 
                             <h5>Recovery Procedures</h5>
 
-                            <h6>From Database Backup</h6>
+                            <h6>Database Recovery (Complete Restoration)</h6>
                             <ol>
-                                <li>Stop the application</li>
-                                <li>Replace current database with backup file</li>
-                                <li>Restart the application</li>
+                                <li><strong>Stop Application</strong>: Ensure application is not running</li>
+                                <li><strong>Backup Current</strong>: Create backup of current state (if possible)</li>
+                                <li><strong>Replace Database</strong>: Replace current database file with backup</li>
+                                <li><strong>Restart Application</strong>: Start application with restored database</li>
+                                <li><strong>Verify Data</strong>: Confirm data integrity and completeness</li>
                             </ol>
 
-                            <h6>From JSON Export</h6>
+                            <h6>JSON Data Import (Selective Restoration)</h6>
                             <ol>
-                                <li>Go to Backup → Import Data</li>
-                                <li>Upload JSON backup file</li>
-                                <li>Choose to clear existing data or merge</li>
-                                <li>Confirm import</li>
+                                <li><strong>Navigate to Import</strong>: Go to Backup → Import Data</li>
+                                <li><strong>Select File</strong>: Choose JSON backup file</li>
+                                <li>
+                                    <strong>Choose Option</strong>:
+                                    <ul>
+                                        <li><strong>Merge</strong>: Add backup data to existing data</li>
+                                        <li><strong>Replace</strong>: Clear existing data and import backup</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Confirm Import</strong>: Review and confirm the import operation</li>
+                                <li><strong>Verify Results</strong>: Check that data was imported correctly</li>
                             </ol>
 
-                            <div class="alert alert-warning">
-                                <i class="bi bi-exclamation-triangle me-2"></i>
-                                <strong>Important:</strong> Test backup and recovery procedures regularly in a development environment.
+                            <h5>Backup Security</h5>
+
+                            <h6>Access Control</h6>
+                            <ul>
+                                <li><strong>User Authentication</strong>: Backup access requires user login</li>
+                                <li><strong>File Permissions</strong>: Backup files protected by file system permissions</li>
+                                <li><strong>Download Verification</strong>: Security checks before file downloads</li>
+                                <li><strong>Path Protection</strong>: Prevents directory traversal attacks</li>
+                            </ul>
+
+                            <h6>Data Protection</h6>
+                            <ul>
+                                <li><strong>User Isolation</strong>: JSON exports contain only user's own data</li>
+                                <li><strong>Password Hashing</strong>: Passwords remain hashed in exports</li>
+                                <li><strong>Secure Storage</strong>: Backup files stored in protected directory</li>
+                                <li><strong>Encryption Recommendation</strong>: Encrypt backups for additional security</li>
+                            </ul>
+
+                            <h5>Disaster Recovery Planning</h5>
+
+                            <h6>Recovery Strategy</h6>
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-info-circle me-2"></i>Recommended Recovery Plan</h6>
+                                <ol class="mb-0">
+                                    <li><strong>Regular Testing</strong>: Test backup and recovery procedures monthly</li>
+                                    <li><strong>Multiple Locations</strong>: Store backups in multiple locations</li>
+                                    <li><strong>Version Control</strong>: Keep multiple backup versions</li>
+                                    <li><strong>Documentation</strong>: Document recovery procedures</li>
+                                    <li><strong>Monitoring</strong>: Monitor backup creation and storage</li>
+                                </ol>
                             </div>
+
+                            <h6>Backup Best Practices</h6>
+                            <ul>
+                                <li><strong>3-2-1 Rule</strong>: 3 copies, 2 different media types, 1 offsite</li>
+                                <li><strong>Regular Schedule</strong>: Automate regular backup creation</li>
+                                <li><strong>Test Restoration</strong>: Regularly test backup restoration</li>
+                                <li><strong>Monitor Storage</strong>: Track backup file sizes and storage usage</li>
+                                <li><strong>Cleanup Policy</strong>: Remove old backups based on retention policy</li>
+                            </ul>
+
+                            <h5>Advanced Backup Features</h5>
+
+                            <h6>Backup Automation</h6>
+                            <pre class="bg-light p-3 rounded"><code># Cron job for daily backups (Linux/Mac)
+0 2 * * * /path/to/your/app/venv/bin/python -c "
+from Vance_Financial_Assistant import backup_database, app
+with app.app_context():
+    backup_database()
+"</code></pre>
+
+                            <h6>External Storage Integration</h6>
+                            <ul>
+                                <li><strong>Cloud Storage</strong>: Integrate with AWS S3, Google Drive, or Dropbox</li>
+                                <li><strong>Network Storage</strong>: Use network attache
+                                <li><strong>Network Storage</strong>: Use network attached storage (NAS) for local backups</li>
+                                <li><strong>FTP/SFTP</strong>: Upload backups to remote servers</li>
+                                <li><strong>Version Control</strong>: Store backups in Git repositories</li>
+                            </ul>
+
+                            <h6>Monitoring and Alerts</h6>
+                            <ul>
+                                <li><strong>Backup Success Monitoring</strong>: Track successful backup creation</li>
+                                <li><strong>Storage Space Alerts</strong>: Monitor backup directory disk usage</li>
+                                <li><strong>Backup Age Monitoring</strong>: Alert on old or stale backups</li>
+                                <li><strong>Automated Cleanup</strong>: Remove backups older than retention period</li>
+                            </ul>
                         </div>
                     </div>
                 </section>
@@ -659,33 +2350,37 @@ heroku config:set FLASK_ENV=production</code></pre>
                     <div class="card mb-4">
                         <div class="card-header">
                             <h2 class="h4 mb-0">
-                                <i class="bi bi-tools text-primary me-2"></i>Troubleshooting
+                                <i class="bi bi-tools text-primary me-2"></i>Troubleshooting Guide
                             </h2>
                         </div>
                         <div class="card-body">
-                            <h5>Common Issues</h5>
+                            <h5>Common Issues & Solutions</h5>
 
                             <div class="accordion" id="troubleshootingAccordion">
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="headingOne">
                                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                            Application won't start
+                                            <i class="bi bi-exclamation-triangle text-warning me-2"></i>Application won't start
                                         </button>
                                     </h2>
                                     <div id="collapseOne" class="accordion-collapse collapse show" data-bs-parent="#troubleshootingAccordion">
                                         <div class="accordion-body">
                                             <strong>Possible causes:</strong>
                                             <ul>
-                                                <li>Missing dependencies</li>
-                                                <li>Port already in use</li>
+                                                <li>Missing Python dependencies</li>
+                                                <li>Port already in use (5000)</li>
                                                 <li>Database connection issues</li>
+                                                <li>Invalid environment variables</li>
+                                                <li>Permission issues</li>
                                             </ul>
                                             <strong>Solutions:</strong>
                                             <ol>
-                                                <li>Check Python version: <code>python --version</code></li>
-                                                <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
-                                                <li>Check port availability: <code>netstat -an | grep 5001</code></li>
-                                                <li>Verify database permissions</li>
+                                                <li><strong>Check Python version:</strong> <code>python --version</code> (requires 3.7+)</li>
+                                                <li><strong>Install dependencies:</strong> <code>pip install -r requirements.txt</code></li>
+                                                <li><strong>Check port availability:</strong> <code>netstat -an | grep 5000</code></li>
+                                                <li><strong>Verify environment variables:</strong> Check .env file or export statements</li>
+                                                <li><strong>Check file permissions:</strong> Ensure read/write access to database directory</li>
+                                                <li><strong>Try different port:</strong> <code>export PORT=5001</code></li>
                                             </ol>
                                         </div>
                                     </div>
@@ -694,23 +2389,26 @@ heroku config:set FLASK_ENV=production</code></pre>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="headingTwo">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                            Login issues
+                                            <i class="bi bi-person-x text-danger me-2"></i>Login issues
                                         </button>
                                     </h2>
                                     <div id="collapseTwo" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
                                         <div class="accordion-body">
                                             <strong>Possible causes:</strong>
                                             <ul>
-                                                <li>Incorrect credentials</li>
-                                                <li>Database corruption</li>
-                                                <li>Session issues</li>
+                                                <li>Incorrect username or password</li>
+                                                <li>Database corruption or migration issues</li>
+                                                <li>Session management problems</li>
+                                                <li>CSRF token issues</li>
                                             </ul>
                                             <strong>Solutions:</strong>
                                             <ol>
-                                                <li>Clear browser cache and cookies</li>
-                                                <li>Try registering a new account</li>
-                                                <li>Check debug routes: <code>/debug/users</code></li>
-                                                <li>Reset database if necessary</li>
+                                                <li><strong>Clear browser data:</strong> Clear cache, cookies, and local storage</li>
+                                                <li><strong>Try demo mode:</strong> Visit <code>/demo/login</code> to test functionality</li>
+                                                <li><strong>Check debug routes:</strong> <code>/debug/users</code> (development only)</li>
+                                                <li><strong>Register new account:</strong> Test with fresh account</li>
+                                                <li><strong>Check console errors:</strong> Look for JavaScript or network errors</li>
+                                                <li><strong>Verify CSRF protection:</strong> Ensure forms include csrf_token</li>
                                             </ol>
                                         </div>
                                     </div>
@@ -719,7 +2417,7 @@ heroku config:set FLASK_ENV=production</code></pre>
                                 <div class="accordion-item">
                                     <h2 class="accordion-header" id="headingThree">
                                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                                            Data not saving
+                                            <i class="bi bi-database-x text-danger me-2"></i>Data not saving
                                         </button>
                                     </h2>
                                     <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
@@ -729,36 +2427,234 @@ heroku config:set FLASK_ENV=production</code></pre>
                                                 <li>Database permission issues</li>
                                                 <li>Disk space full</li>
                                                 <li>Form validation errors</li>
+                                                <li>CSRF token missing or invalid</li>
+                                                <li>Database locks or corruption</li>
                                             </ul>
                                             <strong>Solutions:</strong>
                                             <ol>
-                                                <li>Check database file permissions</li>
-                                                <li>Verify available disk space</li>
-                                                <li>Check browser console for JavaScript errors</li>
-                                                <li>Review application logs</li>
+                                                <li><strong>Check file permissions:</strong> Ensure database file is writable</li>
+                                                <li><strong>Verify disk space:</strong> <code>df -h</code> (Linux/Mac) or check disk properties</li>
+                                                <li><strong>Check browser console:</strong> Look for JavaScript errors</li>
+                                                <li><strong>Review application logs:</strong> Check terminal output for errors</li>
+                                                <li><strong>Test with demo:</strong> See if demo mode works correctly</li>
+                                                <li><strong>Check CSRF tokens:</strong> Verify forms include proper tokens</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingFour">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                            <i class="bi bi-calculator text-warning me-2"></i>Calculations seem incorrect
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFour" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Items marked as "excluded" from calculations</li>
+                                                <li>Incorrect income frequency settings</li>
+                                                <li>Missing or inactive financial items</li>
+                                                <li>Date-related calculation issues</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li><strong>Check include/exclude status:</strong> Verify items are included in calculations</li>
+                                                <li><strong>Review income frequencies:</strong> Ensure correct payment schedules</li>
+                                                <li><strong>Verify active status:</strong> Check that items are marked as active</li>
+                                                <li><strong>Check dates:</strong> Ensure dates are current and correct</li>
+                                                <li><strong>Use overview page:</strong> Toggle "include excluded" to see differences</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingFive">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive">
+                                            <i class="bi bi-archive-x text-danger me-2"></i>Backup/restore problems
+                                        </button>
+                                    </h2>
+                                    <div id="collapseFive" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Insufficient disk space for backups</li>
+                                                <li>File permission issues</li>
+                                                <li>Corrupted backup files</li>
+                                                <li>JSON format issues in imports</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li><strong>Check disk space:</strong> Ensure adequate space in backup directory</li>
+                                                <li><strong>Verify permissions:</strong> Check backup directory write permissions</li>
+                                                <li><strong>Test backup creation:</strong> Use manual backup to test functionality</li>
+                                                <li><strong>Validate JSON files:</strong> Ensure backup files are valid JSON</li>
+                                                <li><strong>Try smaller imports:</strong> Import data in smaller chunks</li>
+                                            </ol>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingSix">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix">
+                                            <i class="bi bi-phone text-info me-2"></i>Mobile/responsive issues
+                                        </button>
+                                    </h2>
+                                    <div id="collapseSix" class="accordion-collapse collapse" data-bs-parent="#troubleshootingAccordion">
+                                        <div class="accordion-body">
+                                            <strong>Possible causes:</strong>
+                                            <ul>
+                                                <li>Browser compatibility issues</li>
+                                                <li>CSS loading problems</li>
+                                                <li>JavaScript errors on mobile</li>
+                                                <li>Viewport configuration</li>
+                                            </ul>
+                                            <strong>Solutions:</strong>
+                                            <ol>
+                                                <li><strong>Update browser:</strong> Use latest version of mobile browser</li>
+                                                <li><strong>Clear cache:</strong> Clear mobile browser cache and data</li>
+                                                <li><strong>Check network:</strong> Ensure stable internet connection</li>
+                                                <li><strong>Test different browsers:</strong> Try Chrome, Safari, Firefox mobile</li>
+                                                <li><strong>Check console errors:</strong> Use browser dev tools on mobile</li>
                                             </ol>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <h5>Debug Routes</h5>
+                            <h5>Debug Tools (Development Only)</h5>
                             <div class="alert alert-warning">
-                                <strong>Development Only:</strong> These routes should be removed in production.
+                                <strong>Important:</strong> These debug routes should only be used in development and must be removed in production.
                             </div>
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Route</th>
+                                            <th>Purpose</th>
+                                            <th>Information Provided</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><code>/debug/paths</code></td>
+                                            <td>File system debugging</td>
+                                            <td>Application paths, working directory, database location</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/debug/users</code></td>
+                                            <td>User database inspection</td>
+                                            <td>User count, usernames, email addresses</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/test/backup</code></td>
+                                            <td>Backup system testing</td>
+                                            <td>Backup functionality, file permissions, directory access</td>
+                                        </tr>
+                                        <tr>
+                                            <td><code>/health</code></td>
+                                            <td>Application health check</td>
+                                            <td>Application status, timestamp, basic functionality</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h5>Log Analysis</h5>
+                            <h6>Reading Application Logs</h6>
                             <ul>
-                                <li><code>/debug/paths</code> - View file system paths</li>
-                                <li><code>/debug/users</code> - View user database information</li>
-                                <li><code>/test/backup</code> - Test backup functionality</li>
+                                <li><strong>Console Output:</strong> Monitor terminal where application is running</li>
+                                <li><strong>Error Messages:</strong> Look for Python tracebacks and error messages</li>
+                                <li><strong>Database Errors:</strong> SQLAlchemy and database-related errors</li>
+                                <li><strong>HTTP Status Codes:</strong> 400, 403, 404, 500 error responses</li>
+                            </ul>
+
+                            <h6>Common Error Patterns</h6>
+                            <pre class="bg-light p-3 rounded"><code># Database connection error
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) database is locked
+
+# CSRF token error
+The CSRF token is missing. or Bad Request: The CSRF token is missing.
+
+# Permission error
+PermissionError: [Errno 13] Permission denied: '/path/to/database'
+
+# Import error (missing dependency)
+ModuleNotFoundError: No module named 'flask'</code></pre>
+
+                            <h5>Performance Issues</h5>
+                            <h6>Slow Application Response</h6>
+                            <ul>
+                                <li><strong>Database Size:</strong> Large databases may slow queries</li>
+                                <li><strong>Backup Operations:</strong> Automatic backups can cause temporary slowness</li>
+                                <li><strong>Memory Usage:</strong> Check available system memory</li>
+                                <li><strong>Disk I/O:</strong> Slow disk can affect performance</li>
+                            </ul>
+
+                            <h6>Optimization Strategies</h6>
+                            <ul>
+                                <li><strong>Database Cleanup:</strong> Remove old or unnecessary data</li>
+                                <li><strong>Backup Management:</strong> Delete old backup files</li>
+                                <li><strong>Indexing:</strong> Database indexes are automatically maintained</li>
+                                <li><strong>Production Deployment:</strong> Use Gunicorn for better performance</li>
                             </ul>
 
                             <h5>Getting Help</h5>
-                            <p>If you need additional support:</p>
-                            <ul>
-                                <li>Check the <a href="{{ url_for('demo_page') }}">Demo</a> for expected behavior</li>
-                                <li>Review the source code on GitHub</li>
-                                <li>Create an issue with detailed error information</li>
-                            </ul>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Self-Help Resources</h6>
+                                    <ul>
+                                        <li><strong>Demo Mode:</strong> Test expected behavior with sample data</li>
+                                        <li><strong>Documentation:</strong> Review this wiki for detailed information</li>
+                                        <li><strong>Source Code:</strong> Examine the code for implementation details</li>
+                                        <li><strong>Debug Routes:</strong> Use development debug tools</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Reporting Issues</h6>
+                                    <ul>
+                                        <li><strong>Error Messages:</strong> Include complete error messages</li>
+                                        <li><strong>Browser Information:</strong> Browser version and type</li>
+                                        <li><strong>Steps to Reproduce:</strong> Detailed reproduction steps</li>
+                                        <li><strong>Environment Details:</strong> Operating system, Python version</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h5>Recovery Procedures</h5>
+                            <h6>Emergency Recovery</h6>
+                            <ol>
+                                <li><strong>Stop Application:</strong> Safely shut down the application</li>
+                                <li><strong>Backup Current State:</strong> Create backup of current (even if problematic) state</li>
+                                <li><strong>Restore from Backup:</strong> Use most recent known-good backup</li>
+                                <li><strong>Test Functionality:</strong> Verify application works with restored data</li>
+                                <li><strong>Document Issue:</strong> Record what went wrong for future prevention</li>
+                            </ol>
+
+                            <h6>Reset to Demo State</h6>
+                            <p>If all else fails, you can reset to demo state for testing:</p>
+                            <ol>
+                                <li>Visit <code>/demo/login</code> to access demo mode</li>
+                                <li>Test functionality with demo data</li>
+                                <li>Use <code>/demo/reset</code> to restore original demo data</li>
+                                <li>Export demo data as reference</li>
+                                <li>Create new user account and import demo data</li>
+                            </ol>
+
+                            <div class="alert alert-success">
+                                <h6><i class="bi bi-lightbulb me-2"></i>Pro Tips for Troubleshooting</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Start Simple:</strong> Test with demo mode first</li>
+                                    <li><strong>Check Basics:</strong> Verify Python version, dependencies, and permissions</li>
+                                    <li><strong>Use Browser Tools:</strong> Browser developer tools can reveal client-side issues</li>
+                                    <li><strong>Monitor Logs:</strong> Keep an eye on console output during operations</li>
+                                    <li><strong>Test Incrementally:</strong> Add data gradually to isolate problematic items</li>
+                                    <li><strong>Keep Backups:</strong> Regular backups make recovery much easier</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -768,18 +2664,77 @@ heroku config:set FLASK_ENV=production</code></pre>
     </div>
 </div>
 
-<!-- Wiki-specific JavaScript -->
+<!-- Enhanced Wiki-specific JavaScript with Hierarchical Navigation -->
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Smooth scrolling for sidebar links
+        // ENHANCED: Dynamic navbar height calculation and adjustment
+        function adjustWikiPositioning() {
+            const navbar = document.querySelector('.navbar');
+            const sidebar = document.querySelector('.wiki-sidebar');
+            const sections = document.querySelectorAll('.wiki-section');
+
+            if (navbar && sidebar) {
+                // Calculate actual navbar height including padding and borders
+                const navbarHeight = navbar.offsetHeight;
+
+                // Set dynamic CSS custom properties
+                document.documentElement.style.setProperty('--dynamic-navbar-height', `${navbarHeight + 32}px`);
+                document.documentElement.style.setProperty('--dynamic-scroll-margin', `${navbarHeight + 48}px`);
+
+                // Apply dynamic positioning classes
+                sidebar.classList.add('wiki-sidebar-adjusted');
+                sections.forEach(section => {
+                    section.classList.add('wiki-section-adjusted');
+                });
+
+                // Log for debugging (remove in production)
+                console.log(`Dynamic navbar height calculated: ${navbarHeight}px`);
+            }
+        }
+
+        // Initial adjustment
+        adjustWikiPositioning();
+
+        // Re-adjust on window resize
+        let resizeTimer;
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(adjustWikiPositioning, 250);
+        });
+
+        // Handle collapsible installation submenu
+        const installationToggle = document.querySelector('[data-bs-target="#installationSubmenu"]');
+        const installationSubmenu = document.getElementById('installationSubmenu');
+        const toggleIcon = installationToggle?.querySelector('.toggle-icon');
+
+        if (installationSubmenu && toggleIcon) {
+            installationSubmenu.addEventListener('show.bs.collapse', function () {
+                toggleIcon.classList.remove('bi-chevron-down');
+                toggleIcon.classList.add('bi-chevron-up');
+            });
+
+            installationSubmenu.addEventListener('hide.bs.collapse', function () {
+                toggleIcon.classList.remove('bi-chevron-up');
+                toggleIcon.classList.add('bi-chevron-down');
+            });
+        }
+
+        // Smooth scrolling for sidebar links with dynamic offset
         document.querySelectorAll('.wiki-sidebar a[href^="#"]').forEach(link => {
             link.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+                    // Calculate dynamic offset
+                    const navbar = document.querySelector('.navbar');
+                    const offset = navbar ? navbar.offsetHeight + 48 : 128; // 48px extra buffer
+
+                    // Scroll to position with proper offset
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
                     });
 
                     // Update active link
@@ -787,20 +2742,30 @@ heroku config:set FLASK_ENV=production</code></pre>
                         item.classList.remove('active');
                     });
                     this.classList.add('active');
+
+                    // Auto-expand installation submenu if clicking on subsection
+                    if (this.classList.contains('subsection')) {
+                        const installationSubmenu = document.getElementById('installationSubmenu');
+                        if (installationSubmenu && !installationSubmenu.classList.contains('show')) {
+                            new bootstrap.Collapse(installationSubmenu, { show: true });
+                        }
+                    }
                 }
             });
         });
 
-        // Highlight current section on scroll
+        // Enhanced section highlighting on scroll with hierarchical support
         const sections = document.querySelectorAll('.wiki-section');
         const navLinks = document.querySelectorAll('.wiki-sidebar a[href^="#"]');
 
         function highlightCurrentSection() {
+            const navbar = document.querySelector('.navbar');
+            const scrollOffset = navbar ? navbar.offsetHeight + 24 : 104; // 24px buffer
+
             let current = '';
             sections.forEach(section => {
                 const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (window.pageYOffset >= sectionTop - 100) {
+                if (window.pageYOffset >= sectionTop - scrollOffset) {
                     current = section.getAttribute('id');
                 }
             });
@@ -809,11 +2774,61 @@ heroku config:set FLASK_ENV=production</code></pre>
                 link.classList.remove('active');
                 if (link.getAttribute('href') === '#' + current) {
                     link.classList.add('active');
+
+                    // Auto-expand installation submenu if subsection is active
+                    if (link.classList.contains('subsection')) {
+                        const installationSubmenu = document.getElementById('installationSubmenu');
+                        if (installationSubmenu && !installationSubmenu.classList.contains('show')) {
+                            new bootstrap.Collapse(installationSubmenu, { show: true });
+                        }
+                    }
                 }
             });
         }
 
-        window.addEventListener('scroll', highlightCurrentSection);
+        // Throttled scroll listener for better performance
+        let scrollTimer;
+        window.addEventListener('scroll', function () {
+            if (scrollTimer) {
+                clearTimeout(scrollTimer);
+            }
+            scrollTimer = setTimeout(highlightCurrentSection, 10);
+        });
+
+        // Initial highlight
+        highlightCurrentSection();
+
+        // Handle breadcrumb navigation
+        document.querySelectorAll('.breadcrumb a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const navbar = document.querySelector('.navbar');
+                    const offset = navbar ? navbar.offsetHeight + 48 : 128;
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Security checklist interactivity
+        document.querySelectorAll('.checklist input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function () {
+                const label = this.nextElementSibling;
+                if (this.checked) {
+                    label.style.textDecoration = 'line-through';
+                    label.style.opacity = '0.6';
+                } else {
+                    label.style.textDecoration = 'none';
+                    label.style.opacity = '1';
+                }
+            });
+        });
     });
 </script>
 

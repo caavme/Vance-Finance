@@ -9,12 +9,16 @@ import json
 import tempfile
 import calendar
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_wtf.csrf import CSRFProtect
 
 # Initialize Flask application
 app = Flask(__name__)
 
 # Trust proxy headers from Nginx - ADD THIS RIGHT AFTER CREATING APP
 app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
+# Add CSRF protection
+csrf = CSRFProtect(app)
 
 # Configuration that works for both local development and deployment
 class Config:
@@ -987,6 +991,7 @@ def create_demo_budget_data(demo_user_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error creating demo budget data: {e}")
+
 # Create the database tables and migrate
 with app.app_context():
     db.create_all()
@@ -1479,7 +1484,6 @@ def credit_cards():
         limit = float(request.form.get('limit')) if request.form.get('limit') else None
         current_balance = float(request.form.get('current_balance'))
         interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
-        minimum_payment = float(request.form.get('minimum_payment')) if request.form.get('minimum_payment') else None
         auto_pay_minimum = ('auto_pay_minimum' in request.form)
         auto_payment_amount = float(request.form.get('auto_payment_amount')) if request.form.get('auto_payment_amount') and not auto_pay_minimum else None
         
@@ -1527,6 +1531,15 @@ def credit_cards():
             # If no due_day provided, use the payment_due_date from form (backwards compatibility)
             payment_due_date = datetime.strptime(request.form.get('payment_due_date'), '%Y-%m-%d').date()
         
+        # Calculate minimum payment automatically
+        minimum_payment = calculate_minimum_payment(
+            current_balance=current_balance,
+            interest_rate=interest_rate,
+            credit_limit=limit,
+            min_percentage=2.0,  # 2% of balance
+            min_amount=25.0      # $25 minimum
+        )
+        
         new_card = CreditCard(
             name=name,
             last_four=last_four,
@@ -1534,7 +1547,7 @@ def credit_cards():
             current_balance=current_balance,
             payment_due_date=payment_due_date,
             interest_rate=interest_rate,
-            minimum_payment=minimum_payment,
+            minimum_payment=minimum_payment,  # Use calculated minimum payment
             auto_pay_minimum=auto_pay_minimum,
             auto_payment_amount=auto_payment_amount,
             user_id=session['user_id']
@@ -1543,7 +1556,7 @@ def credit_cards():
         try:
             db.session.add(new_card)
             db.session.commit()
-            flash('Credit card added successfully!', 'success')
+            flash('Credit card added successfully with calculated minimum payment!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error adding credit card. Please try again.', 'danger')
@@ -1552,6 +1565,9 @@ def credit_cards():
         return redirect(url_for('credit_cards'))
     
     user_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
+    
+    # Update minimum payments for all cards before displaying
+    update_minimum_payments_for_user(session['user_id'])
     
     # Calculate summary statistics
     total_limit = sum(card.limit for card in user_cards if card.limit)
@@ -1763,9 +1779,9 @@ def edit_card(card_id):
             card.name = request.form.get('name')
             card.last_four = request.form.get('last_four')
             card.limit = float(request.form.get('limit')) if request.form.get('limit') else None
-            card.current_balance = float(request.form.get('current_balance'))
+            current_balance = float(request.form.get('current_balance'))
+            card.current_balance = current_balance
             card.interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
-            card.minimum_payment = float(request.form.get('minimum_payment')) if request.form.get('minimum_payment') else None
             card.auto_pay_minimum = ('auto_pay_minimum' in request.form)
             card.auto_payment_amount = float(request.form.get('auto_payment_amount')) if request.form.get('auto_payment_amount') and not card.auto_pay_minimum else None
             
@@ -1815,14 +1831,23 @@ def edit_card(card_id):
                 # If no due_day provided, use the payment_due_date from form (backwards compatibility)
                 card.payment_due_date = datetime.strptime(request.form.get('payment_due_date'), '%Y-%m-%d').date()
             
+            # Recalculate minimum payment with updated values
+            card.minimum_payment = calculate_minimum_payment(
+                current_balance=current_balance,
+                interest_rate=card.interest_rate,
+                credit_limit=card.limit,
+                min_percentage=2.0,  # 2% of balance
+                min_amount=25.0      # $25 minimum
+            )
+            
             db.session.commit()
-            flash('Credit card updated successfully!', 'success')
+            flash('Credit card updated successfully with recalculated minimum payment!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error updating credit card. Please try again.', 'danger')
             print(f"Error editing credit card: {e}")
         
-    return redirect(url_for('dashboard'))
+    return redirect(url_for('credit_cards'))
 
 # Add this route after your existing edit routes, around line 1200-1300
 
@@ -3031,5 +3056,299 @@ def save_budget_setup():
                          periods=periods,
                          current_period=current_period)
 
+def calculate_minimum_payment(current_balance, interest_rate=None, credit_limit=None, min_percentage=2.0, min_amount=25.0):
+    """
+    Calculate minimum payment for a credit card based on various methods.
+    
+    Args:
+        current_balance (float): Current outstanding balance
+        interest_rate (float, optional): Annual interest rate as percentage
+        credit_limit (float, optional): Credit limit for percentage calculations
+        min_percentage (float): Minimum percentage of balance (default 2%)
+        min_amount (float): Absolute minimum payment amount (default $25)
+    
+    Returns:
+        float: Calculated minimum payment
+    """
+    if not current_balance or current_balance <= 0:
+        return 0.0
+    
+    # Method 1: Percentage of balance (most common)
+    percentage_payment = current_balance * (min_percentage / 100)
+    
+    # Method 2: Interest + principal (more accurate)
+    if interest_rate and interest_rate > 0:
+        monthly_interest_rate = interest_rate / 100 / 12
+        monthly_interest = current_balance * monthly_interest_rate
+        # Principal payment (typically 1% of balance)
+        principal_payment = current_balance * 0.01
+        interest_plus_principal = monthly_interest + principal_payment
+        
+        # Use the higher of percentage or interest+principal method
+        calculated_payment = max(percentage_payment, interest_plus_principal)
+    else:
+        calculated_payment = percentage_payment
+    
+    # Ensure minimum payment meets absolute minimum
+    final_payment = max(calculated_payment, min_amount)
+    
+    # Don't require payment higher than the balance
+    final_payment = min(final_payment, current_balance)
+    
+    return round(final_payment, 2)
+
+def update_minimum_payments_for_user(user_id):
+    """Update minimum payments for all credit cards belonging to a user"""
+    credit_cards = CreditCard.query.filter_by(user_id=user_id).all()
+    
+    for card in credit_cards:
+        if card.current_balance and card.current_balance > 0:
+            # Calculate minimum payment
+            min_payment = calculate_minimum_payment(
+                current_balance=card.current_balance,
+                interest_rate=card.interest_rate,
+                credit_limit=card.limit,
+                min_percentage=2.0,  # 2% of balance
+                min_amount=25.0      # $25 minimum
+            )
+            
+            # Update the card's minimum payment
+            card.minimum_payment = min_payment
+        else:
+            # No balance = no minimum payment
+            card.minimum_payment = 0.0
+    
+    try:
+        db.session.commit()
+        print(f"Updated minimum payments for {len(credit_cards)} credit cards")
+        return True
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error updating minimum payments: {e}")
+        return False
+
+@app.route('/credit-cards/recalculate-minimums')
+def recalculate_minimum_payments():
+    """Manually recalculate minimum payments for all credit cards"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    success = update_minimum_payments_for_user(session['user_id'])
+    
+    if success:
+        flash('Minimum payments recalculated successfully for all credit cards!', 'success')
+    else:
+        flash('Error recalculating minimum payments. Please try again.', 'danger')
+    
+    return redirect(url_for('credit_cards'))
+
+@app.route('/delete/credit_card/<int:card_id>')
+def delete_credit_card(card_id):
+    """Delete a credit card"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    card = CreditCard.query.get_or_404(card_id)
+    if card.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('credit_cards'))
+    
+    # Backup before deleting
+    backup_database()
+    
+    try:
+        card_name = card.name
+        db.session.delete(card)
+        db.session.commit()
+        flash(f'Credit card "{card_name}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting credit card. Please try again.', 'danger')
+        print(f"Error deleting credit card: {e}")
+    
+    return redirect(url_for('credit_cards'))
+
+@app.route('/delete/bill/<int:bill_id>')
+def delete_bill(bill_id):
+    """Delete a bill"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    bill = Bill.query.get_or_404(bill_id)
+    if bill.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('bills'))
+    
+    # Backup before deleting
+    backup_database()
+    
+    try:
+        bill_name = bill.name
+        db.session.delete(bill)
+        db.session.commit()
+        flash(f'Bill "{bill_name}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting bill. Please try again.', 'danger')
+        print(f"Error deleting bill: {e}")
+    
+    return redirect(url_for('bills'))
+
+@app.route('/delete/subscription/<int:subscription_id>')
+def delete_subscription(subscription_id):
+    """Delete a subscription"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    subscription = Subscription.query.get_or_404(subscription_id)
+    if subscription.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('subscriptions'))
+    
+    # Backup before deleting
+    backup_database()
+    
+    try:
+        subscription_name = subscription.name
+        db.session.delete(subscription)
+        db.session.commit()
+        flash(f'Subscription "{subscription_name}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting subscription. Please try again.', 'danger')
+        print(f"Error deleting subscription: {e}")
+    
+    return redirect(url_for('subscriptions'))
+
+@app.route('/delete/loan/<int:loan_id>')
+def delete_loan(loan_id):
+    """Delete a loan"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    loan = Loan.query.get_or_404(loan_id)
+    if loan.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('loans'))
+    
+    # Backup before deleting
+    backup_database()
+    
+    try:
+        loan_name = loan.name
+        db.session.delete(loan)
+        db.session.commit()
+        flash(f'Loan "{loan_name}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting loan. Please try again.', 'danger')
+        print(f"Error deleting loan: {e}")
+    
+    return redirect(url_for('loans'))
+
+@app.route('/toggle/<string:item_type>/<int:item_id>')
+def toggle_item_inclusion(item_type, item_id):
+    """Toggle include_in_calculations for any item type"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    backup_database()
+    
+    try:
+        item = None
+        redirect_route = 'dashboard'
+        
+        if item_type == 'bill':
+            item = Bill.query.get_or_404(item_id)
+            redirect_route = 'bills'
+        elif item_type == 'subscription':
+            item = Subscription.query.get_or_404(item_id)
+            redirect_route = 'subscriptions'
+        elif item_type == 'loan':
+            item = Loan.query.get_or_404(item_id)
+            redirect_route = 'loans'
+        elif item_type == 'credit_card':
+            item = CreditCard.query.get_or_404(item_id)
+            redirect_route = 'credit_cards'
+        
+        if item and item.user_id == session['user_id']:
+            # Toggle the include_in_calculations field
+            item.include_in_calculations = not getattr(item, 'include_in_calculations', True)
+            db.session.commit()
+            
+            status = "included in" if item.include_in_calculations else "excluded from"
+            flash(f'{item.name} is now {status} calculations', 'info')
+        else:
+            flash('Unauthorized access or item not found', 'danger')
+            
+    except Exception as e:
+        db.session.rollback()
+        flash('Error updating item. Please try again.', 'danger')
+        print(f"Error toggling inclusion: {e}")
+    
+    return redirect(url_for(redirect_route))
+
+# Error handlers
+@app.errorhandler(404)
+def not_found_error(error):
+    return render_template('errors/404.html'), 404
+
+@app.errorhandler(500)
+def internal_error(error):
+    db.session.rollback()
+    return render_template('errors/500.html'), 500
+
+@app.errorhandler(403)
+def forbidden_error(error):
+    return render_template('errors/403.html'), 403
+
+# Context processors for global template variables
+@app.context_processor
+def inject_demo_mode():
+    """Make demo_mode available to all templates"""
+    return dict(demo_mode='demo_mode' in session)
+
+@app.context_processor
+def inject_config():
+    """Make config available to all templates"""
+    return dict(config=app.config)
+
+# Development and production startup
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Create tables if they don't exist
+    with app.app_context():
+        db.create_all()
+        safe_migrate_database()
+        
+        # Print startup information
+        print("=== Vance Finance Starting ===")
+        print(f"Environment: {'Development' if app.config['DEVELOPMENT_MODE'] else 'Production'}")
+        print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+        print(f"Secret Key: {'Set' if app.config['SECRET_KEY'] else 'Not Set'}")
+        
+        # Check if any users exist
+        user_count = User.query.count()
+        print(f"Users in database: {user_count}")
+        
+        if user_count == 0:
+            print("No users found. New users can register or try the demo.")
+        
+        print("================================")
+    
+    # Run the application
+    if app.config['DEVELOPMENT_MODE']:
+        # Development server with debug mode
+        app.run(
+            host='0.0.0.0',
+            port=int(os.environ.get('PORT', 5000)),
+            debug=True,
+            threaded=True
+        )
+    else:
+        # Production server (this won't typically be reached when using gunicorn)
+        app.run(
+            host='0.0.0.0',
+            port=int(os.environ.get('PORT', 5000)),
+            debug=False,
+            threaded=True
+        )
