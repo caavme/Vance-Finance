@@ -1,6 +1,17 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+
+## [2.0.2] - 2025-07-12
+
+### Fixed
+ - Loans not showing
+
+## [2.0.1] - 2025-07-12
+
+### Fixed
+ - Credit Cards not showing
+
 ## [2.0.0] - 2025-07-10
 
 ### Added
