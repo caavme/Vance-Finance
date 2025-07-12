@@ -165,42 +165,116 @@
                     {% if 'user_id' in session %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                            <div class="nav-icon-label">
+                                <i class="bi bi-speedometer2"></i>
+                                <span class="nav-label">Dashboard</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('overview') }}">
-                            <i class="bi bi-calendar3 me-1"></i>Overview
+                            <div class="nav-icon-label">
+                                <i class="bi bi-calendar3"></i>
+                                <span class="nav-label">Overview</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('income') }}">
-                            <i class="bi bi-cash-stack me-1"></i>Income
+                            <div class="nav-icon-label">
+                                <i class="bi bi-cash-stack"></i>
+                                <span class="nav-label">Income</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('budget') }}">
-                            <i class="bi bi-pie-chart me-1"></i>Budget
+                            <div class="nav-icon-label">
+                                <i class="bi bi-pie-chart"></i>
+                                <span class="nav-label">Budget</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('bills') }}">
-                            <i class="bi bi-receipt me-1"></i>Bills
+                            <div class="nav-icon-label">
+                                <i class="bi bi-receipt"></i>
+                                <span class="nav-label">Bills</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('subscriptions') }}">
-                            <i class="bi bi-arrow-repeat me-1"></i>Subscriptions
+                            <div class="nav-icon-label">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span class="nav-label">Subscriptions</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('loans') }}">
-                            <i class="bi bi-bank me-1"></i>Loans
+                            <div class="nav-icon-label">
+                                <i class="bi bi-bank"></i>
+                                <span class="nav-label">Loans</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('credit_cards') }}">
-                            <i class="bi bi-credit-card me-1"></i>Credit Cards
+                            <div class="nav-icon-label">
+                                <i class="bi bi-credit-card"></i>
+                                <span class="nav-label">Credit Cards</span>
+                            </div>
+                        </a>
+                    </li>
+                    <!-- Backup dropdown (if not in demo mode) -->
+                    {% if 'demo_mode' not in session %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="backupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-cloud-arrow-down"></i>
+                                <span class="nav-label">Backup</span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="backupDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('export_backup') }}">
+                                    <i class="bi bi-download me-2"></i>Export Data (JSON)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('import_backup') }}">
+                                    <i class="bi bi-upload me-2"></i>Import Data
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('manual_backup') }}">
+                                    <i class="bi bi-hdd me-2"></i>Create DB Backup
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('manage_backups') }}">
+                                    <i class="bi bi-folder me-2"></i>Manage Backups
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('wiki') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-book"></i>
+                                <span class="nav-label">Wiki</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="nav-label">{% if 'demo_mode' in session %}Exit{% else %}Logout{% endif %}</span>
+                            </div>
                         </a>
                     </li>
                     <!-- Only show backup options if not in demo mode -->
@@ -234,35 +308,37 @@
                         </ul>
                     </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('wiki') }}">
-                            <i class="bi bi-book me-1"></i>Wiki
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right me-1"></i>{% if 'demo_mode' in session %}Exit{% else %}Logout{% endif %}
-                        </a>
-                    </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('demo_page') }}">
-                            <i class="bi bi-play-circle me-1"></i>Demo
+                            <div class="nav-icon-label">
+                                <i class="bi bi-play-circle"></i>
+                                <span class="nav-label">Demo</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            <div class="nav-icon-label">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span class="nav-label">Login</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">
-                            <i class="bi bi-person-plus me-1"></i>Register
+                            <div class="nav-icon-label">
+                                <i class="bi bi-person-plus"></i>
+                                <span class="nav-label">Register</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('wiki') }}">
-                            <i class="bi bi-book me-1"></i>Wiki
+                            <div class="nav-icon-label">
+                                <i class="bi bi-book"></i>
+                                <span class="nav-label">Wiki</span>
+                            </div>
                         </a>
                     </li>
                     {% endif %}

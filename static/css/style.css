@@ -365,3 +365,25 @@ small.text-muted {
     border-style: solid;
     overflow: hidden; /* Ensures corners are not visually clipped */
 }
+
+.nav-icon-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-label i {
+    font-size: 2rem; /* Large icon */
+    display: block;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.nav-icon-label .nav-label {
+    font-size: 0.85rem; /* Smaller text */
+    color: #555;
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}

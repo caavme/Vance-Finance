@@ -227,7 +227,7 @@
                         <tbody>
                             {% for card in credit_cards[:4] %}
                             <tr>
-                                <td>{{ card.name }} (xxxx-{{ card.last_four }})</td>
+                                <td>{{ card.name }} (x{{ card.last_four }})</td>
                                 <td>${{ "%.2f"|format(card.current_balance) }}</td>
                                 <td>{% if card.limit %}${{ "%.2f"|format(card.limit) }}{% else %}&mdash;{% endif %}</td>
                                 <td>
