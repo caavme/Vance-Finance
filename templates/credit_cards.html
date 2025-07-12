@@ -430,7 +430,7 @@
                             <label for="due_day" class="form-label">Due Day of Month</label>
                             <select class="form-select" id="due_day" name="due_day" required>
                                 {% for day in range(1, 32) %}
-                                <option value="{{ day }}" {% if day= =15 %}selected{% endif %}>{{ day }}</option>
+                                <option value="{{ day }}" {% if day==15 %}selected{% endif %}>{{ day }}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" id="payment_due_date" name="payment_due_date">
@@ -515,7 +515,7 @@
                             <label for="annual_fee_frequency{{ card.id }}" class="form-label">Fee Frequency</label>
                             <select class="form-select" id="annual_fee_frequency{{ card.id }}" name="annual_fee_frequency" onchange="updateFeeFrequencyInfo('{{ card.id }}'); calculateMinPaymentPreview('{{ card.id }}')">
                                 <option value="yearly" {% if card.annual_fee_frequency !='monthly' %}selected{% endif %}>Yearly (Charged once per year)</option>
-                                <option value="monthly" {% if card.annual_fee_frequency= ='monthly' %}selected{% endif %}>Monthly (Divided by 12 months)</option>
+                                <option value="monthly" {% if card.annual_fee_frequency=='monthly' %}selected{% endif %}>Monthly (Divided by 12 months)</option>
                             </select>
                             <small class="text-muted" id="feeFrequencyInfo{{ card.id }}">
                                 {% if card.annual_fee_frequency == 'monthly' %}
@@ -530,7 +530,7 @@
                             <label for="due_day{{ card.id }}" class="form-label">Due Day of Month</label>
                             <select class="form-select" id="due_day{{ card.id }}" name="due_day" required>
                                 {% for day in range(1, 32) %}
-                                <option value="{{ day }}" {% if card.payment_due_date.day= =day %}selected{% endif %}>{{ day }}</option>
+                                <option value="{{ day }}" {% if card.payment_due_date.day==day %}selected{% endif %}>{{ day }}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" id="payment_due_date{{ card.id }}" name="payment_due_date" value="{{ card.payment_due_date.strftime('%Y-%m-%d') }}">
