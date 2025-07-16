@@ -12,6 +12,10 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_wtf.csrf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 
+# Version numbers for display
+APP_VERSION = "2.2.5"
+WIKI_VERSION = "v2.2.1"
+
 # Initialize Flask application
 app = Flask(__name__)
 
@@ -84,6 +88,7 @@ class CreditCard(db.Model):
     auto_payment_amount = db.Column(db.Float)
     include_in_calculations = db.Column(db.Boolean, default=True)  # NEW FIELD
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_minimum_manual = db.Column(db.Boolean, default=False)
 
 class Subscription(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1099,6 +1104,7 @@ def run_safe_migrations():
             ('credit_card', 'auto_pay_minimum', 'BOOLEAN', 'DEFAULT 0'),
             ('credit_card', 'auto_payment_amount', 'REAL', ''),
             ('credit_card', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('credit_card', 'is_minimum_manual', 'BOOLEAN', 'DEFAULT 0'),
             ('bill', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
             ('subscription', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
             ('loan', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
@@ -1773,27 +1779,19 @@ def credit_cards():
         # Handle the due day
         if 'due_day' in request.form:
             due_day = int(request.form.get('due_day'))
-            # Calculate the next occurrence of this day
             today = datetime.now().date()
             current_year = today.year
             current_month = today.month
-            
-            # Try to set for current month first
             try:
                 payment_due_date = datetime(current_year, current_month, due_day).date()
             except ValueError:
-                # Handle invalid day for month (e.g., February 30)
-                # Set to last day of the month
                 if current_month == 12:
                     next_month = 1
                     next_year = current_year + 1
                 else:
                     next_month = current_month + 1
                     next_year = current_year
-                
                 payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
-            
-            # If the day has already passed this month, move to next month
             if payment_due_date < today:
                 if current_month == 12:
                     payment_due_date = datetime(current_year + 1, 1, due_day).date()
@@ -1801,28 +1799,31 @@ def credit_cards():
                     try:
                         payment_due_date = datetime(current_year, current_month + 1, due_day).date()
                     except ValueError:
-                        # Handle invalid day for next month
                         if current_month + 1 == 12:
                             next_month = 1
                             next_year = current_year + 1
                         else:
                             next_month = current_month + 2
                             next_year = current_year
-                        
                         payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
         else:
-            # If no due_day provided, use the payment_due_date from form (backwards compatibility)
             payment_due_date = datetime.strptime(request.form.get('payment_due_date'), '%Y-%m-%d').date()
-        
-        # Calculate minimum payment automatically
-        minimum_payment = calculate_minimum_payment(
-            current_balance=current_balance,
-            interest_rate=interest_rate,
-            credit_limit=limit,
-            min_percentage=2.0,  # 2% of balance
-            min_amount=25.0      # $25 minimum
-        )
-        
+
+        # Use user-provided minimum payment if present, otherwise calculate
+        minimum_payment_str = request.form.get('minimum_payment')
+        if minimum_payment_str and minimum_payment_str.strip() != '':
+            minimum_payment = float(minimum_payment_str)
+            is_minimum_manual = True
+        else:
+            minimum_payment = calculate_minimum_payment(
+                current_balance=current_balance,
+                interest_rate=interest_rate,
+                credit_limit=limit,
+                min_percentage=2.0,
+                min_amount=25.0
+            )
+            is_minimum_manual = False
+
         new_card = CreditCard(
             name=name,
             last_four=last_four,
@@ -1830,7 +1831,8 @@ def credit_cards():
             current_balance=current_balance,
             payment_due_date=payment_due_date,
             interest_rate=interest_rate,
-            minimum_payment=minimum_payment,  # Use calculated minimum payment
+            minimum_payment=minimum_payment,
+            is_minimum_manual=is_minimum_manual,
             auto_pay_minimum=auto_pay_minimum,
             auto_payment_amount=auto_payment_amount,
             user_id=session['user_id']
@@ -1839,7 +1841,7 @@ def credit_cards():
         try:
             db.session.add(new_card)
             db.session.commit()
-            flash('Credit card added successfully with calculated minimum payment!', 'success')
+            flash('Credit card added successfully!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error adding credit card. Please try again.', 'danger')
@@ -1848,19 +1850,13 @@ def credit_cards():
         return redirect(url_for('credit_cards'))
     
     user_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
-    
-    # Update minimum payments for all cards before displaying
-    update_minimum_payments_for_user(session['user_id'])
-    
-    # Calculate summary statistics
+#    update_minimum_payments_for_user(session['user_id'])
     total_limit = sum(card.limit for card in user_cards if card.limit)
     total_balance = sum(card.current_balance for card in user_cards if card.current_balance)
     total_available = total_limit - total_balance
     total_min_payments = sum(card.minimum_payment for card in user_cards if card.minimum_payment)
     cards_with_rate = [card for card in user_cards if card.interest_rate]
     avg_interest_rate = sum(card.interest_rate for card in cards_with_rate) / len(cards_with_rate) if cards_with_rate else 0
-    
-    # Calculate overall utilization
     overall_utilization = (total_balance / total_limit * 100) if total_limit > 0 else 0
     
     return render_template('credit_cards.html', 
@@ -1872,6 +1868,89 @@ def credit_cards():
                          avg_interest_rate=avg_interest_rate,
                          overall_utilization=overall_utilization,
                          current_page='credit-cards')
+
+
+@app.route('/edit/card/<int:card_id>', methods=['POST'])
+def edit_card(card_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+    
+    card = CreditCard.query.get_or_404(card_id)
+    if card.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('dashboard'))
+    
+    if request.method == 'POST':
+        # Backup before editing
+        backup_database()
+        
+        try:
+            card.name = request.form.get('name')
+            card.last_four = request.form.get('last_four')
+            card.limit = float(request.form.get('limit')) if request.form.get('limit') else None
+            current_balance = float(request.form.get('current_balance'))
+            card.current_balance = current_balance
+            card.interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
+            card.auto_pay_minimum = ('auto_pay_minimum' in request.form)
+            card.auto_payment_amount = float(request.form.get('auto_payment_amount')) if request.form.get('auto_payment_amount') and not card.auto_pay_minimum else None
+            
+            # Handle the due day
+            if 'due_day' in request.form:
+                due_day = int(request.form.get('due_day'))
+                today = datetime.now().date()
+                current_year = today.year
+                current_month = today.month
+                try:
+                    payment_due_date = datetime(current_year, current_month, due_day).date()
+                except ValueError:
+                    if current_month == 12:
+                        next_month = 1
+                        next_year = current_year + 1
+                    else:
+                        next_month = current_month + 1
+                        next_year = current_year
+                    payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
+                if payment_due_date < today:
+                    if current_month == 12:
+                        payment_due_date = datetime(current_year + 1, 1, due_day).date()
+                    else:
+                        try:
+                            payment_due_date = datetime(current_year, current_month + 1, due_day).date()
+                        except ValueError:
+                            if current_month + 1 == 12:
+                                next_month = 1
+                                next_year = current_year + 1
+                            else:
+                                next_month = current_month + 2
+                                next_year = current_year
+                            payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
+                card.payment_due_date = payment_due_date
+            else:
+                card.payment_due_date = datetime.strptime(request.form.get('payment_due_date'), '%Y-%m-%d').date()
+            
+            # Use user-provided minimum payment if present, otherwise calculate
+            minimum_payment_str = request.form.get('minimum_payment')
+            if minimum_payment_str and minimum_payment_str.strip() != '':
+                card.minimum_payment = float(minimum_payment_str)
+                card.is_minimum_manual = True
+            else:
+                card.minimum_payment = calculate_minimum_payment(
+                    current_balance=current_balance,
+                    interest_rate=card.interest_rate,
+                    credit_limit=card.limit,
+                    min_percentage=2.0,
+                    min_amount=25.0
+                )
+                card.is_minimum_manual = False
+            
+            db.session.commit()
+            flash('Credit card updated successfully!', 'success')
+        except Exception as e:
+            db.session.rollback()
+            flash('Error updating credit card. Please try again.', 'danger')
+            print(f"Error editing credit card: {e}")
+        
+    return redirect(url_for('credit_cards'))
 
 @app.route('/mark_paid/<string:bill_type>/<int:item_id>')
 def mark_paid(bill_type, item_id):
@@ -2042,94 +2121,6 @@ def edit_loan(loan_id):
             flash('Error updating loan. Please try again.', 'danger')
             print(f"Error editing loan: {e}")
     return redirect(url_for('loans'))
-
-@app.route('/edit/card/<int:card_id>', methods=['POST'])
-def edit_card(card_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-    
-    card = CreditCard.query.get_or_404(card_id)
-    if card.user_id != session['user_id']:
-        flash('Unauthorized access', 'danger')
-        return redirect(url_for('dashboard'))
-    
-    if request.method == 'POST':
-        # Backup before editing
-        backup_database()
-        
-        try:
-            card.name = request.form.get('name')
-            card.last_four = request.form.get('last_four')
-            card.limit = float(request.form.get('limit')) if request.form.get('limit') else None
-            current_balance = float(request.form.get('current_balance'))
-            card.current_balance = current_balance
-            card.interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
-            card.auto_pay_minimum = ('auto_pay_minimum' in request.form)
-            card.auto_payment_amount = float(request.form.get('auto_payment_amount')) if request.form.get('auto_payment_amount') and not card.auto_pay_minimum else None
-            
-            # Handle the due day
-            if 'due_day' in request.form:
-                due_day = int(request.form.get('due_day'))
-                # Calculate the next occurrence of this day
-                today = datetime.now().date()
-                current_year = today.year
-                current_month = today.month
-                
-                # Try to set for current month first
-                try:
-                    payment_due_date = datetime(current_year, current_month, due_day).date()
-                except ValueError:
-                    # Handle invalid day for month (e.g., February 30)
-                    # Set to last day of the month
-                    if current_month == 12:
-                        next_month = 1
-                        next_year = current_year + 1
-                    else:
-                        next_month = current_month + 1
-                        next_year = current_year
-                    
-                    payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
-                
-                # If the day has already passed this month, move to next month
-                if payment_due_date < today:
-                    if current_month == 12:
-                        payment_due_date = datetime(current_year + 1, 1, due_day).date()
-                    else:
-                        try:
-                            payment_due_date = datetime(current_year, current_month + 1, due_day).date()
-                        except ValueError:
-                            # Handle invalid day for next month
-                            if current_month + 1 == 12:
-                                next_month = 1
-                                next_year = current_year + 1
-                            else:
-                                next_month = current_month + 2
-                                next_year = current_year
-                            
-                            payment_due_date = datetime(next_year, next_month, 1).date() - timedelta(days=1)
-                
-                card.payment_due_date = payment_due_date
-            else:
-                # If no due_day provided, use the payment_due_date from form (backwards compatibility)
-                card.payment_due_date = datetime.strptime(request.form.get('payment_due_date'), '%Y-%m-%d').date()
-            
-            # Recalculate minimum payment with updated values
-            card.minimum_payment = calculate_minimum_payment(
-                current_balance=current_balance,
-                interest_rate=card.interest_rate,
-                credit_limit=card.limit,
-                min_percentage=2.0,  # 2% of balance
-                min_amount=25.0      # $25 minimum
-            )
-            
-            db.session.commit()
-            flash('Credit card updated successfully with recalculated minimum payment!', 'success')
-        except Exception as e:
-            db.session.rollback()
-            flash('Error updating credit card. Please try again.', 'danger')
-            print(f"Error editing credit card: {e}")
-        
-    return redirect(url_for('credit_cards'))
 
 # Add this route after your existing edit routes, around line 1200-1300
 
@@ -3726,6 +3717,13 @@ def inject_demo_mode():
 def inject_config():
     """Make config available to all templates"""
     return dict(config=app.config)
+
+@app.context_processor
+def inject_versions():
+    return dict(
+        app_version=APP_VERSION,
+        wiki_version=WIKI_VERSION
+    )
 
 # Development and production startup
 if __name__ == '__main__':
