@@ -38,6 +38,8 @@ app.config.from_object(Config)
 # Initialize database
 db = SQLAlchemy(app)
 
+
+
 # Define models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -1121,6 +1123,9 @@ def run_safe_migrations():
 
         db.session.commit()
         print("Safe migrations complete.")
+    
+with app.app_context():
+    run_safe_migrations()
 
 # Routes
 @app.before_request
