@@ -1123,8 +1123,9 @@ def run_safe_migrations():
 
         db.session.commit()
         print("Safe migrations complete.")
-    with app.app_context():
-        run_safe_migrations()
+    
+with app.app_context():
+    run_safe_migrations()
 
 # Routes
 @app.before_request
