@@ -4,7 +4,7 @@
 }
 
 .wiki-header {
-    background: white !important;
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%) !important;
     border: 2px solid var(--primary-color);
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-xl);
@@ -93,7 +93,7 @@
 .wiki-sidebar .list-group-item.active {
     background: var(--primary-color) !important;
     color: white !important;
-    border-left: 4px solid var(--primary-dark);
+/*    border-left: 4px solid var(--primary-dark); */
     transform: translateX(4px);
     box-shadow: var(--shadow-md);
 }

@@ -12,7 +12,7 @@
 /* CSS Variables for consistent theming */
 :root {
     --primary-color: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
-    --primary-dark: #5a67d8;
+    --primary-dark: #16a34a;
     --secondary-color: #764ba2;
     --success-color: #10b981;
     --warning-color: #f59e0b;
@@ -422,3 +422,4 @@ small.text-muted {
     color: #fff !important;
     border-bottom: none;
 }
+

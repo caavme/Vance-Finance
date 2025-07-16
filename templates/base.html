@@ -102,6 +102,17 @@
     </style>
 </head>
 <body>
+    {% if config.DEVELOPMENT_MODE or 'demo_mode' in session %}
+    <div class="position-absolute" style="top: 1rem; left: 1rem; z-index: 2000;">
+        {% if config.DEVELOPMENT_MODE %}
+        <span class="badge bg-danger me-2" style="font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">DEV</span>
+        {% endif %}
+        {% if 'demo_mode' in session %}
+        <span class="badge bg-info" style="font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">DEMO</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if config.DEVELOPMENT_MODE %}
     <!-- Development Server Banner -->
     <div class="alert alert-warning alert-dismissible mb-0 rounded-0 border-0" style="background: linear-gradient(90deg, #dc3545, #fd7e14);">
@@ -146,13 +157,8 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                {% if config.DEVELOPMENT_MODE %}
-                <span class="badge bg-danger me-2">DEV</span>
-                {% endif %}
-                {% if 'demo_mode' in session %}
-                <span class="badge bg-info me-2">DEMO</span>
-                {% endif %}
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Vance Financial Logo" style="height:6rem; width:auto; margin-right:0.75rem;">
                 <span class="gradient-text-green">Vance Finance</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
