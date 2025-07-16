@@ -1086,9 +1086,41 @@ def plan_budget_framework(user_id, period_type='monthly'):
     return {'categories': results}
 
 # Create the database tables and migrate
-with app.app_context():
-    db.create_all()
-    safe_migrate_database()
+def run_safe_migrations():
+    """Safely migrate the database schema by adding missing columns only."""
+    with app.app_context():
+        db.create_all()  # Only creates missing tables, never drops or alters existing ones
+
+        # List of migrations: table, column, SQL type, default value (if any)
+        migrations = [
+            # (table, column, SQL type, default SQL)
+            ('credit_card', 'auto_pay_minimum', 'BOOLEAN', 'DEFAULT 0'),
+            ('credit_card', 'auto_payment_amount', 'REAL', ''),
+            ('credit_card', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('bill', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('subscription', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('loan', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('loan', 'income_type', 'VARCHAR(20)', "DEFAULT 'Employment'"),
+            ('income_source', 'day_of_week', 'VARCHAR(10)', ''),
+            ('income_source', 'one_time_date', 'DATE', ''),
+            ('income_source', 'income_type', 'VARCHAR(20)', "DEFAULT 'Employment'"),
+        ]
+
+        for table, column, coltype, default in migrations:
+            # Check if column exists
+            result = db.session.execute(db.text(f"PRAGMA table_info({table})"))
+            columns = [row[1] for row in result.fetchall()]
+            if column not in columns:
+                try:
+                    db.session.execute(
+                        db.text(f"ALTER TABLE {table} ADD COLUMN {column} {coltype} {default}")
+                    )
+                    print(f"Added column '{column}' to '{table}'")
+                except Exception as e:
+                    print(f"Could not add column '{column}' to '{table}': {e}")
+
+        db.session.commit()
+        print("Safe migrations complete.")
 
 # Routes
 @app.before_request
@@ -3537,41 +3569,27 @@ def inject_config():
 
 # Development and production startup
 if __name__ == '__main__':
-    # Create tables if they don't exist
+    run_safe_migrations()
+
+    # Print startup information
+    print("=== Vance Finance Starting ===")
+    print(f"Environment: {'Development' if app.config['DEVELOPMENT_MODE'] else 'Production'}")
+    print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print(f"Secret Key: {'Set' if app.config['SECRET_KEY'] else 'Not Set'}")
+
+    # Check if any users exist
     with app.app_context():
-        db.create_all()
-        safe_migrate_database()
-        
-        # Print startup information
-        print("=== Vance Finance Starting ===")
-        print(f"Environment: {'Development' if app.config['DEVELOPMENT_MODE'] else 'Production'}")
-        print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
-        print(f"Secret Key: {'Set' if app.config['SECRET_KEY'] else 'Not Set'}")
-        
-        # Check if any users exist
-        user_count = User.query.count()
+        user_count = db.session.query(db.func.count(User.id)).scalar()
         print(f"Users in database: {user_count}")
-        
         if user_count == 0:
             print("No users found. New users can register or try the demo.")
-        
         print("================================")
-    
+
     # Run the application
-    if app.config['DEVELOPMENT_MODE']:
-        # Development server with debug mode
-        app.run(
-            host='0.0.0.0',
-            port=int(os.environ.get('PORT', 5000)),
-            debug=True,
-            threaded=True
-        )
-    else:
-        # Production server (this won't typically be reached when using gunicorn)
-        app.run(
-            host='0.0.0.0',
-            port=int(os.environ.get('PORT', 5000)),
-            debug=False,
-            threaded=True
-        )
+    app.run(
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)),
+        debug=app.config['DEVELOPMENT_MODE'],
+        threaded=True
+    )
 
