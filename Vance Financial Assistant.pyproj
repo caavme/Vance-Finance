@@ -22,7 +22,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="config.py" />
-    <Compile Include="demo.py" />
     <Compile Include="static_setup.py" />
     <Compile Include="Vance_Financial_Assistant.py" />
     <Compile Include="wsgi.py" />
