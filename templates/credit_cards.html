@@ -154,7 +154,11 @@
                             <div class="d-flex flex-column">
                                 <span class="text-success fw-bold">${{ "%.2f"|format(card.minimum_payment) }}</span>
                                 <small class="text-muted">
+                                    {% if card.is_minimum_manual %}
+                                    Manually entered
+                                    {% else %}
                                     Auto-calculated
+                                    {% endif %}
                                     {% if card.annual_fee and card.annual_fee > 0 and card.annual_fee_frequency == 'monthly' %}
                                     <br><i class="bi bi-info-circle"></i> Includes monthly fee
                                     {% endif %}
@@ -170,7 +174,7 @@
                             {% elif card.auto_payment_amount %}
                             ${{ "%.2f"|format(card.auto_payment_amount) }}
                             {% else %}
-                            <span class="badge bg-secondary">None</span>
+                            <span class="badge bg-warning">None</span>
                             {% endif %}
                         </td>
                         <td>
@@ -440,8 +444,7 @@
                                 Minimum Payment ($)
                                 <small class="text-muted">(Auto-calculated)</small>
                             </label>
-                            <input type="number" step="0.01" class="form-control" id="minimum_payment" name="minimum_payment" readonly placeholder="Will be calculated automatically">
-                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment" name="minimum_payment" placeholder="Leave blank for auto-calculate">                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
                             <div id="minPaymentPreview" class="mt-1"></div>
                         </div>
                         <div class="col-md-6">
@@ -540,8 +543,7 @@
                                 Minimum Payment ($)
                                 <small class="text-muted">(Auto-calculated)</small>
                             </label>
-                            <input type="number" step="0.01" class="form-control" id="minimum_payment{{ card.id }}" name="minimum_payment" value="{{ card.minimum_payment or '' }}" readonly>
-                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
+                            <input type="number" step="0.01" class="form-control" id="minimum_payment{{ card.id }}" name="minimum_payment" value="{{ card.minimum_payment or '' }}" placeholder="Leave blank for auto-calculate">                            <small class="text-muted">Based on 2% of balance or $25 minimum + monthly fees</small>
                             <div id="minPaymentPreview{{ card.id }}" class="mt-1"></div>
                         </div>
                         <div class="col-md-6">
