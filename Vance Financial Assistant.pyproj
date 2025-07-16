@@ -28,6 +28,7 @@
     <Compile Include="wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="changelog.md" />
     <Content Include="templates\base.html" />
     <Content Include="templates\bills.html" />
     <Content Include="templates\budget.html" />
