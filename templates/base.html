@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/wiki.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/budget.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
     <!-- EMERGENCY OVERRIDE: Force all backgrounds to be white -->
     <style>
         /* Override all possible grey backgrounds with !important */
         .card,
-        .card-header,
         .card-body,
         .card-footer,
         .modal-content,
@@ -46,7 +46,6 @@
         }
 
             /* Ensure text stays readable */
-            .card-header,
             .modal-header,
             .wiki-section .card-header,
             .goal-card .card-header,
@@ -63,7 +62,6 @@
         /* Override any dark mode styles completely */
         @media (prefers-color-scheme: dark) {
             .card,
-            .card-header,
             .card-body,
             .card-footer,
             .modal-content,
@@ -104,6 +102,17 @@
     </style>
 </head>
 <body>
+    {% if config.DEVELOPMENT_MODE or 'demo_mode' in session %}
+    <div class="position-absolute" style="top: 1rem; left: 1rem; z-index: 2000;">
+        {% if config.DEVELOPMENT_MODE %}
+        <span class="badge bg-danger me-2" style="font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">DEV</span>
+        {% endif %}
+        {% if 'demo_mode' in session %}
+        <span class="badge bg-info" style="font-size:1rem;box-shadow:0 2px 8px rgba(0,0,0,0.08);">DEMO</span>
+        {% endif %}
+    </div>
+    {% endif %}
+
     {% if config.DEVELOPMENT_MODE %}
     <!-- Development Server Banner -->
     <div class="alert alert-warning alert-dismissible mb-0 rounded-0 border-0" style="background: linear-gradient(90deg, #dc3545, #fd7e14);">
@@ -148,14 +157,9 @@
 
     <nav class="navbar navbar-expand-lg navbar-light bg-white">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                {% if config.DEVELOPMENT_MODE %}
-                <span class="badge bg-danger me-2">DEV</span>
-                {% endif %}
-                {% if 'demo_mode' in session %}
-                <span class="badge bg-info me-2">DEMO</span>
-                {% endif %}
-                Vance Finance
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Vance Financial Logo" style="height:6rem; width:auto; margin-right:0.75rem;">
+                <span class="gradient-text-green">Vance Finance</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -164,43 +168,128 @@
                 <ul class="navbar-nav ms-auto">
                     {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-speedometer2 me-1"></i>Dashboard
+                        <a class="nav-link {% if current_page == 'dashboard' %}active-page{% endif %}" href="{{ url_for('dashboard') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-speedometer2"></i>
+                                <span class="nav-label">Dashboard</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('overview') }}">
-                            <i class="bi bi-calendar3 me-1"></i>Overview
+                        <a class="nav-link {% if current_page == 'budget' %}active-page{% endif %}" href="{{ url_for('budget') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-pie-chart"></i>
+                                <span class="nav-label">Budget</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!--<li class="nav-item">
+        <a class="nav-link {% if current_page == 'overview' %}active-page{% endif %}" href="{ url_for('overview') }}">
+            <div class="nav-icon-label">
+                <i class="bi bi-calendar3"></i>
+                <span class="nav-label">Overview</span>
+            </div>
+        </a>
+    </li>-->
+                    <li class="nav-item">
+                        <a class="nav-link {% if current_page == 'payment_planner' %}active-page{% endif %}" href="{{ url_for('payment_planner') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-calculator"></i>
+                                <span class="nav-label">Payment Planner</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('income') }}">
-                            <i class="bi bi-cash-stack me-1"></i>Income
+                        <a class="nav-link {% if current_page == 'income' %}active-page{% endif %}" href="{{ url_for('income') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-cash-stack"></i>
+                                <span class="nav-label">Income</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {% if current_page == 'bills' %}active-page{% endif %}" href="{{ url_for('bills') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-receipt"></i>
+                                <span class="nav-label">Bills</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('budget') }}">
-                            <i class="bi bi-pie-chart me-1"></i>Budget
+                        <a class="nav-link {% if current_page == 'subscriptions' %}active-page{% endif %}" href="{{ url_for('subscriptions') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-arrow-repeat"></i>
+                                <span class="nav-label">Subscriptions</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('bills') }}">
-                            <i class="bi bi-receipt me-1"></i>Bills
+                        <a class="nav-link {% if current_page == 'loans' %}active-page{% endif %}" href="{{ url_for('loans') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-bank"></i>
+                                <span class="nav-label">Loans</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('subscriptions') }}">
-                            <i class="bi bi-arrow-repeat me-1"></i>Subscriptions
+                        <a class="nav-link {% if current_page == 'credit_cards' %}active-page{% endif %}" href="{{ url_for('credit_cards') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-credit-card"></i>
+                                <span class="nav-label">Credit Cards</span>
+                            </div>
+                        </a>
+                    </li>
+
+                    <!-- Backup dropdown (if not in demo mode) -->
+                    {% if 'demo_mode' not in session %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="backupDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-cloud-arrow-down"></i>
+                                <span class="nav-label">Backup</span>
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="backupDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('export_backup') }}">
+                                    <i class="bi bi-download me-2"></i>Export Data (JSON)
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('import_backup') }}">
+                                    <i class="bi bi-upload me-2"></i>Import Data
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('manual_backup') }}">
+                                    <i class="bi bi-hdd me-2"></i>Create DB Backup
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('manage_backups') }}">
+                                    <i class="bi bi-folder me-2"></i>Manage Backups
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link {% if current_page == 'wiki' %}active-page{% endif %}" href="{{ url_for('wiki') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-book"></i>
+                                <span class="nav-label">Wiki</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('loans') }}">
-                            <i class="bi bi-bank me-1"></i>Loans
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('credit_cards') }}">
-                            <i class="bi bi-credit-card me-1"></i>Credit Cards
+                        <a class="nav-link" href="{{ url_for('logout') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span class="nav-label">{% if 'demo_mode' in session %}Exit{% else %}Logout{% endif %}</span>
+                            </div>
                         </a>
                     </li>
                     <!-- Only show backup options if not in demo mode -->
@@ -234,35 +323,37 @@
                         </ul>
                     </li>
                     {% endif %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('wiki') }}">
-                            <i class="bi bi-book me-1"></i>Wiki
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="bi bi-box-arrow-right me-1"></i>{% if 'demo_mode' in session %}Exit{% else %}Logout{% endif %}
-                        </a>
-                    </li>
                     {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('demo_page') }}">
-                            <i class="bi bi-play-circle me-1"></i>Demo
+                            <div class="nav-icon-label">
+                                <i class="bi bi-play-circle"></i>
+                                <span class="nav-label">Demo</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
+                            <div class="nav-icon-label">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span class="nav-label">Login</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('register') }}">
-                            <i class="bi bi-person-plus me-1"></i>Register
+                            <div class="nav-icon-label">
+                                <i class="bi bi-person-plus"></i>
+                                <span class="nav-label">Register</span>
+                            </div>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('wiki') }}">
-                            <i class="bi bi-book me-1"></i>Wiki
+                        <a class="nav-link {% if current_page == 'wiki' %}active-page{% endif %}" href="{{ url_for('wiki') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-book"></i>
+                                <span class="nav-label">Wiki</span>
+                            </div>
                         </a>
                     </li>
                     {% endif %}

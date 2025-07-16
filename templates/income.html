@@ -139,7 +139,7 @@
                     <div class="row g-3">
                         <div class="col-12">
                             <label for="name" class="form-label">Income Source Name</label>
-                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Your Salary, Wife's Salary, Freelance Work" required>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Your Salary, Supplemental Income, Freelance Work" required>
                         </div>
                         <div class="col-md-6">
                             <label for="amount" class="form-label">Amount per Payment ($)</label>
@@ -156,6 +156,12 @@
                                 <option value="quarterly">Quarterly (every 3 months)</option>
                                 <option value="annually">Annually (once per year)</option>
                                 <option value="onetime">One-Time Income</option>
+                            </select>
+                            <label for="income_type">Income Type:</label>
+                            <select name="income_type" id="income_type" class="form-control">
+                                <option value="Employment">Employment</option>
+                                <option value="Supplemental">Supplemental</option>
+                                <option value="Occasional">Occasional</option>
                             </select>
                         </div>
 

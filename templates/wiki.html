@@ -3,7 +3,7 @@
 {% block content %}
 <div class="wiki-container">
     <!-- Wiki Header -->
-    <div class="wiki-header bg-primary text-white py-4 mb-4 rounded">
+    <div class="wiki-header green-gradient py-4 mb-4 rounded">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-8">
@@ -13,7 +13,7 @@
                     <p class="lead mb-0">Complete documentation and developer guide</p>
                 </div>
                 <div class="col-md-4 text-end">
-                    <span class="badge bg-light text-primary fs-6">v1.1.5</span>
+                    <span class="badge bg-light text-primary fs-6">v2.2.1</span>
                 </div>
             </div>
         </div>
@@ -724,6 +724,29 @@ Combined Data → Health Metrics & Recommendations</code></pre>
                                     </ul>
                                 </div>
                             </div>
+
+                            <!-- Add this to the User Guide section of wiki.html, after "Dashboard Overview" or as a new subsection -->
+
+                            <h5>Financial Overview &amp; Timeline (Dashboard)</h5>
+                            <p>
+                                The Financial Overview is now part of the main Dashboard. It provides a summary of your total income, total expenses, net income, and savings rate for any date range you select.
+                            </p>
+                            <ul>
+                                <li>
+                                    <strong>Date Range Selection:</strong> Use the date pickers and "Update" button to view your financial summary and timeline for any custom period. The dashboard will recalculate all totals and the running balance for the selected range.
+                                </li>
+                                <li>
+                                    <strong>Show Excluded Items:</strong> Toggle the "Show Excluded Items" switch to include or hide items (such as bills, loans, or subscriptions) that are marked as excluded from calculations. This helps you compare your finances with or without certain items.
+                                </li>
+                                <li>
+                                    <strong>Timeline Table:</strong> The timeline displays all income and expense events in the selected range, with running balance and status indicators for included/excluded items.
+                                </li>
+                            </ul>
+
+                            <h6>All Upcoming Bills – "View All" Button</h6>
+                            <p>
+                                In the "All Upcoming Bills" section of the dashboard, a "View All" button is always visible in the card header. Click this button to see the complete list of your upcoming bills.
+                            </p>
 
                             <h5>Income Management Guide</h5>
                             <h6>Setting Up Income Sources</h6>

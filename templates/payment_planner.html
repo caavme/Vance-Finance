@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header p-0">
+                <div class="green-gradient px-3 py-2">
+                    <h3 class="card-title mb-0">Monthly Payment Planner</h3>
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token }}" />
+                    <div class="mb-3">
+                        <label for="monthly_amount" class="form-label">Total Monthly Payment Amount</label>
+                        <input type="number" step="0.01" class="form-control" id="monthly_amount" name="monthly_amount" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Calculate</button>
+                </form>
+                <hr>
+                <h5>Minimum Required Payments</h5>
+                <ul>
+                    <li>Student Loans: ${{ total_student_loan_min }}</li>
+                    <li>Other Loans: ${{ total_other_loan_min }}</li>
+                    <li>Credit Cards: ${{ total_card_min }}</li>
+                </ul>
+                {% if suggestion %}
+                <div class="mt-4">
+                    <h5>Suggested Allocation</h5>
+                    <ul>
+                        {% for alloc in suggestion.allocation %}
+                        <li>{{ alloc.type }} - {{ alloc.name }}: ${{ "%.2f"|format(alloc.amount) }}</li>
+                        {% endfor %}
+                    </ul>
+                    <p>
+                        <strong>Total Required:</strong> ${{ "%.2f"|format(suggestion.required) }}<br>
+                        <strong>Leftover for extra payments:</strong> ${{ "%.2f"|format(suggestion.leftover) }}
+                    </p>
+                    {% if suggestion.leftover > 0 %}
+                    <div class="alert alert-success">
+                        Extra funds applied to: <strong>
+                            {% for alloc in suggestion.allocation if alloc.amount > (student_loans|length > 0 and alloc.type == 'Student Loan' and alloc.amount > total_student_loan_min) %}
+                            {{ alloc.name }}
+                            {% endfor %}
+                        </strong>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,33 +1,33 @@
-{% extends "base.html" %}
+<!--{% extends "base.html" %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">Financial Overview</h1>
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2">-->
         <!-- Toggle for including/excluding items -->
-        <div class="form-check form-switch">
+        <!--<div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" id="includeExcluded"
                    {{ 'checked' if include_excluded else '' }}
                    onchange="toggleExcludedItems()">
             <label class="form-check-label" for="includeExcluded">
                 Show Excluded Items
             </label>
-        </div>
+        </div>-->
 
         <!-- Date Range Form -->
-        <form method="GET" class="d-flex gap-2" id="dateRangeForm">
+        <!--<form method="GET" class="d-flex gap-2" id="dateRangeForm">
             <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
             <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
             <input type="hidden" name="include_excluded" value="{{ include_excluded|lower }}" id="includeExcludedInput">
             <button type="submit" class="btn btn-primary btn-sm">Update</button>
         </form>
     </div>
-</div>
+</div>-->
 
 <!-- Summary Cards -->
-<div class="row mb-4">
+<!--<div class="row mb-4">
     <div class="col-md-3">
-        <div class="card text-center border-success">
+        <div class="budget-summary-card clickable-card text-success border-success">
             <div class="card-body">
                 <h5 class="card-title text-success">Total Income</h5>
                 <h3 class="text-success">${{ "%.2f"|format(total_income) }}</h3>
@@ -35,7 +35,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center border-danger">
+        <div class="budget-summary-card clickable-card text-success border-danger">
             <div class="card-body">
                 <h5 class="card-title text-danger">Total Expenses</h5>
                 <h3 class="text-danger">${{ "%.2f"|format(total_expenses) }}</h3>
@@ -48,7 +48,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center {{ 'border-success' if net_income >= 0 else 'border-warning' }}">
+        <div class="budget-summary-card clickable-card text-success {{ 'border-success' if net_income >= 0 else 'border-warning' }}">
             <div class="card-body">
                 <h5 class="card-title">Net Income</h5>
                 <h3 class="{{ 'text-success' if net_income >= 0 else 'text-warning' }}">
@@ -58,7 +58,7 @@
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-center border-info">
+        <div class="budget-summary-card clickable-card text-success border-info">
             <div class="card-body">
                 <h5 class="card-title text-info">Savings Rate</h5>
                 <h3 class="text-info">
@@ -67,10 +67,10 @@
             </div>
         </div>
     </div>
-</div>
+</div>-->
 
 <!-- Timeline -->
-<div class="card">
+<!--<div class="card">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="mb-0">Financial Timeline ({{ start_date.strftime('%m/%d/%Y') }} - {{ end_date.strftime('%m/%d/%Y') }})</h5>
         {% if excluded_expenses > 0 and not include_excluded %}
@@ -148,4 +148,4 @@
     document.getElementById('dateRangeForm').submit();
 }</script>
 
-{% endblock %}
+{% endblock %}-->

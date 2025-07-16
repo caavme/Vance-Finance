@@ -99,7 +99,7 @@
                     {% for card in credit_cards %}
                     <tr>
                         <td>{{ card.name }}</td>
-                        <td>xxxx-{{ card.last_four }}</td>
+                        <td>x{{ card.last_four }}</td>
                         <td data-sort="{{ card.limit or 0 }}">{% if card.limit %}${{ "%.2f"|format(card.limit) }}{% else %}&mdash;{% endif %}</td>
                         <td data-sort="{{ card.current_balance or 0 }}">${{ "%.2f"|format(card.current_balance or 0) }}</td>
                         <td data-sort="{% if card.limit and card.limit > 0 %}{{ ((card.current_balance or 0) / card.limit * 100) }}{% else %}0{% endif %}">
@@ -1027,7 +1027,7 @@
                 <tr ${payment.suggestedPayment > 0 ? 'class="table-success"' : ''}>
                     <td>
                         <strong>${payment.name}</strong><br>
-                        <small class="text-muted">xxxx-${payment.lastFour}</small>
+                        <small class="text-muted">x${payment.lastFour}</small>
                         ${(payment.annualFee > 0 && payment.annualFeeFrequency === 'monthly') ?
                             `<br><small class="text-info">+$${(payment.annualFee / 12).toFixed(2)}/mo fee</small>` : ''}
                     </td>

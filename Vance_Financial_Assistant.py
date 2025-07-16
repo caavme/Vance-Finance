@@ -10,6 +10,7 @@ import tempfile
 import calendar
 from werkzeug.middleware.proxy_fix import ProxyFix
 from flask_wtf.csrf import CSRFProtect
+from flask_wtf.csrf import generate_csrf
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -107,10 +108,10 @@ class Loan(db.Model):
     is_paid_off = db.Column(db.Boolean, default=False)
     include_in_calculations = db.Column(db.Boolean, default=True)  # NEW FIELD
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
+    income_type = db.Column(db.String(20), default='Employment')  # <-- Add this line
 class IncomeSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)  # e.g., "Your Salary", "Wife's Salary"
+    name = db.Column(db.String(100), nullable=False)
     amount = db.Column(db.Float, nullable=False)  # Per payment amount
     frequency = db.Column(db.String(20), nullable=False)  # 'weekly', 'biweekly', 'monthly', 'bimonthly', 'quarterly', 'annually', 'onetime'
     # For bimonthly (twice monthly): payment_day_1 and payment_day_2
@@ -307,9 +308,9 @@ def safe_migrate_database():
             # Check loans table
             result = connection.execute(db.text("PRAGMA table_info(loan)"))
             loan_columns = [row[1] for row in result.fetchall()]
-            if 'include_in_calculations' not in loan_columns:
-                connection.execute(db.text('ALTER TABLE loan ADD COLUMN include_in_calculations BOOLEAN DEFAULT 1'))
-                print("Added include_in_calculations column to loan")
+            if 'income_type' not in loan_columns:
+                connection.execute(db.text("ALTER TABLE loan ADD COLUMN income_type VARCHAR(20) DEFAULT 'Employment'"))
+                print("Added income_type column to loan")
             
             # Check for income_source table and add new column
             result = connection.execute(db.text("SELECT name FROM sqlite_master WHERE type='table' AND name='income_source'"))
@@ -341,7 +342,13 @@ def safe_migrate_database():
                 if 'one_time_date' not in income_columns:
                     connection.execute(db.text('ALTER TABLE income_source ADD COLUMN one_time_date DATE'))
                     print("Added one_time_date column to income_source")
-            
+            # Inside safe_migrate_database(), after other migrations
+            result = connection.execute(db.text("PRAGMA table_info(income_source)"))
+            income_columns = [row[1] for row in result.fetchall()]
+            if 'income_type' not in income_columns:
+                connection.execute(db.text("ALTER TABLE income_source ADD COLUMN income_type VARCHAR(20) DEFAULT 'Employment'"))
+                print("Added income_type column to income_source") 
+                
             connection.commit()
             print("Migration completed successfully")
             
@@ -614,7 +621,7 @@ def create_demo_data():
         # Create Income Sources with various frequencies
         income_sources = [
             IncomeSource(
-                name="Primary Salary (Software Engineer)",
+                name="Primary Salary",
                 amount=3250.00,  # Bi-monthly
                 frequency='bimonthly',
                 payment_day_1=15,
@@ -623,7 +630,7 @@ def create_demo_data():
                 user_id=demo_user_id
             ),
             IncomeSource(
-                name="Spouse's Salary (Teacher)",
+                name="Secondary Salary",
                 amount=1850.00,  # Bi-weekly
                 frequency='biweekly',
                 next_payment_date=today + timedelta(days=3),  # Next Friday
@@ -992,14 +999,137 @@ def create_demo_budget_data(demo_user_id):
         db.session.rollback()
         print(f"Error creating demo budget data: {e}")
 
+def get_user_loans():
+    if 'user_id' not in session:
+        return []
+    loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False, include_in_calculations=True).all()
+    return [{'name': loan.name, 'min_payment': loan.monthly_payment} for loan in loans]
+
+def get_user_credit_cards():
+    if 'user_id' not in session:
+        return []
+    cards = CreditCard.query.filter_by(user_id=session['user_id'], include_in_calculations=True).all()
+    return [{'name': card.name, 'min_payment': card.minimum_payment or 0, 'balance': card.current_balance or 0} for card in cards]
+
+def plan_budget_framework(user_id, period_type='monthly'):
+    from datetime import date
+    today = date.today()
+    period_name = today.strftime("%B %Y")
+    period = BudgetPeriod.query.filter_by(user_id=user_id, name=period_name, period_type=period_type).first()
+    if not period:
+        return {'categories': []}
+
+    categories = BudgetCategory.query.filter_by(user_id=user_id, is_active=True).all()
+    results = []
+
+    # Get all income sources
+    income_sources = IncomeSource.query.filter_by(user_id=user_id, is_active=True).all()
+
+    # Get all bills, subscriptions, loans, credit cards
+    bills = Bill.query.filter_by(user_id=user_id, recurring=True, include_in_calculations=True).all()
+    subscriptions = Subscription.query.filter_by(user_id=user_id, is_active=True, include_in_calculations=True).all()
+    loans = Loan.query.filter_by(user_id=user_id, is_paid_off=False, include_in_calculations=True).all()
+    cards = CreditCard.query.filter_by(user_id=user_id, include_in_calculations=True).all()
+
+    for category in categories:
+        planned_amount = 0.0
+
+        if category.is_income:
+            # Only sum relevant income sources for each income category
+            if category.name.lower() == 'salary':
+                planned_amount = sum(
+                    calculate_monthly_income(src.user_id)
+                    for src in income_sources
+                    if 'salary' in src.name.lower()
+                )
+            elif category.name.lower() == 'side income':
+                planned_amount = sum(
+                    calculate_monthly_income(src.user_id)
+                    for src in income_sources
+                    if any(x in src.name.lower() for x in ['freelance', 'side', 'part-time'])
+                )
+            elif category.name.lower() == 'investment income':
+                planned_amount = sum(
+                    calculate_monthly_income(src.user_id)
+                    for src in income_sources
+                    if 'investment' in src.name.lower()
+                )
+            else:
+                planned_amount = 0.0
+        else:
+            # Assign expenses based on category name
+            if category.name.lower() == 'housing':
+                planned_amount = sum(bill.amount for bill in bills if bill.category and 'housing' in bill.category.lower())
+            elif category.name.lower() == 'transportation':
+                planned_amount = sum(bill.amount for bill in bills if bill.category and 'transportation' in bill.category.lower())
+                planned_amount += sum(loan.monthly_payment for loan in loans if loan.loan_type and 'auto' in loan.loan_type.lower())
+            elif category.name.lower() == 'food & groceries':
+                planned_amount = 0.0
+            elif category.name.lower() == 'healthcare':
+                planned_amount = sum(bill.amount for bill in bills if bill.category and 'health' in bill.category.lower())
+            elif category.name.lower() == 'insurance':
+                planned_amount = sum(bill.amount for bill in bills if bill.category and 'insurance' in bill.category.lower())
+            elif category.name.lower() == 'entertainment':
+                planned_amount = sum(sub.amount for sub in subscriptions if sub.category and 'entertainment' in sub.category.lower())
+            elif category.name.lower() == 'shopping':
+                planned_amount = 0.0
+            elif category.name.lower() == 'savings':
+                planned_amount = 0.0
+            elif category.name.lower() == 'debt payments':
+                planned_amount = sum(loan.monthly_payment for loan in loans)
+                planned_amount += sum(card.minimum_payment for card in cards if card.minimum_payment)
+            else:
+                planned_amount = 0.0
+
+        results.append({'category': category, 'planned_amount': round(planned_amount, 2)})
+
+    return {'categories': results}
+
 # Create the database tables and migrate
-with app.app_context():
-    db.create_all()
-    safe_migrate_database()
+def run_safe_migrations():
+    """Safely migrate the database schema by adding missing columns only."""
+    with app.app_context():
+        db.create_all()  # Only creates missing tables, never drops or alters existing ones
+
+        # List of migrations: table, column, SQL type, default value (if any)
+        migrations = [
+            # (table, column, SQL type, default SQL)
+            ('credit_card', 'auto_pay_minimum', 'BOOLEAN', 'DEFAULT 0'),
+            ('credit_card', 'auto_payment_amount', 'REAL', ''),
+            ('credit_card', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('bill', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('subscription', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('loan', 'include_in_calculations', 'BOOLEAN', 'DEFAULT 1'),
+            ('loan', 'income_type', 'VARCHAR(20)', "DEFAULT 'Employment'"),
+            ('income_source', 'day_of_week', 'VARCHAR(10)', ''),
+            ('income_source', 'one_time_date', 'DATE', ''),
+            ('income_source', 'income_type', 'VARCHAR(20)', "DEFAULT 'Employment'"),
+        ]
+
+        for table, column, coltype, default in migrations:
+            # Check if column exists
+            result = db.session.execute(db.text(f"PRAGMA table_info({table})"))
+            columns = [row[1] for row in result.fetchall()]
+            if column not in columns:
+                try:
+                    db.session.execute(
+                        db.text(f"ALTER TABLE {table} ADD COLUMN {column} {coltype} {default}")
+                    )
+                    print(f"Added column '{column}' to '{table}'")
+                except Exception as e:
+                    print(f"Could not add column '{column}' to '{table}': {e}")
+
+        db.session.commit()
+        print("Safe migrations complete.")
 
 # Routes
+@app.before_request
+def log_request_info():
+    print(f"[REQUEST] {request.method} {request.path} | session: {dict(session)}")
+
 @app.route('/')
 def index():
+    print("[DEBUG] Entered /dashboard route")
     if 'user_id' not in session:
         return redirect(url_for('demo_page'))  # Changed from login to demo_page
     return redirect(url_for('dashboard'))
@@ -1076,32 +1206,27 @@ def register():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user = User.query.get(session['user_id'])
     if not user:
         session.pop('user_id', None)
         flash('User not found. Please log in again.', 'danger')
         return redirect(url_for('login'))
-    
+
+    from datetime import datetime, timedelta
+   
+    # Dashboard variables
     upcoming_bills = Bill.query.filter_by(user_id=user.id, is_paid=False).order_by(Bill.due_date).all()
     credit_cards = CreditCard.query.filter_by(user_id=user.id).all()
-    
-    # Calculate upcoming payments within 7 days
     today = datetime.now().date()
     upcoming_week = today + timedelta(days=7)
     urgent_bills = [bill for bill in upcoming_bills if bill.due_date <= upcoming_week]
-    
-    # Calculate financial summary - include both regular and excluded totals
     monthly_income = calculate_monthly_income(user.id)
     monthly_expenses = calculate_monthly_expenses(user_id=user.id, include_excluded=False)
     monthly_expenses_all = calculate_monthly_expenses(user_id=user.id, include_excluded=True)
-    
-    # Calculate debt-to-income ratio
     debt_to_income_ratio = 0
     if monthly_income > 0:
         debt_to_income_ratio = (monthly_expenses['total'] / monthly_income) * 100
-    
-    # Get income sources for next payment info
     income_sources = IncomeSource.query.filter_by(user_id=user.id, is_active=True).all()
     next_income_dates = []
     for source in income_sources:
@@ -1115,22 +1240,152 @@ def dashboard():
                 'date': next_date,
                 'days_away': days_away
             })
-    
-    # Sort by date
     next_income_dates.sort(key=lambda x: x['date'])
-    
+
+    # --- NEW: Handle overview query parameters ---
+
+    # Get date range from request or default to next 3 months
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    include_excluded_str = request.args.get('include_excluded', 'false')
+    include_excluded = include_excluded_str.lower() == 'true'
+
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except Exception:
+            start_date = datetime.now().date()
+            end_date = start_date + timedelta(days=90)
+    else:
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=90)
+
+    # Get all income sources (income always included)
+    income_sources_ov = IncomeSource.query.filter_by(user_id=user.id, is_active=True).all()
+    if include_excluded:
+        bills_ov = Bill.query.filter_by(user_id=user.id, recurring=True).all()
+        subscriptions_ov = Subscription.query.filter_by(user_id=user.id, is_active=True).all()
+        loans_ov = Loan.query.filter_by(user_id=user.id, is_paid_off=False).all()
+        credit_cards_ov = CreditCard.query.filter_by(user_id=user.id).all()
+    else:
+        bills_ov = Bill.query.filter_by(user_id=user.id, recurring=True, include_in_calculations=True).all()
+        subscriptions_ov = Subscription.query.filter_by(user_id=user.id, is_active=True, include_in_calculations=True).all()
+        loans_ov = Loan.query.filter_by(user_id=user.id, is_paid_off=False, include_in_calculations=True).all()
+        credit_cards_ov = CreditCard.query.filter_by(user_id=user.id, include_in_calculations=True).all()
+
+    # Build timeline
+    timeline = []
+    # Income events
+    for source in income_sources_ov:
+        income_dates = get_future_income_dates(source, start_date, end_date)
+        for date in income_dates:
+            timeline.append({
+                'date': date,
+                'type': 'income',
+                'description': source.name,
+                'amount': source.amount,
+                'category': 'Income',
+                'excluded': False
+            })
+    # Bill expenses
+    for bill in bills_ov:
+        current_date = start_date
+        while current_date <= end_date:
+            if current_date >= bill.due_date or current_date.day == bill.due_date.day:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': bill.name,
+                    'amount': -bill.amount,
+                    'category': 'Bills',
+                    'excluded': not getattr(bill, 'include_in_calculations', True)
+                })
+            current_date = add_months(current_date, 1)
+    # Subscription expenses
+    for sub in subscriptions_ov:
+        current_date = sub.next_billing_date
+        interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
+        while current_date <= end_date:
+            if current_date >= start_date:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': sub.name,
+                    'amount': -sub.amount,
+                    'category': 'Subscriptions',
+                    'excluded': not getattr(sub, 'include_in_calculations', True)
+                })
+            current_date += timedelta(days=interval_days)
+    # Loan payments
+    for loan in loans_ov:
+        current_date = loan.next_payment_date
+        while current_date <= end_date:
+            if current_date >= start_date:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': f"{loan.name} Payment",
+                    'amount': -loan.monthly_payment,
+                    'category': 'Loans',
+                    'excluded': not getattr(loan, 'include_in_calculations', True)
+                })
+            current_date = add_months(current_date, 1)
+    # Credit card minimum payments
+    for card in credit_cards_ov:
+        if card.minimum_payment:
+            current_date = card.payment_due_date
+            while current_date <= end_date:
+                if current_date >= start_date:
+                    timeline.append({
+                        'date': current_date,
+                        'type': 'expense',
+                        'description': f"{card.name} Min Payment",
+                        'amount': -card.minimum_payment,
+                        'category': 'Credit Cards',
+                        'excluded': not getattr(card, 'include_in_calculations', True)
+                    })
+                current_date = add_months(current_date, 1)
+    # Sort timeline by date
+    timeline.sort(key=lambda x: x['date'])
+    # Calculate running balance
+    running_balance = 0
+    for item in timeline:
+        if include_excluded or not item.get('excluded', False):
+            running_balance += item['amount']
+        item['running_balance'] = running_balance
+    # Summary stats
+    if include_excluded:
+        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
+    else:
+        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
+    net_income = total_income - total_expenses
+    excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
+
     return render_template(
-        'dashboard.html', 
-        user=user, 
-        bills=upcoming_bills, 
+        'dashboard.html',
+        user=user,
+        bills=upcoming_bills,
         credit_cards=credit_cards,
         urgent_bills=urgent_bills,
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
         monthly_expenses_all=monthly_expenses_all,
         debt_to_income_ratio=debt_to_income_ratio,
-        next_income_dates=next_income_dates[:5],  # Show next 5 payments
-        today=today  # Keep this for any other template usage
+        next_income_dates=next_income_dates[:5],
+        today=today,
+        # Overview variables:
+        timeline=timeline,
+        start_date=start_date,
+        end_date=end_date,
+        total_income=total_income,
+        total_expenses=total_expenses,
+        net_income=net_income,
+        excluded_expenses=excluded_expenses,
+        include_excluded=include_excluded,
+        current_page='dashboard'
     )
 
 @app.route('/income', methods=['GET', 'POST'])
@@ -1144,12 +1399,14 @@ def income():
         name = request.form.get('name')
         amount = float(request.form.get('amount'))
         frequency = request.form.get('frequency')
+        income_type = request.form.get('income_type', 'Employment')
         
         new_income = IncomeSource(
             name=name,
             amount=amount,
             frequency=frequency,
-            user_id=session['user_id']
+            user_id=session['user_id'],
+            income_type=income_type
         )
         
         # Handle different frequency types
@@ -1188,159 +1445,160 @@ def income():
     for source in user_income:
         source.future_dates = get_future_income_dates(source, today, end_date)[:6]  # Next 6 payments
     
-    return render_template('income.html', income_sources=user_income)
+    return render_template('income.html', income_sources=user_income, current_page='income')
 
-@app.route('/overview')
-def overview():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+# @app.route('/overview')
+# def overview():
+#     if 'user_id' not in session:
+#         return redirect(url_for('login'))
     
-    # Get date range from request or default to next 3 months
-    start_date_str = request.args.get('start_date')
-    end_date_str = request.args.get('end_date')
-    include_excluded_str = request.args.get('include_excluded', 'false')
-    include_excluded = include_excluded_str.lower() == 'true'
+#     # Get date range from request or default to next 3 months
+#     start_date_str = request.args.get('start_date')
+#     end_date_str = request.args.get('end_date')
+#     include_excluded_str = request.args.get('include_excluded', 'false')
+#     include_excluded = include_excluded_str.lower() == 'true'
     
-    if start_date_str and end_date_str:
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    else:
-        start_date = datetime.now().date()
-        end_date = start_date + timedelta(days=90)
+#     if start_date_str and end_date_str:
+#         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+#         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+#     else:
+#         start_date = datetime.now().date()
+#         end_date = start_date + timedelta(days=90)
     
-    # Get all income sources (income always included)
-    income_sources = IncomeSource.query.filter_by(user_id=session['user_id'], is_active=True).all()
+#     # Get all income sources (income always included)
+#     income_sources = IncomeSource.query.filter_by(user_id=session['user_id'], is_active=True).all()
     
-    # Get all recurring expenses - filter based on include_excluded setting
-    if include_excluded:
-        bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True).all()
-        subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).all()
-        loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).all()
-        credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
-    else:
-        bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True, include_in_calculations=True).all()
-        subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True, include_in_calculations=True).all()
-        loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False, include_in_calculations=True).all()
-        credit_cards = CreditCard.query.filter_by(user_id=session['user_id'], include_in_calculations=True).all()
+#     # Get all recurring expenses - filter based on include_excluded setting
+#     if include_excluded:
+#         bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True).all()
+#         subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).all()
+#         loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).all()
+#         credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
+#     else:
+#         bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True, include_in_calculations=True).all()
+#         subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True, include_in_calculations=True).all()
+#         loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False, include_in_calculations=True).all()
+#         credit_cards = CreditCard.query.filter_by(user_id=session['user_id'], include_in_calculations=True).all()
     
-    # Build comprehensive timeline
-    timeline = []
+#     # Build comprehensive timeline
+#     timeline = []
     
-    # Add income events
-    for source in income_sources:
-        income_dates = get_future_income_dates(source, start_date, end_date)
-        for date in income_dates:
-            timeline.append({
-                'date': date,
-                'type': 'income',
-                'description': source.name,
-                'amount': source.amount,
-                'category': 'Income',
-                'excluded': False
-            })
+#     # Add income events
+#     for source in income_sources:
+#         income_dates = get_future_income_dates(source, start_date, end_date)
+#         for date in income_dates:
+#             timeline.append({
+#                 'date': date,
+#                 'type': 'income',
+#                 'description': source.name,
+#                 'amount': source.amount,
+#                 'category': 'Income',
+#                 'excluded': False
+#             })
     
-    # Add bill expenses (recurring)
-    for bill in bills:
-        current_date = start_date
-        while current_date <= end_date:
-            # For simplicity, assume monthly bills
-            if current_date >= bill.due_date or current_date.day == bill.due_date.day:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': bill.name,
-                    'amount': -bill.amount,
-                    'category': 'Bills',
-                    'excluded': not getattr(bill, 'include_in_calculations', True)
-                })
+#     # Add bill expenses (recurring)
+#     for bill in bills:
+#         current_date = start_date
+#         while current_date <= end_date:
+#             # For simplicity, assume monthly bills
+#             if current_date >= bill.due_date or current_date.day == bill.due_date.day:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': bill.name,
+#                     'amount': -bill.amount,
+#                     'category': 'Bills',
+#                     'excluded': not getattr(bill, 'include_in_calculations', True)
+#                 })
             
-            # Move to next month using safe helper function
-            current_date = add_months(current_date, 1)
+#             # Move to next month using safe helper function
+#             current_date = add_months(current_date, 1)
     
-    # Add subscription expenses
-    for sub in subscriptions:
-        current_date = sub.next_billing_date
-        interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
+#     # Add subscription expenses
+#     for sub in subscriptions:
+#         current_date = sub.next_billing_date
+#         interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
         
-        while current_date <= end_date:
-            if current_date >= start_date:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': sub.name,
-                    'amount': -sub.amount,
-                    'category': 'Subscriptions',
-                    'excluded': not getattr(sub, 'include_in_calculations', True)
-                })
-            current_date += timedelta(days=interval_days)
+#         while current_date <= end_date:
+#             if current_date >= start_date:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': sub.name,
+#                     'amount': -sub.amount,
+#                     'category': 'Subscriptions',
+#                     'excluded': not getattr(sub, 'include_in_calculations', True)
+#                 })
+#             current_date += timedelta(days=interval_days)
     
-    # Add loan payments
-    for loan in loans:
-        current_date = loan.next_payment_date
-        while current_date <= end_date:
-            if current_date >= start_date:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': f"{loan.name} Payment",
-                    'amount': -loan.monthly_payment,
-                    'category': 'Loans',
-                    'excluded': not getattr(loan, 'include_in_calculations', True)
-                })
+#     # Add loan payments
+#     for loan in loans:
+#         current_date = loan.next_payment_date
+#         while current_date <= end_date:
+#             if current_date >= start_date:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': f"{loan.name} Payment",
+#                     'amount': -loan.monthly_payment,
+#                     'category': 'Loans',
+#                     'excluded': not getattr(loan, 'include_in_calculations', True)
+#                 })
             
-            # Move to next month using safe helper function
-            current_date = add_months(current_date, 1)
+#             # Move to next month using safe helper function
+#             current_date = add_months(current_date, 1)
     
-    # Add credit card minimum payments
-    for card in credit_cards:
-        if card.minimum_payment:
-            current_date = card.payment_due_date
-            while current_date <= end_date:
-                if current_date >= start_date:
-                    timeline.append({
-                        'date': current_date,
-                        'type': 'expense',
-                        'description': f"{card.name} Min Payment",
-                        'amount': -card.minimum_payment,
-                        'category': 'Credit Cards',
-                        'excluded': not getattr(card, 'include_in_calculations', True)
-                    })
+#     # Add credit card minimum payments
+#     for card in credit_cards:
+#         if card.minimum_payment:
+#             current_date = card.payment_due_date
+#             while current_date <= end_date:
+#                 if current_date >= start_date:
+#                     timeline.append({
+#                         'date': current_date,
+#                         'type': 'expense',
+#                         'description': f"{card.name} Min Payment",
+#                         'amount': -card.minimum_payment,
+#                         'category': 'Credit Cards',
+#                         'excluded': not getattr(card, 'include_in_calculations', True)
+#                     })
                 
-                # Move to next month using safe helper function
-                current_date = add_months(current_date, 1)
+#                 # Move to next month using safe helper function
+#                 current_date = add_months(current_date, 1)
     
-    # Sort timeline by date
-    timeline.sort(key=lambda x: x['date'])
+#     # Sort timeline by date
+#     timeline.sort(key=lambda x: x['date'])
     
-    # Calculate running balance (only for non-excluded items unless include_excluded is True)
-    running_balance = 0
-    for item in timeline:
-        if include_excluded or not item.get('excluded', False):
-            running_balance += item['amount']
-        item['running_balance'] = running_balance
+#     # Calculate running balance (only for non-excluded items unless include_excluded is True)
+#     running_balance = 0
+#     for item in timeline:
+#         if include_excluded or not item.get('excluded', False):
+#             running_balance += item['amount']
+#         item['running_balance'] = running_balance
     
-    # Calculate summary stats
-    if include_excluded:
-        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
-        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
-    else:
-        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
-        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
+#     # Calculate summary stats
+#     if include_excluded:
+#         total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+#         total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
+#     else:
+#         total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+#         total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
     
-    net_income = total_income - total_expenses
+#     net_income = total_income - total_expenses
     
-    # Calculate excluded amounts for display
-    excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
+#     # Calculate excluded amounts for display
+#     excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
     
-    return render_template('overview.html',
-                         timeline=timeline,
-                         start_date=start_date,
-                         end_date=end_date,
-                         total_income=total_income,
-                         total_expenses=total_expenses,
-                         net_income=net_income,
-                         excluded_expenses=excluded_expenses,
-                         include_excluded=include_excluded)
+#     return render_template('overview.html',
+#                          timeline=timeline,
+#                          start_date=start_date,
+#                          end_date=end_date,
+#                          total_income=total_income,
+#                          total_expenses=total_expenses,
+#                          net_income=net_income,
+#                          excluded_expenses=excluded_expenses,
+#                          include_excluded=include_excluded,
+#                          current_page='overview')
 
 @app.route('/bills', methods=['GET', 'POST'])
 def bills():
@@ -1384,7 +1642,7 @@ def bills():
     user_subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).order_by(Subscription.next_billing_date).all()
     user_loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).order_by(Loan.next_payment_date).all()
     
-    return render_template('bills.html', bills=user_bills, subscriptions=user_subscriptions, loans=user_loans)
+    return render_template('bills.html', bills=user_bills, subscriptions=user_subscriptions, loans=user_loans, current_page='bills')
 
 @app.route('/subscriptions', methods=['GET', 'POST'])
 def subscriptions():
@@ -1424,7 +1682,7 @@ def subscriptions():
         return redirect(url_for('subscriptions'))
     
     user_subscriptions = Subscription.query.filter_by(user_id=session['user_id']).order_by(Subscription.next_billing_date).all()
-    return render_template('subscriptions.html', subscriptions=user_subscriptions)
+    return render_template('subscriptions.html', subscriptions=user_subscriptions, current_page='subscriptions')
 
 @app.route('/loans', methods=['GET', 'POST'])
 def loans():
@@ -1434,7 +1692,7 @@ def loans():
     if request.method == 'POST':
         # Backup before adding new loan
         backup_database()
-        
+
         name = request.form.get('name')
         loan_type = request.form.get('loan_type')
         principal_amount = float(request.form.get('principal_amount'))
@@ -1443,7 +1701,10 @@ def loans():
         interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
         next_payment_date = datetime.strptime(request.form.get('next_payment_date'), '%Y-%m-%d').date()
         term_months = int(request.form.get('term_months')) if request.form.get('term_months') else None
-        
+
+        # NEW: Exclude from calculations checkbox
+        include_in_calculations = 'exclude_from_calculations' not in request.form
+
         new_loan = Loan(
             name=name,
             loan_type=loan_type,
@@ -1453,9 +1714,10 @@ def loans():
             interest_rate=interest_rate,
             next_payment_date=next_payment_date,
             term_months=term_months,
+            include_in_calculations=include_in_calculations,
             user_id=session['user_id']
         )
-        
+
         try:
             db.session.add(new_loan)
             db.session.commit()
@@ -1464,11 +1726,27 @@ def loans():
             db.session.rollback()
             flash('Error adding loan. Please try again.', 'danger')
             print(f"Error adding loan: {e}")
-            
+
         return redirect(url_for('loans'))
+        pass 
     
-    user_loans = Loan.query.filter_by(user_id=session['user_id']).order_by(Loan.next_payment_date).all()
-    return render_template('loans.html', loans=user_loans)
+    # Option: toggle inclusion via query param or session
+    include_student_loans = request.args.get('include_student_loans', 'false').lower() == 'true'
+
+    all_loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).order_by(Loan.next_payment_date).all()
+    student_loans = [loan for loan in all_loans if loan.loan_type.lower() == 'student']
+    other_loans = [loan for loan in all_loans if loan.loan_type.lower() != 'student']
+
+    # Only include student loans in main table if requested
+    loans_for_table = other_loans + student_loans if include_student_loans else other_loans
+
+    return render_template(
+        'loans.html',
+        loans=loans_for_table,
+        student_loans=student_loans,
+        include_student_loans=include_student_loans,
+        current_page='loans'
+    )
 
 @app.route('/credit-cards', methods=['GET', 'POST'])
 def credit_cards():
@@ -1587,7 +1865,8 @@ def credit_cards():
                          total_available=total_available,
                          total_min_payments=total_min_payments,
                          avg_interest_rate=avg_interest_rate,
-                         overall_utilization=overall_utilization)
+                         overall_utilization=overall_utilization,
+                         current_page='credit-cards')
 
 @app.route('/mark_paid/<string:bill_type>/<int:item_id>')
 def mark_paid(bill_type, item_id):
@@ -1736,12 +2015,10 @@ def edit_loan(loan_id):
     loan = Loan.query.get_or_404(loan_id)
     if loan.user_id != session['user_id']:
         flash('Unauthorized access', 'danger')
-        return redirect(url_for('bills'))
+        return redirect(url_for('loans'))
     
     if request.method == 'POST':
-        # Backup before editing
         backup_database()
-        
         try:
             loan.name = request.form.get('name')
             loan.loan_type = request.form.get('loan_type')
@@ -1751,15 +2028,15 @@ def edit_loan(loan_id):
             loan.interest_rate = float(request.form.get('interest_rate')) if request.form.get('interest_rate') else None
             loan.next_payment_date = datetime.strptime(request.form.get('next_payment_date'), '%Y-%m-%d').date()
             loan.term_months = int(request.form.get('term_months')) if request.form.get('term_months') else None
-            
+            # Support editing exclusion
+            loan.include_in_calculations = 'exclude_from_calculations' not in request.form
             db.session.commit()
             flash('Loan updated successfully!', 'success')
         except Exception as e:
             db.session.rollback()
             flash('Error updating loan. Please try again.', 'danger')
             print(f"Error editing loan: {e}")
-        
-    return redirect(url_for('bills'))
+    return redirect(url_for('loans'))
 
 @app.route('/edit/card/<int:card_id>', methods=['POST'])
 def edit_card(card_id):
@@ -2467,7 +2744,7 @@ def demo_exit():
 @app.route('/wiki')
 def wiki():
     """Project documentation and wiki"""
-    return render_template('wiki.html')
+    return render_template('wiki.html', current_page='wiki')
 
 @app.route('/wiki/<section>')
 def wiki_section(section):
@@ -2698,7 +2975,8 @@ def budget():
                          recent_transactions=recent_transactions,
                          active_goals=active_goals,
                          all_periods=all_periods,
-                         current_period=current_period)
+                         current_period=current_period,
+                         current_page='budget')
 
 @app.route('/budget/categories', methods=['GET', 'POST'])
 def budget_categories():
@@ -3127,6 +3405,44 @@ def update_minimum_payments_for_user(user_id):
         print(f"Error updating minimum payments: {e}")
         return False
 
+@app.route('/budget/plan/<int:period_id>')
+def plan_budget(period_id):
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    period = BudgetPeriod.query.filter_by(id=period_id, user_id=user_id).first_or_404()
+
+    # Get recommendations
+    recommendations = plan_budget_framework(user_id, period_type=period.period_type)
+
+    # Apply recommendations to BudgetItem records
+    for rec in recommendations['categories']:
+        category = rec['category']
+        planned_amount = rec['planned_amount']
+
+        # Get or create BudgetItem for this category/period
+        budget_item = BudgetItem.query.filter_by(
+            category_id=category.id,
+            period_id=period.id,
+            user_id=user_id
+        ).first()
+        if budget_item:
+            budget_item.planned_amount = planned_amount
+            budget_item.updated_at = datetime.utcnow()
+        else:
+            budget_item = BudgetItem(
+                category_id=category.id,
+                period_id=period.id,
+                planned_amount=planned_amount,
+                user_id=user_id
+            )
+            db.session.add(budget_item)
+
+    db.session.commit()
+    flash('Budget fields have been auto-populated with recommended amounts!', 'success')
+    return redirect(url_for('budget_setup', period_id=period.id))
+
 @app.route('/credit-cards/recalculate-minimums')
 def recalculate_minimum_payments():
     """Manually recalculate minimum payments for all credit cards"""
@@ -3288,18 +3604,86 @@ def toggle_item_inclusion(item_type, item_id):
     
     return redirect(url_for(redirect_route))
 
+@app.route('/payment_planner', methods=['GET', 'POST'])
+def payment_planner():
+    # Separate loans
+    all_loans = Loan.query.filter_by(user_id=session.get('user_id'), is_paid_off=False, include_in_calculations=True).all()
+    student_loans = [loan for loan in all_loans if loan.loan_type.lower() == 'student']
+    other_loans = [loan for loan in all_loans if loan.loan_type.lower() != 'student']
+
+    credit_cards = get_user_credit_cards()
+    total_student_loan_min = sum(loan.monthly_payment for loan in student_loans)
+    total_other_loan_min = sum(loan.monthly_payment for loan in other_loans)
+    total_card_min = sum(card['min_payment'] for card in credit_cards)
+    suggestion = None
+
+    if request.method == 'POST':
+        monthly_amount = float(request.form['monthly_amount'])
+        required = total_student_loan_min + total_other_loan_min + total_card_min
+        leftover = monthly_amount - required
+
+        allocation = []
+        # Always pay minimums
+        for loan in other_loans:
+            allocation.append({'type': 'Other Loan', 'name': loan.name, 'amount': loan.monthly_payment})
+        for loan in student_loans:
+            allocation.append({'type': 'Student Loan', 'name': loan.name, 'amount': loan.monthly_payment})
+        for card in credit_cards:
+            allocation.append({'type': 'Credit Card', 'name': card['name'], 'amount': card['min_payment']})
+
+        # Custom logic: prioritize extra payments to student loans if leftover exists
+        if leftover > 0:
+            # Example: apply leftover to student loan with highest balance
+            if student_loans:
+                target_loan = max(student_loans, key=lambda l: l.current_balance)
+                for alloc in allocation:
+                    if alloc['type'] == 'Student Loan' and alloc['name'] == target_loan.name:
+                        alloc['amount'] += leftover
+                        break
+            else:
+                # If no student loans, apply to highest balance credit card
+                if credit_cards:
+                    target_card = max(credit_cards, key=lambda c: c['balance'])
+                    for alloc in allocation:
+                        if alloc['type'] == 'Credit Card' and alloc['name'] == target_card['name']:
+                            alloc['amount'] += leftover
+                            break
+
+        suggestion = {
+            'required': required,
+            'leftover': leftover if leftover > 0 else 0,
+            'allocation': allocation
+        }
+
+    return render_template(
+        'payment_planner.html',
+        student_loans=student_loans,
+        other_loans=other_loans,
+        credit_cards=credit_cards,
+        total_student_loan_min=total_student_loan_min,
+        total_other_loan_min=total_other_loan_min,
+        total_card_min=total_card_min,
+        suggestion=suggestion,
+        csrf_token=generate_csrf(),
+        current_page='payment_planner'
+    )
+
+
 # Error handlers
 @app.errorhandler(404)
 def not_found_error(error):
+    print(f"[ERROR 404] {request.path} | {error}")
     return render_template('errors/404.html'), 404
 
 @app.errorhandler(500)
 def internal_error(error):
+    print(f"[ERROR 500] {request.path} | {error}")
     db.session.rollback()
     return render_template('errors/500.html'), 500
 
 @app.errorhandler(403)
 def forbidden_error(error):
+    print(f"[ERROR 403] {request.path} | {error}")
     return render_template('errors/403.html'), 403
 
 # Context processors for global template variables
@@ -3315,40 +3699,27 @@ def inject_config():
 
 # Development and production startup
 if __name__ == '__main__':
-    # Create tables if they don't exist
+    run_safe_migrations()
+
+    # Print startup information
+    print("=== Vance Finance Starting ===")
+    print(f"Environment: {'Development' if app.config['DEVELOPMENT_MODE'] else 'Production'}")
+    print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
+    print(f"Secret Key: {'Set' if app.config['SECRET_KEY'] else 'Not Set'}")
+
+    # Check if any users exist
     with app.app_context():
-        db.create_all()
-        safe_migrate_database()
-        
-        # Print startup information
-        print("=== Vance Finance Starting ===")
-        print(f"Environment: {'Development' if app.config['DEVELOPMENT_MODE'] else 'Production'}")
-        print(f"Database: {app.config['SQLALCHEMY_DATABASE_URI']}")
-        print(f"Secret Key: {'Set' if app.config['SECRET_KEY'] else 'Not Set'}")
-        
-        # Check if any users exist
-        user_count = User.query.count()
+        user_count = db.session.query(db.func.count(User.id)).scalar()
         print(f"Users in database: {user_count}")
-        
         if user_count == 0:
             print("No users found. New users can register or try the demo.")
-        
         print("================================")
-    
+
     # Run the application
-    if app.config['DEVELOPMENT_MODE']:
-        # Development server with debug mode
-        app.run(
-            host='0.0.0.0',
-            port=int(os.environ.get('PORT', 5000)),
-            debug=True,
-            threaded=True
-        )
-    else:
-        # Production server (this won't typically be reached when using gunicorn)
-        app.run(
-            host='0.0.0.0',
-            port=int(os.environ.get('PORT', 5000)),
-            debug=False,
-            threaded=True
-        )
+    app.run(
+        host='0.0.0.0',
+        port=int(os.environ.get('PORT', 5000)),
+        debug=app.config['DEVELOPMENT_MODE'],
+        threaded=True
+    )
+

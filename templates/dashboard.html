@@ -6,57 +6,45 @@
 <!-- Financial Summary Row -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card border-success clickable-card" data-insight="income" onclick="showInsights('income')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title text-success">
-                    Monthly Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="text-success">${{ "%.2f"|format(monthly_income) }}</h4>
+        <div class="budget-summary-card clickable-card" data-insight="income" onclick="showInsights('income')" style="cursor: pointer;">
+            <div class="card-body text-danger">
+                <div class="fs-4 fw-bold text-success">${{ "%.2f"|format(monthly_income) }}</div>
+                <div class="text-muted">Monthly Income</div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-danger clickable-card" data-insight="expenses" onclick="showInsights('expenses')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title text-danger">
-                    Monthly Expenses
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="text-danger">${{ "%.2f"|format(monthly_expenses.total) }}</h4>
-                <small class="text-muted">
+        <div class="budget-summary-card clickable-card" data-insight="expenses" onclick="showInsights('expenses')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold text-danger">${{ "%.2f"|format(monthly_expenses.total) }}</div>
+                <div class="text-muted">Monthly Expenses</div>
+                <div class="small text-muted">
                     Bills: ${{ "%.0f"|format(monthly_expenses.bills) }} |
                     Loans: ${{ "%.0f"|format(monthly_expenses.loans) }}
-                </small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-{% if monthly_income - monthly_expenses.total > 0 %}success{% else %}warning{% endif %} clickable-card" data-insight="net-income" onclick="showInsights('net-income')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title">
-                    Net Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="{% if monthly_income - monthly_expenses.total > 0 %}text-success{% else %}text-warning{% endif %}">
+        <div class="budget-summary-card clickable-card" data-insight="net-income" onclick="showInsights('net-income')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold {% if monthly_income - monthly_expenses.total > 0 %}text-success{% else %}text-warning{% endif %}">
                     ${{ "%.2f"|format(monthly_income - monthly_expenses.total) }}
-                </h4>
+                </div>
+                <div class="text-muted">Net Income</div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-{% if debt_to_income_ratio < 36 %}success{% elif debt_to_income_ratio < 50 %}warning{% else %}danger{% endif %} clickable-card" data-insight="debt-ratio" onclick="showInsights('debt-ratio')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title">
-                    Debt-to-Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="{% if debt_to_income_ratio < 36 %}text-success{% elif debt_to_income_ratio < 50 %}text-warning{% else %}text-danger{% endif %}">
+        <div class="budget-summary-card clickable-card" data-insight="debt-ratio" onclick="showInsights('debt-ratio')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold {% if debt_to_income_ratio < 36 %}text-success{% elif debt_to_income_ratio < 50 %}text-warning{% else %}text-danger{% endif %}">
                     {{ "%.1f"|format(debt_to_income_ratio) }}%
-                </h4>
-                <small class="text-muted">
+                </div>
+                <div class="text-muted">Debt-to-Income</div>
+                <div class="small text-muted">
                     {% if debt_to_income_ratio < 36 %}Excellent{% elif debt_to_income_ratio < 50 %}Good{% else %}High{% endif %}
-                </small>
+                </div>
             </div>
         </div>
     </div>
@@ -66,9 +54,10 @@
 <div class="modal fade" id="insightsModal" tabindex="-1" aria-labelledby="insightsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="insightsModalLabel">Financial Insights</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="card-header p-0">
+                <div class="px-3 py-2">
+                    <h5 class="modal-title mb-0" id="insightsModalLabel">Financial Insights</h5>
+                </div>
             </div>
             <div class="modal-body" id="insightsContent">
                 <!-- Content will be dynamically loaded -->
@@ -85,14 +74,13 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Actions</h5>
+            <div class="card-header p-0">
+                <div class="green-gradient px-3 py-2">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2">
-                    <a href="{{ url_for('overview') }}" class="btn btn-primary">
-                        <i class="bi bi-calendar3 me-1"></i>View Overview
-                    </a>
                     <a href="{{ url_for('income') }}" class="btn btn-success">
                         <i class="bi bi-cash-stack me-1"></i>Manage Income
                     </a>
@@ -101,6 +89,9 @@
                     </a>
                     <a href="{{ url_for('credit_cards') }}" class="btn btn-warning">
                         <i class="bi bi-credit-card me-1"></i>Manage Cards
+                    </a>
+                    <a href="{{ url_for('payment_planner') }}" class="btn btn-secondary">
+                        <i class="bi bi-calculator me-1"></i>Payment Planner
                     </a>
                 </div>
             </div>
@@ -113,8 +104,10 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Upcoming Income</h5>
+            <div class="card-header p-0">
+                <div class="green-gradient px-3 py-2">
+                    <h5 class="mb-0">Upcoming Income</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -134,7 +127,6 @@
                                 <td class="text-success">${{ "%.2f"|format(income.amount) }}</td>
                                 <td>{{ income.date.strftime('%m/%d/%Y') }}</td>
                                 <td>
-                                    <!-- Calculate days away using income.days_away if available -->
                                     {% if income.days_away is defined %}
                                     {% set days_away = income.days_away %}
                                     {% else %}
@@ -166,8 +158,10 @@
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Urgent Bills (Due in 7 days)</h5>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Urgent Bills (Due in 7 days)</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if urgent_bills %}
@@ -209,8 +203,10 @@
 
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Credit Card Summary</h5>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Credit Card Summary</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if credit_cards %}
@@ -227,7 +223,7 @@
                         <tbody>
                             {% for card in credit_cards[:4] %}
                             <tr>
-                                <td>{{ card.name }} (xxxx-{{ card.last_four }})</td>
+                                <td>{{ card.name }} (x{{ card.last_four }})</td>
                                 <td>${{ "%.2f"|format(card.current_balance) }}</td>
                                 <td>{% if card.limit %}${{ "%.2f"|format(card.limit) }}{% else %}&mdash;{% endif %}</td>
                                 <td>
@@ -266,9 +262,11 @@
 <div class="row">
     <div class="col-md-12 mb-4">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Upcoming Bills</h5>
-                <a href="{{ url_for('bills') }}" class="btn btn-outline-primary btn-sm">View All</a>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Upcoming Bills</h5>
+                    <a href="{{ url_for('bills') }}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if bills %}
@@ -316,275 +314,421 @@
     </div>
 </div>
 
+<!-- MERGED OVERVIEW SECTION -->
+<hr class="my-5">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 mb-0">Financial Overview</h2>
+    <div class="d-flex gap-2">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" id="includeExcluded"
+                   {{ 'checked' if include_excluded else '' }}
+                   onchange="toggleExcludedItems()">
+            <label class="form-check-label" for="includeExcluded">
+                Show Excluded Items
+            </label>
+        </div>
+        <form method="GET" class="d-flex gap-2" id="dateRangeForm">
+            <input type="date" name="start_date" value="{{ start_date }}" class="form-control form-control-sm">
+            <input type="date" name="end_date" value="{{ end_date }}" class="form-control form-control-sm">
+            <input type="hidden" name="include_excluded" value="{{ include_excluded|lower }}" id="includeExcludedInput">
+            <button type="submit" class="btn btn-primary btn-sm">Update</button>
+        </form>
+    </div>
+</div>
+
+<!-- Overview Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="budget-summary-card clickable-card text-success border-success">
+            <div class="card-body">
+                <h5 class="card-title text-success">Total Income</h5>
+                <h3 class="text-success">${{ "%.2f"|format(total_income) }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="budget-summary-card clickable-card text-success border-danger">
+            <div class="card-body">
+                <h5 class="card-title text-danger">Total Expenses</h5>
+                <h3 class="text-danger">${{ "%.2f"|format(total_expenses) }}</h3>
+                {% if excluded_expenses > 0 %}
+                <small class="text-muted">
+                    (+${{ "%.2f"|format(excluded_expenses) }} excluded)
+                </small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="budget-summary-card clickable-card text-success {{ 'border-success' if net_income >= 0 else 'border-warning' }}">
+            <div class="card-body">
+                <h5 class="card-title">Net Income</h5>
+                <h3 class="{{ 'text-success' if net_income >= 0 else 'text-warning' }}">
+                    ${{ "%.2f"|format(net_income) }}
+                </h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="budget-summary-card clickable-card text-success border-info">
+            <div class="card-body">
+                <h5 class="card-title text-info">Savings Rate</h5>
+                <h3 class="text-info">
+                    {{ "%.1f"|format((net_income / total_income * 100) if total_income > 0 else 0) }}%
+                </h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Timeline -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Financial Timeline ({{ start_date.strftime('%m/%d/%Y') }} - {{ end_date.strftime('%m/%d/%Y') }})</h5>
+        {% if excluded_expenses > 0 and not include_excluded %}
+        <small class="text-muted">
+            <i class="bi bi-info-circle me-1"></i>
+            ${{ "%.2f"|format(excluded_expenses) }} in excluded expenses not shown
+        </small>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if timeline %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Amount</th>
+                        <th>Running Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in timeline %}
+                    {% if include_excluded or not item.get('excluded', False) %}
+                    <tr class="{{ 'table-secondary' if item.get('excluded', False) else '' }}">
+                        <td>{{ item.date.strftime('%m/%d/%Y') }}</td>
+                        <td>
+                            {{ item.description }}
+                            {% if item.get('excluded', False) %}
+                            <span class="badge bg-secondary ms-2">Excluded</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if item.type == 'income' else 'danger' }}">
+                                {{ item.category }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-{{ 'success' if item.amount > 0 else 'danger' }}">
+                                ${{ "%.2f"|format(item.amount) }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-{{ 'success' if item.running_balance >= 0 else 'danger' }}">
+                                ${{ "%.2f"|format(item.running_balance) }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if item.get('excluded', False) %}
+                            <i class="bi bi-eye-slash text-muted" title="Excluded from calculations"></i>
+                            {% else %}
+                            <i class="bi bi-check-circle text-success" title="Included in calculations"></i>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <p class="mb-0">No financial events found for the selected date range.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
 <script>
-    // Financial data for insights
-    const financialData = {
-        monthlyIncome: {{ monthly_income }},
-        monthlyExpenses: {
-            total: {{ monthly_expenses.total }},
-            bills: {{ monthly_expenses.bills }},
-            subscriptions: {{ monthly_expenses.subscriptions }},
-            loans: {{ monthly_expenses.loans }},
-            creditCards: {{ monthly_expenses.credit_cards }}
-        },
-        debtToIncomeRatio: {{ debt_to_income_ratio }},
-        excludedExpenses: {{ monthly_expenses_all.total - monthly_expenses.total }}
-    };
+function toggleExcludedItems() {
+    const checkbox = document.getElementById('includeExcluded');
+    const hiddenInput = document.getElementById('includeExcludedInput');
+    hiddenInput.value = checkbox.checked ? 'true' : 'false';
+    document.getElementById('dateRangeForm').submit();
+}
 
-    function showInsights(type) {
-        const modal = new bootstrap.Modal(document.getElementById('insightsModal'));
-        const content = document.getElementById('insightsContent');
-        const title = document.getElementById('insightsModalLabel');
-        const actionBtn = document.getElementById('takeActionBtn');
+// Financial data for insights
+const financialData = {
+    monthlyIncome: {{ monthly_income }},
+    monthlyExpenses: {
+        total: {{ monthly_expenses.total }},
+        bills: {{ monthly_expenses.bills }},
+        subscriptions: {{ monthly_expenses.subscriptions }},
+        loans: {{ monthly_expenses.loans }},
+        creditCards: {{ monthly_expenses.credit_cards }}
+    },
+    debtToIncomeRatio: {{ debt_to_income_ratio }},
+    excludedExpenses: {{ monthly_expenses_all.total - monthly_expenses.total }}
+};
 
-        let insights = generateInsights(type);
+function showInsights(type) {
+    const modal = new bootstrap.Modal(document.getElementById('insightsModal'));
+    const content = document.getElementById('insightsContent');
+    const title = document.getElementById('insightsModalLabel');
+    const actionBtn = document.getElementById('takeActionBtn');
 
-        title.textContent = insights.title;
-        content.innerHTML = insights.content;
+    let insights = generateInsights(type);
 
-        if (insights.action) {
-            actionBtn.style.display = 'inline-block';
-            actionBtn.onclick = insights.action;
-        } else {
-            actionBtn.style.display = 'none';
-        }
+    title.textContent = insights.title;
+    content.innerHTML = insights.content;
 
-        modal.show();
+    if (insights.action) {
+        actionBtn.style.display = 'inline-block';
+        actionBtn.onclick = insights.action;
+    } else {
+        actionBtn.style.display = 'none';
     }
 
-    function generateInsights(type) {
-        const netIncome = financialData.monthlyIncome - financialData.monthlyExpenses.total;
-        const savingsRate = financialData.monthlyIncome > 0 ? (netIncome / financialData.monthlyIncome * 100) : 0;
+    modal.show();
+}
 
-        switch (type) {
-            case 'income':
-                return {
-                    title: 'Monthly Income Insights',
-                    content: `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-success">💰 Income Analysis</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Current Monthly Income:</strong> $${financialData.monthlyIncome.toFixed(2)}</li>
-                                            <li><strong>Annual Projection:</strong> $${(financialData.monthlyIncome * 12).toFixed(2)}</li>
-                                            <li><strong>Weekly Average:</strong> $${(financialData.monthlyIncome / 4.33).toFixed(2)}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-info">📊 Income Health</h6>
-                                        <ul class="mb-0">
-                                            ${financialData.monthlyIncome > 5000 ?
-                                                '<li class="text-success">✓ Strong income base</li>' :
-                                                '<li class="text-warning">⚠ Consider additional income sources</li>'}
-                                            <li><strong>Savings Capacity:</strong> $${netIncome.toFixed(2)} (${savingsRate.toFixed(1)}%)</li>
-                                            ${savingsRate >= 20 ?
-                                                '<li class="text-success">✓ Excellent savings potential</li>' :
-                                                savingsRate >= 10 ?
-                                                '<li class="text-info">→ Good savings potential</li>' :
-                                                '<li class="text-warning">⚠ Limited savings potential</li>'}
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="alert alert-info mt-3">
-                            <h6><i class="bi bi-lightbulb me-2"></i>Recommendations:</h6>
-                            <ul class="mb-0">
-                                ${financialData.monthlyIncome < 4000 ?
-                                    '<li>Consider side income opportunities like freelancing or part-time work</li>' : ''}
-                                <li>Track all income sources to maximize tax deductions</li>
-                                <li>Set up automatic transfers to savings when income is received</li>
-                                ${savingsRate < 10 ?
-                                    '<li>Focus on increasing income or reducing expenses to improve savings rate</li>' : ''}
-                            </ul>
-                        </div>
-                    `,
-                    action: () => window.location.href = '{{ url_for("income") }}'
-                };
+function generateInsights(type) {
+    const netIncome = financialData.monthlyIncome - financialData.monthlyExpenses.total;
+    const savingsRate = financialData.monthlyIncome > 0 ? (netIncome / financialData.monthlyIncome * 100) : 0;
 
-            case 'expenses':
-                const expenseBreakdown = financialData.monthlyExpenses;
-                return {
-                    title: 'Monthly Expenses Insights',
-                    content: `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-danger">💸 Expense Breakdown</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Bills:</strong> $${expenseBreakdown.bills.toFixed(2)} (${((expenseBreakdown.bills/expenseBreakdown.total)*100).toFixed(1)}%)</li>
-                                            <li><strong>Subscriptions:</strong> $${expenseBreakdown.subscriptions.toFixed(2)} (${((expenseBreakdown.subscriptions/expenseBreakdown.total)*100).toFixed(1)}%)</li>
-                                            <li><strong>Loans:</strong> $${expenseBreakdown.loans.toFixed(2)} (${((expenseBreakdown.loans/expenseBreakdown.total)*100).toFixed(1)}%)</li>
-                                            <li><strong>Credit Cards:</strong> $${expenseBreakdown.creditCards.toFixed(2)} (${((expenseBreakdown.creditCards/expenseBreakdown.total)*100).toFixed(1)}%)</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-warning">📈 Expense Analysis</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Expense Ratio:</strong> ${((expenseBreakdown.total/financialData.monthlyIncome)*100).toFixed(1)}% of income</li>
-                                            ${financialData.excludedExpenses > 0 ?
-                                                `<li><strong>Excluded:</strong> $${financialData.excludedExpenses.toFixed(2)} (not in calculations)</li>` : ''}
-                                            <li><strong>Daily Average:</strong> $${(expenseBreakdown.total/30).toFixed(2)}</li>
-                                            <li><strong>Annual Projection:</strong> $${(expenseBreakdown.total*12).toFixed(2)}</li>
-                                        </ul>
-                                    </div>
+    switch (type) {
+        case 'income':
+            return {
+                title: 'Monthly Income Insights',
+                content: `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-success">💰 Income Analysis</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Current Monthly Income:</strong> $${financialData.monthlyIncome.toFixed(2)}</li>
+                                        <li><strong>Annual Projection:</strong> $${(financialData.monthlyIncome * 12).toFixed(2)}</li>
+                                        <li><strong>Weekly Average:</strong> $${(financialData.monthlyIncome / 4.33).toFixed(2)}</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="alert alert-warning mt-3">
-                            <h6><i class="bi bi-exclamation-triangle me-2"></i>Optimization Opportunities:</h6>
-                            <ul class="mb-0">
-                                ${expenseBreakdown.subscriptions > 100 ?
-                                    '<li>Review subscriptions - you\'re spending $' + expenseBreakdown.subscriptions.toFixed(2) + '/month</li>' : ''}
-                                ${expenseBreakdown.creditCards > 200 ?
-                                    '<li>High credit card payments detected - consider debt consolidation</li>' : ''}
-                                <li>Aim to keep total expenses below 80% of income for healthy savings</li>
-                                ${(expenseBreakdown.total/financialData.monthlyIncome) > 0.9 ?
-                                    '<li class="text-danger">⚠ Expenses are consuming over 90% of income</li>' : ''}
-                            </ul>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-info">📊 Income Health</h6>
+                                    <ul class="mb-0">
+                                        ${financialData.monthlyIncome > 5000 ?
+                                            '<li class="text-success">✓ Strong income base</li>' :
+                                            '<li class="text-warning">⚠ Consider additional income sources</li>'}
+                                        <li><strong>Savings Capacity:</strong> $${netIncome.toFixed(2)} (${savingsRate.toFixed(1)}%)</li>
+                                        ${savingsRate >= 20 ?
+                                            '<li class="text-success">✓ Excellent savings potential</li>' :
+                                            savingsRate >= 10 ?
+                                            '<li class="text-info">→ Good savings potential</li>' :
+                                            '<li class="text-warning">⚠ Limited savings potential</li>'}
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    `,
-                    action: () => window.location.href = '{{ url_for("bills") }}'
-                };
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <h6><i class="bi bi-lightbulb me-2"></i>Recommendations:</h6>
+                        <ul class="mb-0">
+                            ${financialData.monthlyIncome < 4000 ?
+                                '<li>Consider side income opportunities like freelancing or part-time work</li>' : ''}
+                            <li>Track all income sources to maximize tax deductions</li>
+                            <li>Set up automatic transfers to savings when income is received</li>
+                            ${savingsRate < 10 ?
+                                '<li>Focus on increasing income or reducing expenses to improve savings rate</li>' : ''}
+                        </ul>
+                    </div>
+                `,
+                action: () => window.location.href = '{{ url_for("income") }}'
+            };
 
-            case 'net-income':
-                return {
-                    title: 'Net Income Insights',
-                    content: `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="${netIncome >= 0 ? 'text-success' : 'text-danger'}">🎯 Net Income Analysis</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Monthly Net:</strong> $${netIncome.toFixed(2)}</li>
-                                            <li><strong>Annual Potential:</strong> $${(netIncome * 12).toFixed(2)}</li>
-                                            <li><strong>Savings Rate:</strong> ${savingsRate.toFixed(1)}%</li>
-                                            <li><strong>Status:</strong> ${netIncome >= 0 ? 'Positive Cash Flow ✓' : 'Deficit ⚠'}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-info">💡 Financial Health</h6>
-                                        <ul class="mb-0">
-                                            ${savingsRate >= 20 ? '<li class="text-success">✓ Excellent savings rate (20%+ recommended)</li>' :
-                                              savingsRate >= 10 ? '<li class="text-info">→ Good savings rate (aim for 20%)</li>' :
-                                              '<li class="text-warning">⚠ Low savings rate (recommended: 20%)</li>'}
-                                            ${netIncome >= 1000 ? '<li class="text-success">✓ Strong surplus for investments</li>' :
-                                              netIncome >= 500 ? '<li class="text-info">→ Moderate surplus</li>' :
-                                              netIncome >= 0 ? '<li class="text-warning">⚠ Minimal surplus</li>' :
-                                              '<li class="text-danger">⚠ Spending deficit</li>'}
-                                        </ul>
-                                    </div>
+        case 'expenses':
+            const expenseBreakdown = financialData.monthlyExpenses;
+            return {
+                title: 'Monthly Expenses Insights',
+                content: `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-danger">💸 Expense Breakdown</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Bills:</strong> $${expenseBreakdown.bills.toFixed(2)} (${((expenseBreakdown.bills/expenseBreakdown.total)*100).toFixed(1)}%)</li>
+                                        <li><strong>Subscriptions:</strong> $${expenseBreakdown.subscriptions.toFixed(2)} (${((expenseBreakdown.subscriptions/expenseBreakdown.total)*100).toFixed(1)}%)</li>
+                                        <li><strong>Loans:</strong> $${expenseBreakdown.loans.toFixed(2)} (${((expenseBreakdown.loans/expenseBreakdown.total)*100).toFixed(1)}%)</li>
+                                        <li><strong>Credit Cards:</strong> $${expenseBreakdown.creditCards.toFixed(2)} (${((expenseBreakdown.creditCards/expenseBreakdown.total)*100).toFixed(1)}%)</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="alert ${netIncome >= 0 ? 'alert-success' : 'alert-danger'} mt-3">
-                            <h6><i class="bi bi-target me-2"></i>Action Plan:</h6>
-                            <ul class="mb-0">
-                                ${netIncome >= 1000 ?
-                                    '<li>Consider investing surplus in retirement accounts or index funds</li><li>Build emergency fund (3-6 months expenses)</li>' :
-                                  netIncome >= 500 ?
-                                    '<li>Focus on building emergency fund first</li><li>Look for additional income opportunities</li>' :
-                                  netIncome >= 0 ?
-                                    '<li>Review expenses for reduction opportunities</li><li>Consider additional income sources</li>' :
-                                    '<li class="text-danger">Immediate action needed: expenses exceed income</li><li>Create a debt reduction plan</li>'}
-                                <li>Set up automatic savings transfers</li>
-                                <li>Review and optimize your budget monthly</li>
-                            </ul>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-warning">📈 Expense Analysis</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Expense Ratio:</strong> ${((expenseBreakdown.total/financialData.monthlyIncome)*100).toFixed(1)}% of income</li>
+                                        ${financialData.excludedExpenses > 0 ?
+                                            `<li><strong>Excluded:</strong> $${financialData.excludedExpenses.toFixed(2)} (not in calculations)</li>` : ''}
+                                        <li><strong>Daily Average:</strong> $${(expenseBreakdown.total/30).toFixed(2)}</li>
+                                        <li><strong>Annual Projection:</strong> $${(expenseBreakdown.total*12).toFixed(2)}</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    `,
-                    action: () => window.location.href = '{{ url_for("overview") }}'
-                };
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <h6><i class="bi bi-exclamation-triangle me-2"></i>Optimization Opportunities:</h6>
+                        <ul class="mb-0">
+                            ${expenseBreakdown.subscriptions > 100 ?
+                                '<li>Review subscriptions - you\'re spending $' + expenseBreakdown.subscriptions.toFixed(2) + '/month</li>' : ''}
+                            ${expenseBreakdown.creditCards > 200 ?
+                                '<li>High credit card payments detected - consider debt consolidation</li>' : ''}
+                            <li>Aim to keep total expenses below 80% of income for healthy savings</li>
+                            ${(expenseBreakdown.total/financialData.monthlyIncome) > 0.9 ?
+                                '<li class="text-danger">⚠ Expenses are consuming over 90% of income</li>' : ''}
+                        </ul>
+                    </div>
+                `,
+                action: () => window.location.href = '{{ url_for("bills") }}'
+            };
 
-            case 'debt-ratio':
-                return {
-                    title: 'Debt-to-Income Ratio Insights',
-                    content: `
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-primary">📊 Debt Analysis</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Current Ratio:</strong> ${financialData.debtToIncomeRatio.toFixed(1)}%</li>
-                                            <li><strong>Monthly Debt Payments:</strong> $${financialData.monthlyExpenses.total.toFixed(2)}</li>
-                                            <li><strong>Annual Debt Payments:</strong> $${(financialData.monthlyExpenses.total * 12).toFixed(2)}</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="card bg-light">
-                                    <div class="card-body">
-                                        <h6 class="text-info">🎯 Benchmark Comparison</h6>
-                                        <ul class="mb-0">
-                                            <li><strong>Excellent:</strong> &lt; 36% ${financialData.debtToIncomeRatio < 36 ? '✓' : ''}</li>
-                                            <li><strong>Good:</strong> 36-43% ${financialData.debtToIncomeRatio >= 36 && financialData.debtToIncomeRatio < 43 ? '→' : ''}</li>
-                                            <li><strong>Manageable:</strong> 43-50% ${financialData.debtToIncomeRatio >= 43 && financialData.debtToIncomeRatio < 50 ? '⚠' : ''}</li>
-                                            <li><strong>High Risk:</strong> &gt; 50% ${financialData.debtToIncomeRatio >= 50 ? '⚠' : ''}</li>
-                                        </ul>
-                                    </div>
+        case 'net-income':
+            return {
+                title: 'Net Income Insights',
+                content: `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="${netIncome >= 0 ? 'text-success' : 'text-danger'}">🎯 Net Income Analysis</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Monthly Net:</strong> $${netIncome.toFixed(2)}</li>
+                                        <li><strong>Annual Potential:</strong> $${(netIncome * 12).toFixed(2)}</li>
+                                        <li><strong>Savings Rate:</strong> ${savingsRate.toFixed(1)}%</li>
+                                        <li><strong>Status:</strong> ${netIncome >= 0 ? 'Positive Cash Flow ✓' : 'Deficit ⚠'}</li>
+                                    </ul>
                                 </div>
                             </div>
                         </div>
-                        <div class="alert ${financialData.debtToIncomeRatio < 36 ? 'alert-success' : financialData.debtToIncomeRatio < 50 ? 'alert-warning' : 'alert-danger'} mt-3">
-                            <h6><i class="bi bi-shield-check me-2"></i>Recommendations:</h6>
-                            <ul class="mb-0">
-                                ${financialData.debtToIncomeRatio < 36 ?
-                                    '<li class="text-success">✓ Excellent debt management - maintain this level</li><li>Consider investing extra income for wealth building</li>' :
-                                  financialData.debtToIncomeRatio < 43 ?
-                                    '<li>Good debt level - work to reduce below 36%</li><li>Focus on paying down highest interest debt first</li>' :
-                                  financialData.debtToIncomeRatio < 50 ?
-                                    '<li class="text-warning">⚠ Debt approaching problematic levels</li><li>Create aggressive debt payoff plan</li>' :
-                                    '<li class="text-danger">⚠ High debt risk - immediate action needed</li><li>Consider debt consolidation or credit counseling</li>'}
-                                <li>Use the Credit Card Payment Calculator for optimization</li>
-                                <li>Avoid taking on additional debt</li>
-                                ${financialData.debtToIncomeRatio > 43 ? '<li>Consider increasing income to improve ratio</li>' : ''}
-                            </ul>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-info">💡 Financial Health</h6>
+                                    <ul class="mb-0">
+                                        ${savingsRate >= 20 ? '<li class="text-success">✓ Excellent savings rate (20%+ recommended)</li>' :
+                                          savingsRate >= 10 ? '<li class="text-info">→ Good savings rate (aim for 20%)</li>' :
+                                          '<li class="text-warning">⚠ Low savings rate (recommended: 20%)</li>'}
+                                        ${netIncome >= 1000 ? '<li class="text-success">✓ Strong surplus for investments</li>' :
+                                          netIncome >= 500 ? '<li class="text-info">→ Moderate surplus</li>' :
+                                          netIncome >= 0 ? '<li class="text-warning">⚠ Minimal surplus</li>' :
+                                          '<li class="text-danger">⚠ Spending deficit</li>'}
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
-                    `,
-                    action: () => window.location.href = '{{ url_for("credit_cards") }}'
-                };
+                    </div>
+                    <div class="alert ${netIncome >= 0 ? 'alert-success' : 'alert-danger'} mt-3">
+                        <h6><i class="bi bi-target me-2"></i>Action Plan:</h6>
+                        <ul class="mb-0">
+                            ${netIncome >= 1000 ?
+                                '<li>Consider investing surplus in retirement accounts or index funds</li><li>Build emergency fund (3-6 months expenses)</li>' :
+                              netIncome >= 500 ?
+                                '<li>Focus on building emergency fund first</li><li>Look for additional income opportunities</li>' :
+                              netIncome >= 0 ?
+                                '<li>Review expenses for reduction opportunities</li><li>Consider additional income sources</li>' :
+                                '<li class="text-danger">Immediate action needed: expenses exceed income</li><li>Create a debt reduction plan</li>'}
+                            <li>Set up automatic savings transfers</li>
+                            <li>Review and optimize your budget monthly</li>
+                        </ul>
+                    </div>
+                `,
+                action: () => window.location.href = '{{ url_for("dashboard") }}'
+            };
 
-            default:
-                return {
-                    title: 'Financial Insights',
-                    content: '<p>No insights available for this metric.</p>'
-                };
-        }
+        case 'debt-ratio':
+            return {
+                title: 'Debt-to-Income Ratio Insights',
+                content: `
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-primary">📊 Debt Analysis</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Current Ratio:</strong> ${financialData.debtToIncomeRatio.toFixed(1)}%</li>
+                                        <li><strong>Monthly Debt Payments:</strong> $${financialData.monthlyExpenses.total.toFixed(2)}</li>
+                                        <li><strong>Annual Debt Payments:</strong> $${(financialData.monthlyExpenses.total * 12).toFixed(2)}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6 class="text-info">🎯 Benchmark Comparison</h6>
+                                    <ul class="mb-0">
+                                        <li><strong>Excellent:</strong> &lt; 36% ${financialData.debtToIncomeRatio < 36 ? '✓' : ''}</li>
+                                        <li><strong>Good:</strong> 36-43% ${financialData.debtToIncomeRatio >= 36 && financialData.debtToIncomeRatio < 43 ? '→' : ''}</li>
+                                        <li><strong>Manageable:</strong> 43-50% ${financialData.debtToIncomeRatio >= 43 && financialData.debtToIncomeRatio < 50 ? '⚠' : ''}</li>
+                                        <li><strong>High Risk:</strong> &gt; 50% ${financialData.debtToIncomeRatio >= 50 ? '⚠' : ''}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert ${financialData.debtToIncomeRatio < 36 ? 'alert-success' : financialData.debtToIncomeRatio < 50 ? 'alert-warning' : 'alert-danger'} mt-3">
+                        <h6><i class="bi bi-shield-check me-2"></i>Recommendations:</h6>
+                        <ul class="mb-0">
+                            ${financialData.debtToIncomeRatio < 36 ?
+                                '<li class="text-success">✓ Excellent debt management - maintain this level</li><li>Consider investing extra income for wealth building</li>' :
+                              financialData.debtToIncomeRatio < 43 ?
+                                '<li>Good debt level - work to reduce below 36%</li><li>Focus on paying down highest interest debt first</li>' :
+                              financialData.debtToIncomeRatio < 50 ?
+                                '<li class="text-warning">⚠ Debt approaching problematic levels</li><li>Create aggressive debt payoff plan</li>' :
+                                '<li class="text-danger">⚠ High debt risk - immediate action needed</li><li>Consider debt consolidation or credit counseling</li>'}
+                            <li>Use the Credit Card Payment Calculator for optimization</li>
+                            <li>Avoid taking on additional debt</li>
+                            ${financialData.debtToIncomeRatio > 43 ? '<li>Consider increasing income to improve ratio</li>' : ''}
+                        </ul>
+                    </div>
+                `,
+                action: () => window.location.href = '{{ url_for("credit_cards") }}'
+            };
+
+        default:
+            return {
+                title: 'Financial Insights',
+                content: '<p>No insights available for this metric.</p>'
+            };
     }
+}
 
-    // Add hover effects for clickable cards
-    document.addEventListener('DOMContentLoaded', function() {
-        const clickableCards = document.querySelectorAll('.clickable-card');
+// Add hover effects for clickable cards
+document.addEventListener('DOMContentLoaded', function() {
+    const clickableCards = document.querySelectorAll('.clickable-card');
 
-        clickableCards.forEach(card => {
-            card.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
-                this.style.transition = 'all 0.2s ease';
-            });
+    clickableCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+            this.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+            this.style.transition = 'all 0.2s ease';
+        });
 
-            card.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '';
-            });
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+            this.style.boxShadow = '';
         });
     });
+});
 </script>
 {% endblock %}

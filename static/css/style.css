@@ -11,8 +11,8 @@
 
 /* CSS Variables for consistent theming */
 :root {
-    --primary-color: #667eea;
-    --primary-dark: #5a67d8;
+    --primary-color: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    --primary-dark: #16a34a;
     --secondary-color: #764ba2;
     --success-color: #10b981;
     --warning-color: #f59e0b;
@@ -31,7 +31,6 @@
     --border-radius-sm: 8px;
     --border-radius-lg: 16px;
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    
     /* UPDATED: More accurate navbar height calculation */
     --navbar-height: 80px;
 }
@@ -308,7 +307,7 @@ small.text-muted {
 .btn-outline-primary {
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
-    background: white;
+    background: var(--primary-color);
 }
 
 .btn-outline-primary:hover {
@@ -364,4 +363,68 @@ small.text-muted {
     border-width: 2px;
     border-style: solid;
     overflow: hidden; /* Ensures corners are not visually clipped */
+}
+
+.nav-icon-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-icon-label i {
+    font-size: 2rem; /* Large icon */
+    display: block;
+    margin-bottom: 2px;
+    line-height: 1;
+}
+
+.nav-icon-label .nav-label {
+    font-size: 0.85rem; /* Smaller text */
+    color: #555;
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+}
+
+.gradient-text-green {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+    display: inline-block;
+}
+
+.btn-gradient-green {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border: 1.5px solid #222 !important;
+    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.10);
+}
+.btn-gradient-green:hover, .btn-gradient-green:focus {
+    color: #fff !important;
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+    transform: translateY(-2px) scale(1.03);
+    border-color: #111 !important;
+}
+
+.green-gradient {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.card-header .green-gradient {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.active-page {
+    background: linear-gradient(90deg, #38ef7d, #11998e) !important;
+    color: #fff !important;
+    border-radius: 0.5rem;
 }

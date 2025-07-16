@@ -1,6 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
+<<<<<<< HEAD
 
 ## [2.0.2] - 2025-07-12
 
@@ -11,6 +12,26 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
  - Credit Cards not showing
+=======
+## [2.2.1] - 2025-07-16
+
+### Added
+- Logo added to the left of "Vance Finance" in the site header and login page.
+- DEV and DEMO badges now float outside the main header margin for better visibility.
+- Enhanced Table of Contents sidebar: active section highlight now uses a green gradient instead of purple.
+- Improved accessibility and responsive design for navigation and sidebar.
+- Version number displayed on the login page.
+
+### Changed
+- Refined navbar and header layout for better alignment and branding.
+- Improved CSS for gradient backgrounds and badge positioning.
+
+### Fixed
+- Resolved Jinja2 template errors caused by missing `{% endif %}` blocks.
+- Fixed issues with demo mode setup in live/production environments.
+- Corrected background and color overrides to ensure consistent appearance across all environments.
+- Fixed sidebar highlight color to match the application's green theme.
+>>>>>>> dev
 
 ## [2.0.0] - 2025-07-10
 

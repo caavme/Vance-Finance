@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Budget Plan for {{ period.name }}</h2>
+<p>Recommended allocations based on your data:</p>
+<ul>
+    {% for cat in recommendations['categories'] %}
+    <li>
+        <strong>{{ cat['category'].name }}:</strong>
+        ${{ "%.2f"|format(cat['planned_amount']) }}
+    </li>
+    {% endfor %}
+</ul>
+<a href="{{ url_for('budget_setup', period_id=period.id) }}" class="btn btn-secondary">Back to Setup</a>
+{% endblock %}

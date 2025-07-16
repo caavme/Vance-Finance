@@ -90,7 +90,7 @@ class Loan(db.Model):
 
 class IncomeSource(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)  # e.g., "Your Salary", "Wife's Salary"
+    name = db.Column(db.String(100), nullable=False) 
     amount = db.Column(db.Float, nullable=False)  # Per payment amount
     frequency = db.Column(db.String(20), nullable=False)  # 'bimonthly', 'biweekly'
     # For bimonthly (twice monthly): payment_day_1 and payment_day_2
@@ -349,7 +349,7 @@ def create_demo_data():
         # Create Income Sources
         income_sources = [
             IncomeSource(
-                name="Your Salary (Software Engineer)",
+                name="Your Salary",
                 amount=3250.00,  # Bi-monthly
                 frequency='bimonthly',
                 payment_day_1=15,
@@ -358,7 +358,7 @@ def create_demo_data():
                 user_id=demo_user_id
             ),
             IncomeSource(
-                name="Spouse's Salary (Teacher)",
+                name="Secondary Salary",
                 amount=1850.00,  # Bi-weekly
                 frequency='biweekly',
                 next_payment_date=today + timedelta(days=3),  # Next Friday
