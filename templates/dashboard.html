@@ -6,69 +6,58 @@
 <!-- Financial Summary Row -->
 <div class="row mb-4">
     <div class="col-md-3 mb-3">
-        <div class="card border-success clickable-card" data-insight="income" onclick="showInsights('income')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title text-success">
-                    Monthly Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="text-success">${{ "%.2f"|format(monthly_income) }}</h4>
+        <div class="budget-summary-card clickable-card" data-insight="income" onclick="showInsights('income')" style="cursor: pointer;">
+            <div class="card-body text-danger">
+                <div class="fs-4 fw-bold text-success">${{ "%.2f"|format(monthly_income) }}</div>
+                <div class="text-muted">Monthly Income</div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-danger clickable-card" data-insight="expenses" onclick="showInsights('expenses')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title text-danger">
-                    Monthly Expenses
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="text-danger">${{ "%.2f"|format(monthly_expenses.total) }}</h4>
-                <small class="text-muted">
+        <div class="budget-summary-card clickable-card" data-insight="expenses" onclick="showInsights('expenses')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold text-danger">${{ "%.2f"|format(monthly_expenses.total) }}</div>
+                <div class="text-muted">Monthly Expenses</div>
+                <div class="small text-muted">
                     Bills: ${{ "%.0f"|format(monthly_expenses.bills) }} |
                     Loans: ${{ "%.0f"|format(monthly_expenses.loans) }}
-                </small>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-{% if monthly_income - monthly_expenses.total > 0 %}success{% else %}warning{% endif %} clickable-card" data-insight="net-income" onclick="showInsights('net-income')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title">
-                    Net Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="{% if monthly_income - monthly_expenses.total > 0 %}text-success{% else %}text-warning{% endif %}">
+        <div class="budget-summary-card clickable-card" data-insight="net-income" onclick="showInsights('net-income')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold {% if monthly_income - monthly_expenses.total > 0 %}text-success{% else %}text-warning{% endif %}">
                     ${{ "%.2f"|format(monthly_income - monthly_expenses.total) }}
-                </h4>
+                </div>
+                <div class="text-muted">Net Income</div>
             </div>
         </div>
     </div>
     <div class="col-md-3 mb-3">
-        <div class="card border-{% if debt_to_income_ratio < 36 %}success{% elif debt_to_income_ratio < 50 %}warning{% else %}danger{% endif %} clickable-card" data-insight="debt-ratio" onclick="showInsights('debt-ratio')" style="cursor: pointer;">
-            <div class="card-body text-center">
-                <h6 class="card-title">
-                    Debt-to-Income
-                    <i class="bi bi-info-circle ms-1 text-muted" title="Click for insights"></i>
-                </h6>
-                <h4 class="{% if debt_to_income_ratio < 36 %}text-success{% elif debt_to_income_ratio < 50 %}text-warning{% else %}text-danger{% endif %}">
+        <div class="budget-summary-card clickable-card" data-insight="debt-ratio" onclick="showInsights('debt-ratio')" style="cursor: pointer;">
+            <div class="card-body text-success">
+                <div class="fs-4 fw-bold {% if debt_to_income_ratio < 36 %}text-success{% elif debt_to_income_ratio < 50 %}text-warning{% else %}text-danger{% endif %}">
                     {{ "%.1f"|format(debt_to_income_ratio) }}%
-                </h4>
-                <small class="text-muted">
+                </div>
+                <div class="text-muted">Debt-to-Income</div>
+                <div class="small text-muted">
                     {% if debt_to_income_ratio < 36 %}Excellent{% elif debt_to_income_ratio < 50 %}Good{% else %}High{% endif %}
-                </small>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Insights Modal -->
-<div class="modal fade" id="insightsModal" tabindex="-1" aria-labelledby="insightsModalLabel" aria-hidden="true">
+<div class="modal fade" id="insightsModal" ...>
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="insightsModalLabel">Financial Insights</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="card-header p-0">
+                <div class="px-3 py-2">
+                    <h5 class="modal-title mb-0" id="insightsModalLabel">Financial Insights</h5>
+                </div>
             </div>
             <div class="modal-body" id="insightsContent">
                 <!-- Content will be dynamically loaded -->
@@ -85,8 +74,10 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Quick Actions</h5>
+            <div class="card-header p-0">
+                <div class="green-gradient px-3 py-2">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
             </div>
             <div class="card-body">
                 <div class="d-flex flex-wrap gap-2">
@@ -102,6 +93,9 @@
                     <a href="{{ url_for('credit_cards') }}" class="btn btn-warning">
                         <i class="bi bi-credit-card me-1"></i>Manage Cards
                     </a>
+                    <a href="{{ url_for('payment_planner') }}" class="btn btn-secondary">
+                        <i class="bi bi-calculator me-1"></i>Payment Planner
+                    </a>
                 </div>
             </div>
         </div>
@@ -113,8 +107,10 @@
 <div class="row mb-4">
     <div class="col-12">
         <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Upcoming Income</h5>
+            <div class="card-header p-0">
+                <div class="green-gradient px-3 py-2">
+                    <h5 class="mb-0">Upcoming Income</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -134,7 +130,6 @@
                                 <td class="text-success">${{ "%.2f"|format(income.amount) }}</td>
                                 <td>{{ income.date.strftime('%m/%d/%Y') }}</td>
                                 <td>
-                                    <!-- Calculate days away using income.days_away if available -->
                                     {% if income.days_away is defined %}
                                     {% set days_away = income.days_away %}
                                     {% else %}
@@ -166,8 +161,10 @@
 <div class="row">
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Urgent Bills (Due in 7 days)</h5>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Urgent Bills (Due in 7 days)</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if urgent_bills %}
@@ -209,8 +206,10 @@
 
     <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Credit Card Summary</h5>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Credit Card Summary</h5>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if credit_cards %}
@@ -266,9 +265,11 @@
 <div class="row">
     <div class="col-md-12 mb-4">
         <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Upcoming Bills</h5>
-                <a href="{{ url_for('bills') }}" class="btn btn-outline-primary btn-sm">View All</a>
+            <div class="card-header p-0 d-flex justify-content-between align-items-center">
+                <div class="green-gradient px-3 py-2 w-100 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">All Upcoming Bills</h5>
+                    <a href="{{ url_for('bills') }}" class="btn btn-outline-primary btn-sm">View All</a>
+                </div>
             </div>
             <div class="card-body p-0">
                 {% if bills %}

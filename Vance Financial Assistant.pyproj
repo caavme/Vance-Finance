@@ -23,23 +23,41 @@
   <ItemGroup>
     <Compile Include="config.py" />
     <Compile Include="demo.py" />
+    <Compile Include="static_setup.py" />
+    <Compile Include="Vance_Financial_Assistant.py" />
     <Compile Include="wsgi.py" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="templates\base.html" />
+    <Content Include="templates\bills.html" />
+    <Content Include="templates\budget.html" />
+    <Content Include="templates\budget_categories.html" />
+    <Content Include="templates\budget_goals.html" />
+    <Content Include="templates\budget_plan.html" />
+    <Content Include="templates\budget_setup.html" />
+    <Content Include="templates\budget_transactions.html" />
+    <Content Include="templates\credit_cards.html" />
+    <Content Include="templates\dashboard.html" />
+    <Content Include="templates\demo.html" />
     <Content Include="Dockerfile" />
     <Content Include=".env.example" />
     <Content Include="gitignore .gitignore" />
+    <Content Include="templates\import_backup.html" />
+    <Content Include="templates\income.html" />
+    <Content Include="templates\loans.html" />
+    <Content Include="templates\login.html" />
+    <Content Include="templates\manage_backups.html" />
+    <Content Include="templates\overview.html" />
     <Content Include="Procfile" />
+    <Content Include="templates\payment_planner.html" />
+    <Content Include="templates\register.html" />
     <Content Include="static\css\budget.css" />
     <Content Include="static\css\wiki.css" />
-    <Content Include="templates\demo.html" />
+    <Content Include="static\css\style.css" />
+    <Content Include="templates\subscriptions.html" />
     <Content Include="templates\errors\403.html" />
     <Content Include="templates\errors\404.html" />
     <Content Include="templates\errors\500.html" />
-    <Content Include="templates\import_backup.html" />
-    <Content Include="templates\income.html" />
-    <Content Include="templates\manage_backups.html" />
-    <Content Include="templates\overview.html" />
     <Content Include="requirements.txt" />
     <Content Include="templates\wiki.html" />
   </ItemGroup>

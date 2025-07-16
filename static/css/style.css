@@ -11,7 +11,7 @@
 
 /* CSS Variables for consistent theming */
 :root {
-    --primary-color: #667eea;
+    --primary-color: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
     --primary-dark: #5a67d8;
     --secondary-color: #764ba2;
     --success-color: #10b981;
@@ -31,7 +31,6 @@
     --border-radius-sm: 8px;
     --border-radius-lg: 16px;
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    
     /* UPDATED: More accurate navbar height calculation */
     --navbar-height: 80px;
 }
@@ -386,4 +385,40 @@ small.text-muted {
     text-align: center;
     letter-spacing: 0.5px;
     margin-top: 2px;
+}
+
+.gradient-text-green {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+    display: inline-block;
+}
+
+.btn-gradient-green {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border: 1.5px solid #222 !important;
+    transition: box-shadow 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.10);
+}
+.btn-gradient-green:hover, .btn-gradient-green:focus {
+    color: #fff !important;
+    background: linear-gradient(90deg, #16a34a 0%, #22c55e 100%);
+    box-shadow: 0 4px 16px rgba(34, 197, 94, 0.15);
+    transform: translateY(-2px) scale(1.03);
+    border-color: #111 !important;
+}
+
+.green-gradient {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.card-header .green-gradient {
+    background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
+    color: #fff !important;
+    border-bottom: none;
 }

@@ -2,29 +2,42 @@
 
 {% block content %}
 <div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title mb-0">Login</h3>
+    <div class="col-md-8">
+        <div class="row align-items-center">
+            <!-- Logo and Branding (Left) -->
+            <div class="col-md-5 text-center mb-4 mb-md-0">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Vance Finance Logo" style="max-width: 120px; width: 100%; height: auto;">
+                <h1 class="h3 mt-3 mb-0 fw-bold gradient-text-green" style="letter-spacing: 1px;">Vance Finance</h1>
+                <div class="text-muted" style="font-size: 1rem;">Version 2.0.0</div>
             </div>
-            <div class="card-body">
-                <form method="POST" action="{{ url_for('login') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>  <!-- ADD THIS LINE -->
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
+            <!-- Login Card (Right) -->
+            <div class="col-md-7">
+                <div class="card">
+                    <div class="card-header p-0">
+                        <div class="green-gradient px-3 py-2">
+                            <h3 class="card-title mb-0">Login</h3>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
+                    <div class="card-body">
+                        <form method="POST" action="{{ url_for('login') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <div class="mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="green-gradient btn btn-primary">Login</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Login</button>
+                    <div class="card-footer text-center">
+                        <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
                     </div>
-                </form>
-            </div>
-            <div class="card-footer text-center">
-                <p class="mb-0">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+                </div>
             </div>
         </div>
     </div>

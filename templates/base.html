@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/wiki.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/budget.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='favicon.ico') }}">
 
     <!-- EMERGENCY OVERRIDE: Force all backgrounds to be white -->
     <style>
         /* Override all possible grey backgrounds with !important */
         .card,
-        .card-header,
         .card-body,
         .card-footer,
         .modal-content,
@@ -46,7 +46,6 @@
         }
 
             /* Ensure text stays readable */
-            .card-header,
             .modal-header,
             .wiki-section .card-header,
             .goal-card .card-header,
@@ -63,7 +62,6 @@
         /* Override any dark mode styles completely */
         @media (prefers-color-scheme: dark) {
             .card,
-            .card-header,
             .card-body,
             .card-footer,
             .modal-content,
@@ -155,7 +153,7 @@
                 {% if 'demo_mode' in session %}
                 <span class="badge bg-info me-2">DEMO</span>
                 {% endif %}
-                Vance Finance
+                <span class="gradient-text-green">Vance Finance</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -176,6 +174,14 @@
                             <div class="nav-icon-label">
                                 <i class="bi bi-calendar3"></i>
                                 <span class="nav-label">Overview</span>
+                            </div>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('payment_planner') }}">
+                            <div class="nav-icon-label">
+                                <i class="bi bi-calculator"></i>
+                                <span class="nav-label">Payment Planner</span>
                             </div>
                         </a>
                     </li>

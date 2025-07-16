@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="demo-hero bg-gradient-primary text-white py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+<div class="demo-hero bg-gradient-primary text-white py-5 mb-5 rounded-4" style="background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-8">
@@ -11,7 +11,7 @@
                     <a href="{{ url_for('demo_login') }}" class="btn btn-light btn-lg">
                         <i class="bi bi-play-circle me-2"></i>Try Live Demo
                     </a>
-                    <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                    <a href="{{ url_for('register') }}" class="btn btn-gradient-green btn-lg">
                         <i class="bi bi-person-plus me-2"></i>Create Account
                     </a>
                 </div>
@@ -276,7 +276,7 @@
                         <a href="{{ url_for('demo_login') }}" class="btn btn-light btn-lg">
                             <i class="bi bi-play-circle me-2"></i>Try Demo Now
                         </a>
-                        <a href="{{ url_for('register') }}" class="btn btn-outline-light btn-lg">
+                        <a href="{{ url_for('register') }}" class="btn btn-gradient-green btn-lg">
                             <i class="bi bi-person-plus me-2"></i>Create Free Account
                         </a>
                     </div>

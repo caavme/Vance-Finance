@@ -23,7 +23,7 @@
         left: 0;
         right: 0;
         height: 4px;
-        background: var(--primary-color);
+        background: linear-gradient(90deg, #22c55e 0%, #16a34a 100%);
     }
 
     .budget-summary-card:hover {
