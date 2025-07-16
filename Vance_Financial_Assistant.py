@@ -3567,6 +3567,31 @@ def delete_loan(loan_id):
     
     return redirect(url_for('loans'))
 
+@app.route('/budget/categories/delete/<int:category_id>')
+def delete_budget_category(category_id):
+    """Delete a budget category and all associated items/transactions."""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    category = BudgetCategory.query.get_or_404(category_id)
+    if category.user_id != session['user_id']:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('budget_categories'))
+
+    backup_database()
+
+    try:
+        category_name = category.name
+        db.session.delete(category)
+        db.session.commit()
+        flash(f'Budget category "{category_name}" deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash('Error deleting budget category. Please try again.', 'danger')
+        print(f"Error deleting budget category: {e}")
+
+    return redirect(url_for('budget_categories'))
+
 @app.route('/toggle/<string:item_type>/<int:item_id>')
 def toggle_item_inclusion(item_type, item_id):
     """Toggle include_in_calculations for any item type"""
