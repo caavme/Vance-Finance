@@ -307,7 +307,7 @@ small.text-muted {
 .btn-outline-primary {
     color: var(--primary-color);
     border: 2px solid var(--primary-color);
-    background: white;
+    background: var(--primary-color);
 }
 
 .btn-outline-primary:hover {
@@ -423,3 +423,8 @@ small.text-muted {
     border-bottom: none;
 }
 
+.active-page {
+    background: linear-gradient(90deg, #38ef7d, #11998e) !important;
+    color: #fff !important;
+    border-radius: 0.5rem;
+}

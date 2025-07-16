@@ -168,7 +168,7 @@
                 <ul class="navbar-nav ms-auto">
                     {% if 'user_id' in session %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                        <a class="nav-link {% if current_page == 'dashboard' %}active-page{% endif %}" href="{{ url_for('dashboard') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-speedometer2"></i>
                                 <span class="nav-label">Dashboard</span>
@@ -176,15 +176,24 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('overview') }}">
+                        <a class="nav-link {% if current_page == 'budget' %}active-page{% endif %}" href="{{ url_for('budget') }}">
                             <div class="nav-icon-label">
-                                <i class="bi bi-calendar3"></i>
-                                <span class="nav-label">Overview</span>
+                                <i class="bi bi-pie-chart"></i>
+                                <span class="nav-label">Budget</span>
                             </div>
                         </a>
                     </li>
+
+                    <!--<li class="nav-item">
+        <a class="nav-link {% if current_page == 'overview' %}active-page{% endif %}" href="{ url_for('overview') }}">
+            <div class="nav-icon-label">
+                <i class="bi bi-calendar3"></i>
+                <span class="nav-label">Overview</span>
+            </div>
+        </a>
+    </li>-->
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('payment_planner') }}">
+                        <a class="nav-link {% if current_page == 'payment_planner' %}active-page{% endif %}" href="{{ url_for('payment_planner') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-calculator"></i>
                                 <span class="nav-label">Payment Planner</span>
@@ -192,23 +201,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('income') }}">
+                        <a class="nav-link {% if current_page == 'income' %}active-page{% endif %}" href="{{ url_for('income') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-cash-stack"></i>
                                 <span class="nav-label">Income</span>
                             </div>
                         </a>
                     </li>
+
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('budget') }}">
-                            <div class="nav-icon-label">
-                                <i class="bi bi-pie-chart"></i>
-                                <span class="nav-label">Budget</span>
-                            </div>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('bills') }}">
+                        <a class="nav-link {% if current_page == 'bills' %}active-page{% endif %}" href="{{ url_for('bills') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-receipt"></i>
                                 <span class="nav-label">Bills</span>
@@ -216,7 +218,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('subscriptions') }}">
+                        <a class="nav-link {% if current_page == 'subscriptions' %}active-page{% endif %}" href="{{ url_for('subscriptions') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-arrow-repeat"></i>
                                 <span class="nav-label">Subscriptions</span>
@@ -224,7 +226,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('loans') }}">
+                        <a class="nav-link {% if current_page == 'loans' %}active-page{% endif %}" href="{{ url_for('loans') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-bank"></i>
                                 <span class="nav-label">Loans</span>
@@ -232,13 +234,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('credit_cards') }}">
+                        <a class="nav-link {% if current_page == 'credit_cards' %}active-page{% endif %}" href="{{ url_for('credit_cards') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-credit-card"></i>
                                 <span class="nav-label">Credit Cards</span>
                             </div>
                         </a>
                     </li>
+
                     <!-- Backup dropdown (if not in demo mode) -->
                     {% if 'demo_mode' not in session %}
                     <li class="nav-item dropdown">
@@ -274,7 +277,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('wiki') }}">
+                        <a class="nav-link {% if current_page == 'wiki' %}active-page{% endif %}" href="{{ url_for('wiki') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-book"></i>
                                 <span class="nav-label">Wiki</span>
@@ -346,7 +349,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('wiki') }}">
+                        <a class="nav-link {% if current_page == 'wiki' %}active-page{% endif %}" href="{{ url_for('wiki') }}">
                             <div class="nav-icon-label">
                                 <i class="bi bi-book"></i>
                                 <span class="nav-label">Wiki</span>

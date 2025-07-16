@@ -1206,32 +1206,27 @@ def register():
 def dashboard():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    
+
     user = User.query.get(session['user_id'])
     if not user:
         session.pop('user_id', None)
         flash('User not found. Please log in again.', 'danger')
         return redirect(url_for('login'))
-    
+
+    from datetime import datetime, timedelta
+   
+    # Dashboard variables
     upcoming_bills = Bill.query.filter_by(user_id=user.id, is_paid=False).order_by(Bill.due_date).all()
     credit_cards = CreditCard.query.filter_by(user_id=user.id).all()
-    
-    # Calculate upcoming payments within 7 days
     today = datetime.now().date()
     upcoming_week = today + timedelta(days=7)
     urgent_bills = [bill for bill in upcoming_bills if bill.due_date <= upcoming_week]
-    
-    # Calculate financial summary - include both regular and excluded totals
     monthly_income = calculate_monthly_income(user.id)
     monthly_expenses = calculate_monthly_expenses(user_id=user.id, include_excluded=False)
     monthly_expenses_all = calculate_monthly_expenses(user_id=user.id, include_excluded=True)
-    
-    # Calculate debt-to-income ratio
     debt_to_income_ratio = 0
     if monthly_income > 0:
         debt_to_income_ratio = (monthly_expenses['total'] / monthly_income) * 100
-    
-    # Get income sources for next payment info
     income_sources = IncomeSource.query.filter_by(user_id=user.id, is_active=True).all()
     next_income_dates = []
     for source in income_sources:
@@ -1245,22 +1240,152 @@ def dashboard():
                 'date': next_date,
                 'days_away': days_away
             })
-    
-    # Sort by date
     next_income_dates.sort(key=lambda x: x['date'])
-    
+
+    # --- NEW: Handle overview query parameters ---
+
+    # Get date range from request or default to next 3 months
+    start_date_str = request.args.get('start_date')
+    end_date_str = request.args.get('end_date')
+    include_excluded_str = request.args.get('include_excluded', 'false')
+    include_excluded = include_excluded_str.lower() == 'true'
+
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except Exception:
+            start_date = datetime.now().date()
+            end_date = start_date + timedelta(days=90)
+    else:
+        start_date = datetime.now().date()
+        end_date = start_date + timedelta(days=90)
+
+    # Get all income sources (income always included)
+    income_sources_ov = IncomeSource.query.filter_by(user_id=user.id, is_active=True).all()
+    if include_excluded:
+        bills_ov = Bill.query.filter_by(user_id=user.id, recurring=True).all()
+        subscriptions_ov = Subscription.query.filter_by(user_id=user.id, is_active=True).all()
+        loans_ov = Loan.query.filter_by(user_id=user.id, is_paid_off=False).all()
+        credit_cards_ov = CreditCard.query.filter_by(user_id=user.id).all()
+    else:
+        bills_ov = Bill.query.filter_by(user_id=user.id, recurring=True, include_in_calculations=True).all()
+        subscriptions_ov = Subscription.query.filter_by(user_id=user.id, is_active=True, include_in_calculations=True).all()
+        loans_ov = Loan.query.filter_by(user_id=user.id, is_paid_off=False, include_in_calculations=True).all()
+        credit_cards_ov = CreditCard.query.filter_by(user_id=user.id, include_in_calculations=True).all()
+
+    # Build timeline
+    timeline = []
+    # Income events
+    for source in income_sources_ov:
+        income_dates = get_future_income_dates(source, start_date, end_date)
+        for date in income_dates:
+            timeline.append({
+                'date': date,
+                'type': 'income',
+                'description': source.name,
+                'amount': source.amount,
+                'category': 'Income',
+                'excluded': False
+            })
+    # Bill expenses
+    for bill in bills_ov:
+        current_date = start_date
+        while current_date <= end_date:
+            if current_date >= bill.due_date or current_date.day == bill.due_date.day:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': bill.name,
+                    'amount': -bill.amount,
+                    'category': 'Bills',
+                    'excluded': not getattr(bill, 'include_in_calculations', True)
+                })
+            current_date = add_months(current_date, 1)
+    # Subscription expenses
+    for sub in subscriptions_ov:
+        current_date = sub.next_billing_date
+        interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
+        while current_date <= end_date:
+            if current_date >= start_date:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': sub.name,
+                    'amount': -sub.amount,
+                    'category': 'Subscriptions',
+                    'excluded': not getattr(sub, 'include_in_calculations', True)
+                })
+            current_date += timedelta(days=interval_days)
+    # Loan payments
+    for loan in loans_ov:
+        current_date = loan.next_payment_date
+        while current_date <= end_date:
+            if current_date >= start_date:
+                timeline.append({
+                    'date': current_date,
+                    'type': 'expense',
+                    'description': f"{loan.name} Payment",
+                    'amount': -loan.monthly_payment,
+                    'category': 'Loans',
+                    'excluded': not getattr(loan, 'include_in_calculations', True)
+                })
+            current_date = add_months(current_date, 1)
+    # Credit card minimum payments
+    for card in credit_cards_ov:
+        if card.minimum_payment:
+            current_date = card.payment_due_date
+            while current_date <= end_date:
+                if current_date >= start_date:
+                    timeline.append({
+                        'date': current_date,
+                        'type': 'expense',
+                        'description': f"{card.name} Min Payment",
+                        'amount': -card.minimum_payment,
+                        'category': 'Credit Cards',
+                        'excluded': not getattr(card, 'include_in_calculations', True)
+                    })
+                current_date = add_months(current_date, 1)
+    # Sort timeline by date
+    timeline.sort(key=lambda x: x['date'])
+    # Calculate running balance
+    running_balance = 0
+    for item in timeline:
+        if include_excluded or not item.get('excluded', False):
+            running_balance += item['amount']
+        item['running_balance'] = running_balance
+    # Summary stats
+    if include_excluded:
+        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
+    else:
+        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
+    net_income = total_income - total_expenses
+    excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
+
     return render_template(
-        'dashboard.html', 
-        user=user, 
-        bills=upcoming_bills, 
+        'dashboard.html',
+        user=user,
+        bills=upcoming_bills,
         credit_cards=credit_cards,
         urgent_bills=urgent_bills,
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
         monthly_expenses_all=monthly_expenses_all,
         debt_to_income_ratio=debt_to_income_ratio,
-        next_income_dates=next_income_dates[:5],  # Show next 5 payments
-        today=today  # Keep this for any other template usage
+        next_income_dates=next_income_dates[:5],
+        today=today,
+        # Overview variables:
+        timeline=timeline,
+        start_date=start_date,
+        end_date=end_date,
+        total_income=total_income,
+        total_expenses=total_expenses,
+        net_income=net_income,
+        excluded_expenses=excluded_expenses,
+        include_excluded=include_excluded,
+        current_page='dashboard'
     )
 
 @app.route('/income', methods=['GET', 'POST'])
@@ -1320,159 +1445,160 @@ def income():
     for source in user_income:
         source.future_dates = get_future_income_dates(source, today, end_date)[:6]  # Next 6 payments
     
-    return render_template('income.html', income_sources=user_income)
+    return render_template('income.html', income_sources=user_income, current_page='income')
 
-@app.route('/overview')
-def overview():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
+# @app.route('/overview')
+# def overview():
+#     if 'user_id' not in session:
+#         return redirect(url_for('login'))
     
-    # Get date range from request or default to next 3 months
-    start_date_str = request.args.get('start_date')
-    end_date_str = request.args.get('end_date')
-    include_excluded_str = request.args.get('include_excluded', 'false')
-    include_excluded = include_excluded_str.lower() == 'true'
+#     # Get date range from request or default to next 3 months
+#     start_date_str = request.args.get('start_date')
+#     end_date_str = request.args.get('end_date')
+#     include_excluded_str = request.args.get('include_excluded', 'false')
+#     include_excluded = include_excluded_str.lower() == 'true'
     
-    if start_date_str and end_date_str:
-        start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-        end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-    else:
-        start_date = datetime.now().date()
-        end_date = start_date + timedelta(days=90)
+#     if start_date_str and end_date_str:
+#         start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+#         end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+#     else:
+#         start_date = datetime.now().date()
+#         end_date = start_date + timedelta(days=90)
     
-    # Get all income sources (income always included)
-    income_sources = IncomeSource.query.filter_by(user_id=session['user_id'], is_active=True).all()
+#     # Get all income sources (income always included)
+#     income_sources = IncomeSource.query.filter_by(user_id=session['user_id'], is_active=True).all()
     
-    # Get all recurring expenses - filter based on include_excluded setting
-    if include_excluded:
-        bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True).all()
-        subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).all()
-        loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).all()
-        credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
-    else:
-        bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True, include_in_calculations=True).all()
-        subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True, include_in_calculations=True).all()
-        loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False, include_in_calculations=True).all()
-        credit_cards = CreditCard.query.filter_by(user_id=session['user_id'], include_in_calculations=True).all()
+#     # Get all recurring expenses - filter based on include_excluded setting
+#     if include_excluded:
+#         bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True).all()
+#         subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).all()
+#         loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).all()
+#         credit_cards = CreditCard.query.filter_by(user_id=session['user_id']).all()
+#     else:
+#         bills = Bill.query.filter_by(user_id=session['user_id'], recurring=True, include_in_calculations=True).all()
+#         subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True, include_in_calculations=True).all()
+#         loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False, include_in_calculations=True).all()
+#         credit_cards = CreditCard.query.filter_by(user_id=session['user_id'], include_in_calculations=True).all()
     
-    # Build comprehensive timeline
-    timeline = []
+#     # Build comprehensive timeline
+#     timeline = []
     
-    # Add income events
-    for source in income_sources:
-        income_dates = get_future_income_dates(source, start_date, end_date)
-        for date in income_dates:
-            timeline.append({
-                'date': date,
-                'type': 'income',
-                'description': source.name,
-                'amount': source.amount,
-                'category': 'Income',
-                'excluded': False
-            })
+#     # Add income events
+#     for source in income_sources:
+#         income_dates = get_future_income_dates(source, start_date, end_date)
+#         for date in income_dates:
+#             timeline.append({
+#                 'date': date,
+#                 'type': 'income',
+#                 'description': source.name,
+#                 'amount': source.amount,
+#                 'category': 'Income',
+#                 'excluded': False
+#             })
     
-    # Add bill expenses (recurring)
-    for bill in bills:
-        current_date = start_date
-        while current_date <= end_date:
-            # For simplicity, assume monthly bills
-            if current_date >= bill.due_date or current_date.day == bill.due_date.day:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': bill.name,
-                    'amount': -bill.amount,
-                    'category': 'Bills',
-                    'excluded': not getattr(bill, 'include_in_calculations', True)
-                })
+#     # Add bill expenses (recurring)
+#     for bill in bills:
+#         current_date = start_date
+#         while current_date <= end_date:
+#             # For simplicity, assume monthly bills
+#             if current_date >= bill.due_date or current_date.day == bill.due_date.day:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': bill.name,
+#                     'amount': -bill.amount,
+#                     'category': 'Bills',
+#                     'excluded': not getattr(bill, 'include_in_calculations', True)
+#                 })
             
-            # Move to next month using safe helper function
-            current_date = add_months(current_date, 1)
+#             # Move to next month using safe helper function
+#             current_date = add_months(current_date, 1)
     
-    # Add subscription expenses
-    for sub in subscriptions:
-        current_date = sub.next_billing_date
-        interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
+#     # Add subscription expenses
+#     for sub in subscriptions:
+#         current_date = sub.next_billing_date
+#         interval_days = 30 if sub.billing_cycle == 'Monthly' else (365 if sub.billing_cycle == 'Yearly' else 7)
         
-        while current_date <= end_date:
-            if current_date >= start_date:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': sub.name,
-                    'amount': -sub.amount,
-                    'category': 'Subscriptions',
-                    'excluded': not getattr(sub, 'include_in_calculations', True)
-                })
-            current_date += timedelta(days=interval_days)
+#         while current_date <= end_date:
+#             if current_date >= start_date:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': sub.name,
+#                     'amount': -sub.amount,
+#                     'category': 'Subscriptions',
+#                     'excluded': not getattr(sub, 'include_in_calculations', True)
+#                 })
+#             current_date += timedelta(days=interval_days)
     
-    # Add loan payments
-    for loan in loans:
-        current_date = loan.next_payment_date
-        while current_date <= end_date:
-            if current_date >= start_date:
-                timeline.append({
-                    'date': current_date,
-                    'type': 'expense',
-                    'description': f"{loan.name} Payment",
-                    'amount': -loan.monthly_payment,
-                    'category': 'Loans',
-                    'excluded': not getattr(loan, 'include_in_calculations', True)
-                })
+#     # Add loan payments
+#     for loan in loans:
+#         current_date = loan.next_payment_date
+#         while current_date <= end_date:
+#             if current_date >= start_date:
+#                 timeline.append({
+#                     'date': current_date,
+#                     'type': 'expense',
+#                     'description': f"{loan.name} Payment",
+#                     'amount': -loan.monthly_payment,
+#                     'category': 'Loans',
+#                     'excluded': not getattr(loan, 'include_in_calculations', True)
+#                 })
             
-            # Move to next month using safe helper function
-            current_date = add_months(current_date, 1)
+#             # Move to next month using safe helper function
+#             current_date = add_months(current_date, 1)
     
-    # Add credit card minimum payments
-    for card in credit_cards:
-        if card.minimum_payment:
-            current_date = card.payment_due_date
-            while current_date <= end_date:
-                if current_date >= start_date:
-                    timeline.append({
-                        'date': current_date,
-                        'type': 'expense',
-                        'description': f"{card.name} Min Payment",
-                        'amount': -card.minimum_payment,
-                        'category': 'Credit Cards',
-                        'excluded': not getattr(card, 'include_in_calculations', True)
-                    })
+#     # Add credit card minimum payments
+#     for card in credit_cards:
+#         if card.minimum_payment:
+#             current_date = card.payment_due_date
+#             while current_date <= end_date:
+#                 if current_date >= start_date:
+#                     timeline.append({
+#                         'date': current_date,
+#                         'type': 'expense',
+#                         'description': f"{card.name} Min Payment",
+#                         'amount': -card.minimum_payment,
+#                         'category': 'Credit Cards',
+#                         'excluded': not getattr(card, 'include_in_calculations', True)
+#                     })
                 
-                # Move to next month using safe helper function
-                current_date = add_months(current_date, 1)
+#                 # Move to next month using safe helper function
+#                 current_date = add_months(current_date, 1)
     
-    # Sort timeline by date
-    timeline.sort(key=lambda x: x['date'])
+#     # Sort timeline by date
+#     timeline.sort(key=lambda x: x['date'])
     
-    # Calculate running balance (only for non-excluded items unless include_excluded is True)
-    running_balance = 0
-    for item in timeline:
-        if include_excluded or not item.get('excluded', False):
-            running_balance += item['amount']
-        item['running_balance'] = running_balance
+#     # Calculate running balance (only for non-excluded items unless include_excluded is True)
+#     running_balance = 0
+#     for item in timeline:
+#         if include_excluded or not item.get('excluded', False):
+#             running_balance += item['amount']
+#         item['running_balance'] = running_balance
     
-    # Calculate summary stats
-    if include_excluded:
-        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
-        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
-    else:
-        total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
-        total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
+#     # Calculate summary stats
+#     if include_excluded:
+#         total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+#         total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense')
+#     else:
+#         total_income = sum(item['amount'] for item in timeline if item['type'] == 'income')
+#         total_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and not item.get('excluded', False))
     
-    net_income = total_income - total_expenses
+#     net_income = total_income - total_expenses
     
-    # Calculate excluded amounts for display
-    excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
+#     # Calculate excluded amounts for display
+#     excluded_expenses = sum(-item['amount'] for item in timeline if item['type'] == 'expense' and item.get('excluded', False))
     
-    return render_template('overview.html',
-                         timeline=timeline,
-                         start_date=start_date,
-                         end_date=end_date,
-                         total_income=total_income,
-                         total_expenses=total_expenses,
-                         net_income=net_income,
-                         excluded_expenses=excluded_expenses,
-                         include_excluded=include_excluded)
+#     return render_template('overview.html',
+#                          timeline=timeline,
+#                          start_date=start_date,
+#                          end_date=end_date,
+#                          total_income=total_income,
+#                          total_expenses=total_expenses,
+#                          net_income=net_income,
+#                          excluded_expenses=excluded_expenses,
+#                          include_excluded=include_excluded,
+#                          current_page='overview')
 
 @app.route('/bills', methods=['GET', 'POST'])
 def bills():
@@ -1516,7 +1642,7 @@ def bills():
     user_subscriptions = Subscription.query.filter_by(user_id=session['user_id'], is_active=True).order_by(Subscription.next_billing_date).all()
     user_loans = Loan.query.filter_by(user_id=session['user_id'], is_paid_off=False).order_by(Loan.next_payment_date).all()
     
-    return render_template('bills.html', bills=user_bills, subscriptions=user_subscriptions, loans=user_loans)
+    return render_template('bills.html', bills=user_bills, subscriptions=user_subscriptions, loans=user_loans, current_page='bills')
 
 @app.route('/subscriptions', methods=['GET', 'POST'])
 def subscriptions():
@@ -1556,7 +1682,7 @@ def subscriptions():
         return redirect(url_for('subscriptions'))
     
     user_subscriptions = Subscription.query.filter_by(user_id=session['user_id']).order_by(Subscription.next_billing_date).all()
-    return render_template('subscriptions.html', subscriptions=user_subscriptions)
+    return render_template('subscriptions.html', subscriptions=user_subscriptions, current_page='subscriptions')
 
 @app.route('/loans', methods=['GET', 'POST'])
 def loans():
@@ -1618,7 +1744,8 @@ def loans():
         'loans.html',
         loans=loans_for_table,
         student_loans=student_loans,
-        include_student_loans=include_student_loans
+        include_student_loans=include_student_loans,
+        current_page='loans'
     )
 
 @app.route('/credit-cards', methods=['GET', 'POST'])
@@ -1738,7 +1865,8 @@ def credit_cards():
                          total_available=total_available,
                          total_min_payments=total_min_payments,
                          avg_interest_rate=avg_interest_rate,
-                         overall_utilization=overall_utilization)
+                         overall_utilization=overall_utilization,
+                         current_page='credit-cards')
 
 @app.route('/mark_paid/<string:bill_type>/<int:item_id>')
 def mark_paid(bill_type, item_id):
@@ -2616,7 +2744,7 @@ def demo_exit():
 @app.route('/wiki')
 def wiki():
     """Project documentation and wiki"""
-    return render_template('wiki.html')
+    return render_template('wiki.html', current_page='wiki')
 
 @app.route('/wiki/<section>')
 def wiki_section(section):
@@ -2847,7 +2975,8 @@ def budget():
                          recent_transactions=recent_transactions,
                          active_goals=active_goals,
                          all_periods=all_periods,
-                         current_period=current_period)
+                         current_period=current_period,
+                         current_page='budget')
 
 @app.route('/budget/categories', methods=['GET', 'POST'])
 def budget_categories():
@@ -3535,7 +3664,8 @@ def payment_planner():
         total_other_loan_min=total_other_loan_min,
         total_card_min=total_card_min,
         suggestion=suggestion,
-        csrf_token=generate_csrf()
+        csrf_token=generate_csrf(),
+        current_page='payment_planner'
     )
 
 
