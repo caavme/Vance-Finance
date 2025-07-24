@@ -577,14 +577,15 @@
         {
             id: {{ card.id }},
             name: "{{ card.name }}",
-            lastFour: "{{ card.last_four }}",
-            limit: {{ card.limit or 0 }},
+                lastFour: "{{ card.last_four }}",
+                    limit: {{ card.limit or 0 }},
             currentBalance: {{ card.current_balance or 0 }},
             interestRate: {{ card.interest_rate or 0 }},
             minimumPayment: {{ card.minimum_payment or 0 }},
+            isMinimumManual: {{ 'true' if card.is_minimum_manual else 'false' }},
             annualFee: {{ card.annual_fee or 0 }},
             annualFeeFrequency: "{{ card.annual_fee_frequency or 'yearly' }}"
-        }{% if not loop.last %},{% endif %}
+        } {% if not loop.last %}, {% endif %}
         {% endfor %}
     ];
 
@@ -661,6 +662,38 @@
         previewText += '</small>';
 
         previewDiv.innerHTML = previewText;
+    }
+
+    function getCalculatedMinimumPayment(card) {
+        let minPayment = card.currentBalance * 0.02; // 2% of balance
+
+        // Interest + principal method
+        if (card.interestRate > 0) {
+            const monthlyInterestRate = card.interestRate / 100 / 12;
+            const monthlyInterest = card.currentBalance * monthlyInterestRate;
+            const principalPayment = card.currentBalance * 0.01;
+            minPayment = Math.max(minPayment, monthlyInterest + principalPayment);
+        }
+
+        // Minimum floor
+        minPayment = Math.max(minPayment, 25.0);
+
+        // Add monthly fee if applicable
+        let monthlyFee = 0;
+        if (card.annualFee > 0 && card.annualFeeFrequency === 'monthly') {
+            monthlyFee = card.annualFee / 12;
+            minPayment += monthlyFee;
+        }
+
+        // Maximum cap
+        minPayment = Math.min(minPayment, card.currentBalance + monthlyFee);
+
+        // If manual override, use manual value
+        if (card.isMinimumManual === true || card.isMinimumManual === 'true') {
+            minPayment = card.minimumPayment;
+        }
+
+        return minPayment;
     }
 
     // Toggle calculation mode
@@ -946,68 +979,65 @@
         const resultsDiv = document.getElementById('calculationResults');
 
         let html = `
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <div class="card border-primary">
-                        <div class="card-body text-center">
-                            <h6 class="card-title">${calculationMode === 'monthly' ? 'Monthly' : 'Total'} Allocated</h6>
-                            <h4 class="text-primary">$${totalAllocated.toFixed(2)}</h4>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-warning">
-                        <div class="card-body text-center">
-                            <h6 class="card-title">Remaining</h6>
-                            <h4 class="text-warning">$${remaining.toFixed(2)}</h4>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card border-success">
-                        <div class="card-body text-center">
-                            <h6 class="card-title">Cards Optimized</h6>
-                            <h4 class="text-success">${payments.filter(p => p.suggestedPayment > 0).length}</h4>
-                        </div>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <div class="card budget-summary-card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">${calculationMode === 'monthly' ? 'Monthly' : 'Total'} Allocated</h6>
+                        <h4 class="text-primary">$${totalAllocated.toFixed(2)}</h4>
                     </div>
                 </div>
             </div>
-        `;
+            <div class="col-md-4">
+                <div class="card budget-summary-card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Remaining</h6>
+                        <h4 class="text-warning">$${remaining.toFixed(2)}</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card budget-summary-card">
+                    <div class="card-body text-center">
+                        <h6 class="card-title">Cards Optimized</h6>
+                        <h4 class="text-success">${payments.filter(p => p.suggestedPayment > 0).length}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
 
         if (calculationMode === 'monthly' && budgetAnalysis) {
             html += `
-                <div class="alert alert-info mb-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Monthly Budget Plan:</strong> This shows your recommended monthly payment allocation.
-                    ${budgetAnalysis.estimatedPayoffMonths !== 'Unknown' ?
-                        `Following this plan, you'll pay off all cards in approximately ${budgetAnalysis.estimatedPayoffMonths} months.` :
-                        'Consider increasing your budget for faster payoff.'
-                    }
-                </div>
-            `;
+            <div class="alert alert-info mb-3">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Monthly Budget Plan:</strong> This shows your recommended monthly payment allocation.
+                ${budgetAnalysis.estimatedPayoffMonths !== 'Unknown' ?
+                    `Following this plan, you'll pay off all cards in approximately ${budgetAnalysis.estimatedPayoffMonths} months.` :
+                    'Consider increasing your budget for faster payoff.'
+                }
+            </div>
+        `;
         }
 
-        html += `
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead>
-                        <tr>
-                            <th>Card</th>
-                            <th>Current Balance</th>
-                            <th>Current Util.</th>
-                            <th>Min Payment</th>
-                            <th>Suggested Payment</th>
-                            <th>New Balance</th>
-                            <th>New Util.</th>
-                            ${calculationMode === 'monthly' ? '<th>Payoff Time*</th>' : ''}
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
+        // Totals accumulators
+        let totalCurrentBalance = 0;
+        let totalEstMinPayment = 0;
+        let totalMinPayment = 0;
+        let totalSuggestedPayment = 0;
+        let totalNewBalance = 0;
 
-        payments.forEach(payment => {
+        // Pre-calculate all row data for easier totals and rendering
+        const rowData = payments.map(payment => {
             const newBalance = payment.currentBalance - payment.suggestedPayment;
             const newUtilization = (newBalance / payment.limit * 100);
+            const estMinPayment = getCalculatedMinimumPayment(payment);
+
+            totalCurrentBalance += payment.currentBalance;
+            totalEstMinPayment += estMinPayment;
+            totalMinPayment += payment.minimumPayment;
+            totalSuggestedPayment += payment.suggestedPayment;
+            totalNewBalance += newBalance;
 
             // Estimate individual payoff time for monthly mode
             let payoffTime = '';
@@ -1025,43 +1055,97 @@
                 payoffTime = 'Min only';
             }
 
-            html += `
-                <tr ${payment.suggestedPayment > 0 ? 'class="table-success"' : ''}>
-                    <td>
-                        <strong>${payment.name}</strong><br>
-                        <small class="text-muted">x${payment.lastFour}</small>
-                        ${(payment.annualFee > 0 && payment.annualFeeFrequency === 'monthly') ?
-                            `<br><small class="text-info">+$${(payment.annualFee / 12).toFixed(2)}/mo fee</small>` : ''}
-                    </td>
-                    <td>$${payment.currentBalance.toFixed(2)}</td>
-                    <td>
-                        <span class="badge ${payment.currentUtilization > 30 ? 'bg-danger' : payment.currentUtilization > 10 ? 'bg-warning' : 'bg-success'}">
-                            ${payment.currentUtilization.toFixed(1)}%
-                        </span>
-                    </td>
-                    <td>$${payment.minimumPayment.toFixed(2)}</td>
-                    <td>
-                        <strong>$${payment.suggestedPayment.toFixed(2)}</strong>
-                        ${payment.suggestedPayment >= payment.minimumPayment ?
-                            '<br><small class="text-success">✓ Covers minimum</small>' :
-                            '<br><small class="text-danger">⚠ Below minimum</small>'}
-                    </td>
-                    <td>$${newBalance.toFixed(2)}</td>
-                    <td>
-                        <span class="badge ${newUtilization > 30 ? 'bg-danger' : newUtilization > 10 ? 'bg-warning' : 'bg-success'}">
-                            ${newUtilization.toFixed(1)}%
-                        </span>
-                    </td>
-                    ${calculationMode === 'monthly' ? `<td><small>${payoffTime}</small></td>` : ''}
-                </tr>
-            `;
+            return {
+                payment,
+                newBalance,
+                newUtilization,
+                estMinPayment,
+                payoffTime
+            };
         });
 
         html += `
-                    </tbody>
-                </table>
-            </div>
+        <div class="table-responsive">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Card</th>
+                        <th>Current Balance</th>
+                        <th>Current Util.</th>
+                        <th>Min Payment</th>
+                        <th>Suggested Payment</th>
+                        <th>New Balance</th>
+                        <th>Est. Min Payment</th>
+                        <th>New Util.</th>
+                        ${calculationMode === 'monthly' ? '<th>Payoff Time*</th>' : ''}
+                    </tr>
+                </thead>
+                <tbody>
         `;
+
+        // Totals row at the top
+        html += `
+        <tr class="table-secondary fw-bold">
+            <td>Totals</td>
+            <td>$${totalCurrentBalance.toFixed(2)}</td>
+            <td>—</td>
+            <td>$${totalMinPayment.toFixed(2)}</td>
+            <td>$${totalSuggestedPayment.toFixed(2)}</td>
+            <td>$${totalNewBalance.toFixed(2)}</td>
+            <td>$${totalEstMinPayment.toFixed(2)}</td>
+            <td>—</td>
+            ${calculationMode === 'monthly' ? '<td>—</td>' : ''}
+        </tr>
+        `;
+
+        // Data rows
+        rowData.forEach(({ payment, newBalance, newUtilization, estMinPayment, payoffTime }) => {
+            html += `
+            <tr ${payment.suggestedPayment > 0 ? 'class="table-success"' : ''}>
+                <td>
+                    <strong>${payment.name}</strong><br>
+                    <small class="text-muted">x${payment.lastFour}</small>
+                    ${(payment.annualFee > 0 && payment.annualFeeFrequency === 'monthly') ?
+                    `<br><small class="text-info">+$${(payment.annualFee / 12).toFixed(2)}/mo fee</small>` : ''}
+                </td>
+                <td>$${payment.currentBalance.toFixed(2)}</td>
+                <td>
+                    <span class="badge ${payment.currentUtilization > 30 ? 'bg-danger' : payment.currentUtilization > 10 ? 'bg-warning' : 'bg-success'}">
+                        ${payment.currentUtilization.toFixed(1)}%
+                    </span>
+                </td>
+                <td>
+                    $${payment.minimumPayment.toFixed(2)}
+                    <br>
+                    <small class="text-muted">
+                        ${payment.isMinimumManual === true || payment.isMinimumManual === 'true' ? 'Manually entered' : 'Auto-calculated'}
+                    </small>
+                </td>
+                <td>
+                    <strong>$${payment.suggestedPayment.toFixed(2)}</strong>
+                    ${payment.suggestedPayment >= estMinPayment ?
+                    '<br><small class="text-success">✓ Covers minimum</small>' :
+                    '<br><small class="text-danger">⚠ Below minimum</small>'}
+                </td>
+                <td>$${newBalance.toFixed(2)}</td>
+                <td>
+                    $${estMinPayment.toFixed(2)}
+                </td>
+                <td>
+                    <span class="badge ${newUtilization > 30 ? 'bg-danger' : newUtilization > 10 ? 'bg-warning' : 'bg-success'}">
+                        ${newUtilization.toFixed(1)}%
+                    </span>
+                </td>
+                ${calculationMode === 'monthly' ? `<td><small>${payoffTime}</small></td>` : ''}
+            </tr>
+        `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        </div>
+    `;
 
         if (calculationMode === 'monthly') {
             html += `<small class="text-muted">*Estimated payoff time assumes consistent monthly payments, current interest rates, and includes monthly fees.</small>`;
@@ -1069,11 +1153,11 @@
 
         if (remaining > 0) {
             html += `
-                <div class="alert alert-info mt-3">
-                    <i class="bi bi-info-circle me-2"></i>
-                    You have $${remaining.toFixed(2)} remaining. Consider applying this to your highest interest rate card or saving it for emergencies.
-                </div>
-            `;
+            <div class="alert alert-info mt-3">
+                <i class="bi bi-info-circle me-2"></i>
+                You have $${remaining.toFixed(2)} remaining. Consider applying this to your highest interest rate card or saving it for emergencies.
+            </div>
+        `;
         }
 
         resultsDiv.innerHTML = html;

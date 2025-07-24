@@ -13,7 +13,7 @@ from flask_wtf.csrf import CSRFProtect
 from flask_wtf.csrf import generate_csrf
 
 # Version numbers for display
-APP_VERSION = "2.2.5"
+APP_VERSION = "2.3.0"
 WIKI_VERSION = "v2.2.1"
 
 # Initialize Flask application
@@ -3746,7 +3746,7 @@ if __name__ == '__main__':
     # Run the application
     app.run(
         host='0.0.0.0',
-        port=int(os.environ.get('PORT', 5000)),
+        port=int(os.environ.get('PORT', 5001)),
         debug=app.config['DEVELOPMENT_MODE'],
         threaded=True
     )
