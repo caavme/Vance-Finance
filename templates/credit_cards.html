@@ -1031,7 +1031,10 @@
         const rowData = payments.map(payment => {
             const newBalance = payment.currentBalance - payment.suggestedPayment;
             const newUtilization = (newBalance / payment.limit * 100);
-            const estMinPayment = getCalculatedMinimumPayment(payment);
+            const estMinPayment = getCalculatedMinimumPayment({
+                ...payment,
+                currentBalance: newBalance // Use new balance for estimate
+            });
 
             totalCurrentBalance += payment.currentBalance;
             totalEstMinPayment += estMinPayment;
