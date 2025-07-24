@@ -328,6 +328,7 @@
                                         <option value="interest">Pay High Interest First (Avalanche)</option>
                                         <option value="balance">Pay High Balance First</option>
                                         <option value="minimums">Cover All Minimums First</option>
+                                        <option value="lowestmin">Achieve Lowest Possible Minimums</option>
                                         <option value="snowball">Pay Low Balance First (Snowball)</option>
                                         <option value="even">Distribute Evenly</option>
                                     </select>
@@ -577,15 +578,15 @@
         {
             id: {{ card.id }},
             name: "{{ card.name }}",
-                lastFour: "{{ card.last_four }}",
-                    limit: {{ card.limit or 0 }},
+            lastFour: "{{ card.last_four }}",
+            limit: {{ card.limit or 0 }},
             currentBalance: {{ card.current_balance or 0 }},
             interestRate: {{ card.interest_rate or 0 }},
             minimumPayment: {{ card.minimum_payment or 0 }},
             isMinimumManual: {{ 'true' if card.is_minimum_manual else 'false' }},
             annualFee: {{ card.annual_fee or 0 }},
             annualFeeFrequency: "{{ card.annual_fee_frequency or 'yearly' }}"
-        } {% if not loop.last %}, {% endif %}
+        }{% if not loop.last %},{% endif %}
         {% endfor %}
     ];
 
@@ -893,13 +894,14 @@
                 interestRate: card.interestRate,
                 minimumPayment: card.minimumPayment,
                 annualFee: card.annualFee,
-                annualFeeFrequency: card.annualFeeFrequency
+                annualFeeFrequency: card.annualFeeFrequency,
+                isMinimumManual: card.isMinimumManual
             });
         });
 
         // Handle "minimums first" strategy
         if (strategy === 'minimums') {
-            // First, allocate minimum payments
+            // ... (existing code unchanged)
             let totalMinimums = 0;
             payments.forEach(payment => {
                 totalMinimums += payment.minimumPayment;
@@ -916,13 +918,11 @@
                 return;
             }
 
-            // Allocate minimums first
             payments.forEach(payment => {
                 payment.suggestedPayment = payment.minimumPayment;
                 remainingPayment -= payment.minimumPayment;
             });
 
-            // Apply remaining payment using utilization strategy
             payments.sort((a, b) => b.currentUtilization - a.currentUtilization);
             for (let payment of payments) {
                 if (remainingPayment <= 0) break;
@@ -930,6 +930,43 @@
                 payment.suggestedPayment += additionalPayment;
                 remainingPayment -= additionalPayment;
             }
+        } else if (strategy === 'lowestmin') {
+            // New: Achieve lowest possible minimums for all cards
+            // Greedy: allocate each dollar to the card where it reduces next min payment the most
+            let step = 1.0;
+            let paymentLeft = remainingPayment;
+            let simBalances = payments.map(p => p.currentBalance);
+            let simSuggested = payments.map(_ => 0);
+
+            function estMin(card, balance) {
+                return getCalculatedMinimumPayment({
+                    ...card,
+                    currentBalance: balance
+                });
+            }
+
+            while (paymentLeft >= step) {
+                let bestIdx = -1;
+                let bestReduction = 0;
+                for (let i = 0; i < payments.length; i++) {
+                    if (simBalances[i] <= 0) continue;
+                    let before = estMin(payments[i], simBalances[i]);
+                    let after = estMin(payments[i], Math.max(0, simBalances[i] - step));
+                    let reduction = before - after;
+                    if (reduction > bestReduction + 1e-6) {
+                        bestReduction = reduction;
+                        bestIdx = i;
+                    }
+                }
+                if (bestIdx === -1) break;
+                simBalances[bestIdx] -= step;
+                simSuggested[bestIdx] += step;
+                paymentLeft -= step;
+            }
+            for (let i = 0; i < payments.length; i++) {
+                payments[i].suggestedPayment = simSuggested[i];
+            }
+            remainingPayment = paymentLeft;
         } else {
             // Apply other payment strategies
             switch (strategy) {
@@ -943,27 +980,21 @@
                     payments.sort((a, b) => b.currentBalance - a.currentBalance);
                     break;
                 case 'snowball':
-                    // Snowball: pay smallest balance first
                     payments.sort((a, b) => a.currentBalance - b.currentBalance);
                     break;
                 case 'even':
-                    // Distribute evenly (no sorting needed)
                     break;
             }
 
-            // Allocate payments
             if (strategy === 'even') {
-                // Distribute evenly among all cards
                 const perCardPayment = remainingPayment / payments.length;
                 payments.forEach(payment => {
                     payment.suggestedPayment = Math.min(perCardPayment, payment.maxPayment);
                     remainingPayment -= payment.suggestedPayment;
                 });
             } else {
-                // Apply waterfall method - pay each card to target utilization in priority order
                 for (let payment of payments) {
                     if (remainingPayment <= 0) break;
-
                     const paymentAmount = Math.min(remainingPayment, payment.maxPayment);
                     payment.suggestedPayment = paymentAmount;
                     remainingPayment -= paymentAmount;
@@ -974,6 +1005,7 @@
         // Display results
         displayPaymentResults(payments, totalPayment - remainingPayment, remainingPayment, calculationMode, budgetAnalysis);
     }
+
 
     function displayPaymentResults(payments, totalAllocated, remaining, calculationMode, budgetAnalysis) {
         const resultsDiv = document.getElementById('calculationResults');
